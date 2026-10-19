@@ -124,20 +124,10 @@ async def read_layer_write_access(
     user_id: UUID4 = Depends(get_user_id),
     layer_id: UUID4 = Path(..., description="The ID of the layer"),
 ) -> LayerWriteAccess:
-    """Whether the caller may edit the layer, by the rule every layer write
-    uses (``layer_write_allowed``). False for a layer in the trash. A layer
-    that does not exist or is not theirs to see is refused by ``auth_z``
-    (read check) with login on; the app reads that refusal as "no" too. The workflow's
-    "Save as dataset" set to an existing dataset warns with this before a run;
-    the run checks again and skips the step when the answer is no."""
-    # A layer in the trash takes no rows (the run fails with "no longer
-    # exists"), whoever may otherwise write it.
+    """Whether the caller may edit the layer (``layer_write_allowed``). The
+    workflow's "Save as dataset" warns with it before a run."""
     result = await async_session.execute(
-        text(
-            f"SELECT {settings.SCHEMA}.layer_write_allowed(:layer, :user) "
-            f"AND EXISTS (SELECT 1 FROM {settings.SCHEMA}.layer "
-            "WHERE id = :layer AND deleted_at IS NULL)"
-        ),
+        text(f"SELECT {settings.SCHEMA}.layer_write_allowed(:layer, :user)"),
         {"layer": layer_id, "user": user_id},
     )
     return LayerWriteAccess(can_write=bool(result.scalar()))

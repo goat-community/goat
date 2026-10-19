@@ -66,16 +66,15 @@ const ExportNode: React.FC<ExportNodeProps> = ({ id, data, selected }) => {
   const nodes = useSelector(selectNodes);
 
   const edges = useEdges();
-  const { status: nodeStatus_, info } = useNodeExecutionStatus(id);
+  const { status: nodeStatus_ } = useNodeExecutionStatus(id);
   const nodeStatus = nodeStatus_ || data.status;
 
   // "Existing dataset" needs a target dataset instead of a name
   const isExisting = data.destination === "existing";
-  const rowsAppended = info?.rowsAppended;
 
   const missingDatasetName = !isExisting && !data.datasetName?.trim();
   const missingTarget = isExisting && !data.targetLayerId;
-  // Checked before the run too: without edit rights the run skips this step.
+  // Checked before the run too: without edit rights this step fails.
   const { canWrite } = useLayerWriteAccess(isExisting ? data.targetLayerId : undefined);
   const noEditRights = isExisting && !!data.targetLayerId && canWrite === false;
   const missingConnection = !edges.some((e) => e.target === id);
@@ -243,11 +242,6 @@ const ExportNode: React.FC<ExportNodeProps> = ({ id, data, selected }) => {
                 {t("yes")}
               </Typography>
             </ParamRow>
-          )}
-          {isExisting && nodeStatus === "completed" && rowsAppended !== undefined && (
-            <Typography variant="caption" color="success.main" fontWeight="bold" sx={{ fontSize: 11 }}>
-              {t("append_rows_appended", { count: rowsAppended })}
-            </Typography>
           )}
           </Stack>
         </NodeParamsSection>

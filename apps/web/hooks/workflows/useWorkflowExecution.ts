@@ -57,7 +57,6 @@ interface NodeResult {
   status?: string;
   error?: string;
   duration_ms?: number; // Execution duration in milliseconds
-  rows_appended?: number; // Append nodes
   properties?: Record<string, unknown>; // Layer style properties from tool
 }
 
@@ -582,7 +581,6 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
           finalExecutionInfo[nodeId] = {
             status: resolveStatus(nodeId),
             durationMs: result.duration_ms,
-            rowsAppended: result.rows_appended,
           };
         });
       }

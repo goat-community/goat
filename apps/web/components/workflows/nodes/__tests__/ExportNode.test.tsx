@@ -1,6 +1,6 @@
 /**
  * "Save as dataset" in its two modes: a new dataset needs a name; "Add to
- * existing" needs a target dataset instead, and shows what the run appended.
+ * existing" needs a target dataset instead.
  */
 import { configureStore } from "@reduxjs/toolkit";
 import { render, screen } from "@testing-library/react";
@@ -12,17 +12,11 @@ import { describe, expect, it, vi } from "vitest";
 import { workflowReducer } from "@/lib/store/workflow/slice";
 import type { ExportNodeData } from "@/lib/validations/workflow";
 
-import {
-  type NodeExecutionInfo,
-  type NodeExecutionStatus,
-  WorkflowExecutionProvider,
-} from "@/components/workflows/context/WorkflowExecutionContext";
+import { WorkflowExecutionProvider } from "@/components/workflows/context/WorkflowExecutionContext";
 import ExportNode from "@/components/workflows/nodes/ExportNode";
 
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string, opts?: { count?: number }) => (opts?.count !== undefined ? `${key}:${opts.count}` : key),
-  }),
+  useTranslation: () => ({ t: (key: string) => key }),
 }));
 
 vi.mock("@xyflow/react", () => ({
@@ -39,13 +33,13 @@ vi.mock("@/lib/api/layers", () => ({
 
 type Props = ComponentProps<typeof ExportNode>;
 
-const renderNode = (data: ExportNodeData, run?: { status: NodeExecutionStatus; info: NodeExecutionInfo }) =>
+const renderNode = (data: ExportNodeData) =>
   render(
     <Provider store={configureStore({ reducer: { workflow: workflowReducer } })}>
       <WorkflowExecutionProvider
         isExecuting={false}
-        nodeStatuses={run ? { "export-1": run.status } : {}}
-        nodeExecutionInfo={run ? { "export-1": run.info } : {}}
+        nodeStatuses={{}}
+        nodeExecutionInfo={{}}
         tempLayerIds={{}}
         exportedLayerIds={{}}
         tempLayerProperties={{}}>
@@ -99,10 +93,5 @@ describe("ExportNode", () => {
     access.canWrite = true;
     renderNode(fresh(existing));
     expect(screen.queryByLabelText("append_no_edit_rights")).not.toBeInTheDocument();
-  });
-
-  it("shows what the run appended", () => {
-    renderNode(existing, { status: "completed", info: { status: "completed", rowsAppended: 12 } });
-    expect(screen.getByText("append_rows_appended:12")).toBeInTheDocument();
   });
 });

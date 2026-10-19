@@ -1016,7 +1016,6 @@
   "append_choose_target": "Choose dataset",
   "append_no_edit_rights": "You have no edit rights on this dataset",
   "append_no_edit_rights_detail": "You have no edit rights on this dataset, so the rows can't be added: this step fails when the workflow runs. Ask the dataset's owner to share it with you as editor, or choose another dataset.",
-  "append_rows_appended": "{{count}} rows appended",
   "export_save_to": "Save to",
   "export_save_to_help": "New dataset: the result becomes its own dataset. Existing dataset: the rows are added to a dataset you can edit.",
   "export_mode_new": "New dataset",

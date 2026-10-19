@@ -1,7 +1,7 @@
 """GET /layer/{id}/write-access tells the caller whether they may edit a layer.
 
 The workflow's "Save as dataset" set to an existing dataset warns before the
-run when the user may not edit the target (the run then skips it). The answer
+run when the user may not edit the target (the step then fails). The answer
 uses the same rule the run uses (``customer.layer_write_allowed``), so the
 warning and the run never disagree.
 """
@@ -120,17 +120,3 @@ async def test_unknown_layer_is_not_writable(
     client: AsyncClient, fixture_create_user: UUID
 ) -> None:
     assert await _can_write(client, uuid4()) is False
-
-
-@pytest.mark.asyncio
-async def test_trashed_layer_is_not_writable(
-    client: AsyncClient, db_session: AsyncSession, fixture_create_user: UUID
-) -> None:
-    # A layer in the trash takes no rows, also for its owner: the run would
-    # fail with "no longer exists", so the warning must say so beforehand.
-    layer_id = await _layer_of(db_session, fixture_create_user)
-    await db_session.execute(
-        text(f"UPDATE {S}.layer SET deleted_at = now() WHERE id = :l"), {"l": layer_id}
-    )
-    await db_session.commit()
-    assert await _can_write(client, layer_id) is False

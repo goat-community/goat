@@ -8,9 +8,8 @@ mixes this in and takes this path when the export node targets an existing
 dataset.
 
 Order: the export's own authorization (project write) has run; then the
-target's write right (none: the step fails; the editor already keeps such a
-run from starting); then,
-holding the layer's write lock: check the target still exists, append in one
+target's write right (none: the step fails; the editor warns beforehand);
+then, holding the layer's write lock: check the target still exists, append in one
 DuckLake transaction, refresh metadata and tiles.
 """
 
@@ -234,8 +233,8 @@ class ExistingDatasetMixin:
         loop = _get_or_create_event_loop()
         target = loop.run_until_complete(self._existing_target(params))
         if target is None or not target["write_allowed"]:
-            # The editor keeps such a run from starting; this is the net for
-            # rights taken away in between. Whether a layer they may not edit
+            # The editor only warns, so this is where it fails, also for
+            # rights taken away after the warning. Whether a layer they may not edit
             # was trashed is not theirs to learn, and a layer gone for good
             # cannot be told from one never visible, so both get one message.
             if target is None:
