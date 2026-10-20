@@ -249,9 +249,9 @@ class TestEnvironmentalWalkabilityModeAndCostTypeValidation:
             props = schema["properties"]
             for field_name in ("shade_weight", "heat_weight", "slope_walk_weight"):
                 field_ui = props[field_name].get("x-ui", {})
-                assert field_ui.get("visible_when") == {"routing_mode": "walking"}, (
-                    f"{model_cls.__name__}.{field_name} missing visible_when for walking"
-                )
+                assert field_ui.get("visible_when") == {
+                    "routing_mode": "walking"
+                }, f"{model_cls.__name__}.{field_name} missing visible_when for walking"
 
 
 # ---------------------------------------------------------------------------
@@ -694,7 +694,9 @@ class TestToolRunnerPropagation:
                 runner, "_get_starting_coordinates", return_value=([48.137], [11.576])
             ),
             mock.patch.object(runner, "_create_starting_points_parquet"),
-            mock.patch.object(runner, "_resolve_origins", side_effect=lambda p, *args: p),
+            mock.patch.object(
+                runner, "_resolve_origins", side_effect=lambda p, *args: p
+            ),
             mock.patch.object(runner, "tool_class", mock_tool_class),
         ):
             runner.process(params, tmp_path)

@@ -86,6 +86,22 @@ Catchment Area computation is available across **over 30 European countries** fo
 </TabItem>
 </Tabs>
 
+### Thermal comfort for walking
+
+When the routing mode is **Walk**, three optional weights let you steer the catchment towards streets that are more comfortable on foot. They all default to `0`, which leaves the result unchanged.
+
+- **Shade weight** penalises street segments that are exposed to direct sun and have little tree canopy.
+- **Heat weight** penalises street segments with a high surface temperature.
+- **Slope weight** penalises uphill walking. It only counts the climb, so walking downhill is not made cheaper.
+
+Each weight runs from `0` to `5`. The higher the weight, the more strongly that factor influences the result, and a weight of `0` disables the factor entirely. The three factors add up, so a street that is both unshaded and hot can be penalised by both weights at once.
+
+The weights need a street network that carries the matching attributes. If a network has no shade or surface temperature data, that factor falls back to `0` and only the remaining factors apply. GOAT logs a warning when it finds a network without the requested attributes.
+
+:::info
+The weights only apply to the `Walk` mode and to analyses based on travel time. Distances, and the other transport modes, are not affected.
+:::
+
 ### Advanced Options
 
 <div class="step">
