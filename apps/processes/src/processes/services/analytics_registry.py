@@ -75,6 +75,9 @@ class MirrorValuesProcessInput(BaseModel):
     quick: bool = Field(
         False, description="Read a small sample first, without counts, for a fast list"
     )
+    size_only: bool = Field(
+        False, description="Only the estimate of features in the area, no list"
+    )
 
 
 class MirrorValue(BaseModel):

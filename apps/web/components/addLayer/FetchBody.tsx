@@ -11,6 +11,7 @@ import {
   TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
   alpha,
   useTheme,
@@ -464,9 +465,24 @@ const FilterRow = ({
           )}
         />
       </Stack>
-      <IconButton aria-label={t("delete")} onClick={() => flow.removeFilter(filter.id)} sx={{ mt: 4 }}>
-        <Icon iconName={ICON_NAME.TRASH} style={{ fontSize: 14 }} />
-      </IconButton>
+      <Stack sx={{ mt: 4 }}>
+        <IconButton aria-label={t("delete")} onClick={() => flow.removeFilter(filter.id)}>
+          <Icon iconName={ICON_NAME.TRASH} style={{ fontSize: 14 }} />
+        </IconButton>
+        {/* What a tag and its values mean, e.g. building=yes, is the wiki's to say. */}
+        {flow.source === "osm" && filter.key.trim() && (
+          <Tooltip title={t("fetch_features_osm_wiki", { key: filter.key.trim() })} placement="left">
+            <IconButton
+              component="a"
+              href={`https://wiki.openstreetmap.org/wiki/Key:${encodeURIComponent(filter.key.trim())}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t("fetch_features_osm_wiki", { key: filter.key.trim() })}>
+              <Icon iconName={ICON_NAME.CIRCLEINFO} style={{ fontSize: 14 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Stack>
     </Stack>
   );
 };

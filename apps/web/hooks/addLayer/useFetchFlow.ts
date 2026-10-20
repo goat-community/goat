@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 import { refreshContentFeed, useSpaces } from "@/lib/api/content";
 import { getWritableDestinations, useFolders } from "@/lib/api/folders";
-import { executeProcessAsync, useJobs } from "@/lib/api/processes";
+import { executeProcessAsync, getMirrorSize, useJobs } from "@/lib/api/processes";
 import { useProject } from "@/lib/api/projects";
 import { useUserProfile } from "@/lib/api/users";
 import { type CatalogSpatialFilter, spatialGeometry } from "@/lib/catalog/spatial";
@@ -251,6 +251,27 @@ export const useFetchFlow = ({
     (next: number | undefined) => setSized({ for: sizedFor, estimate: next }),
     [sizedFor]
   );
+  // Asked on its own so the size is known before any list; nothing is added until then.
+  const [sizeFailedFor, setSizeFailedFor] = useState<string>();
+  useEffect(() => {
+    const [askedArea, askedSource, askedType] = JSON.parse(sizedFor);
+    if (!askedArea) return;
+    // The map view changes on every pan; wait until it rests before asking.
+    const timer = setTimeout(() => {
+      getMirrorSize(askedArea, askedType, askedSource)
+        .then((n) =>
+          setSized((current) => ({
+            for: sizedFor,
+            estimate:
+              current?.for === sizedFor && current.estimate != null ? Math.max(current.estimate, n ?? 0) : n,
+          }))
+        )
+        // The tool checks the size itself, so a failed check does not block.
+        .catch(() => setSizeFailedFor(sizedFor));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [sizedFor]);
+  const sizePending = !!area && sized?.for !== sizedFor && sizeFailedFor !== sizedFor;
   // Only values narrow: a tag alone (highway) over a large area still passes the
   // cap. With "any", one tag without values keeps the result that broad. A SQL
   // condition is taken as narrowing: only the fetch can tell.
@@ -263,7 +284,7 @@ export const useFetchFlow = ({
   const tooBig = tooLarge || (!narrowed && (estimate ?? 0) > MAX_FEATURES);
 
   const submit = useCallback(async () => {
-    if (!area || !selectedFolder || !name.trim() || sqlMissing || tooBig) return;
+    if (!area || !selectedFolder || !name.trim() || sqlMissing || tooBig || sizePending) return;
     try {
       setIsBusy(true);
       const job = await executeProcessAsync("data_integration", {
@@ -301,6 +322,7 @@ export const useFetchFlow = ({
     name,
     sqlMissing,
     tooBig,
+    sizePending,
     userProfile?.id,
     projectId,
     source,
@@ -319,17 +341,19 @@ export const useFetchFlow = ({
 
   const reason = !area
     ? t("fetch_features_area_needed")
-    : tooLarge
-      ? t("fetch_features_area_too_large")
-      : tooBig
-        ? t("fetch_features_reduce_area")
-        : sqlMissing
-          ? t("fetch_features_sql_needed")
-          : !name.trim()
-            ? t("connect_service_name_needed")
-            : !selectedFolder
-              ? t("connect_service_folder_needed")
-              : undefined;
+    : sizePending
+      ? t("fetch_features_checking_area")
+      : tooLarge
+        ? t("fetch_features_area_too_large")
+        : tooBig
+          ? t("fetch_features_reduce_area")
+          : sqlMissing
+            ? t("fetch_features_sql_needed")
+            : !name.trim()
+              ? t("connect_service_name_needed")
+              : !selectedFolder
+                ? t("connect_service_folder_needed")
+                : undefined;
 
   return {
     isBusy,

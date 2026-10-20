@@ -47,6 +47,19 @@ OVERTURE_MIRROR_URI = os.environ.get("OVERTURE_MIRROR_URI", "")
 #: Above this the extract fails rather than writing a layer cut at an arbitrary row.
 MAX_FEATURES = 1_000_000
 
+#: Tags naming or dating one feature rather than a kind: not offered as filter keys.
+IDENTIFIER_TAGS = (
+    "name",
+    "ref",
+    "website",
+    "phone",
+    "email",
+    "wikidata",
+    "wikipedia",
+    "opening_hours",
+    "check_date",
+)
+
 #: Above this many features in the area a fetch is refused, whatever its filters.
 MAX_READ = 5_000_000
 
@@ -785,7 +798,8 @@ def _count_tags(
     # what it is, and they crowd out the keys worth querying: in Munich the six
     # commonest keys are all `addr:*`. Only when listing the keys; a value list
     # is already about one key the user chose.
-    noise = "" if key else " AND value NOT LIKE '%:%'"
+    identifiers = ", ".join(f"'{t}'" for t in IDENTIFIER_TAGS)
+    noise = "" if key else f" AND value NOT LIKE '%:%' AND value NOT IN ({identifiers})"
     rows = con.execute(f"""
         WITH picked AS (SELECT {picked} AS value FROM ({source}))
         SELECT value, count(*) AS count, sum(count(*)) OVER () AS seen FROM picked
@@ -859,12 +873,11 @@ def _build_values(
 NOT_TAGS = {
     "osm_id",
     "osm_way_id",
-    "name",
-    "ref",
     "address",
     "is_in",
     "z_order",
     "all_tags",
+    *IDENTIFIER_TAGS,
 }
 
 
@@ -943,6 +956,7 @@ def mirror_values(
     limit: int = 100,
     source_name: str = "osm",
     quick: bool = False,
+    size_only: bool = False,
 ) -> dict:
     """Which attributes, or which values of one attribute, the mirror holds here.
 
@@ -964,8 +978,30 @@ def mirror_values(
     files, parts = _files_of(*indexed)
     if not files:
         return {"key": key, "total": 0, "values": [], "estimate": 0}
+    if size_only:
+        # Files wholly inside count from the index; footers only when that is not enough.
+        inside = sum(
+            n
+            for _, _, n, x0, y0, x1, y1 in indexed[1]
+            if any(
+                bx0 <= x0 and by0 <= y0 and x1 <= bx1 and y1 <= by1
+                for bx0, by0, bx1, by1 in boxes
+            )
+        )
+        estimate = (
+            inside if inside > MAX_READ else _area_rows(row_groups(con, files), boxes)
+        )
+        return {
+            "key": None,
+            "total": 0,
+            "complete": True,
+            "estimate": estimate,
+            "values": [],
+        }
     if quick and (src.tagged or key is not None):
         built = _build_values(con, indexed, key)
+        if built is not None and key is None:
+            built = [(t, n) for t, n in built if t not in IDENTIFIER_TAGS]
         if built is not None:
             # Per-country counts: shown without numbers, exact ones follow under the cap.
             in_view = _area_rows(row_groups(con, files), boxes)

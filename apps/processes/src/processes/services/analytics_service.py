@@ -296,6 +296,7 @@ class AnalyticsService:
         limit: int = 100,
         source: str = "osm",
         quick: bool = False,
+        size_only: bool = False,
     ) -> dict[str, Any]:
         """Attributes, or one attribute's values, in the mirror for an area."""
         from goatlib.tools.data_integration import mirror_values
@@ -309,6 +310,7 @@ class AnalyticsService:
                 limit=limit,
                 source_name=source,
                 quick=quick,
+                size_only=size_only,
             )
 
     def class_breaks(

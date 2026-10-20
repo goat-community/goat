@@ -274,6 +274,7 @@ def _execute_analytics_sync(
                 limit=inputs.get("limit", 100),
                 source=inputs.get("source", "osm"),
                 quick=bool(inputs.get("quick", False)),
+                size_only=bool(inputs.get("size_only", False)),
             )
         elif process_id == "class-breaks":
             return analytics_service.class_breaks(

@@ -176,7 +176,7 @@ def test_the_area_and_the_sql_are_checked(tmp_path) -> None:
     text, mapped = tmp_path / "text.parquet", tmp_path / "map.parquet"
     env = (11.5, 48.1, 11.6, 48.2)
     bbox = "{'xmin': 11.5, 'ymin': 48.1, 'xmax': 11.5, 'ymax': 48.1}"
-    con.execute(f"""COPY (SELECT 1 AS osm_id, '"amenity"=>"school","name"=>"A"' AS all_tags,
+    con.execute(f"""COPY (SELECT 1 AS osm_id, '"amenity"=>"school","name"=>"A","check_date"=>"2024-05-01"' AS all_tags,
         {bbox} AS bbox, ST_Point(11.5, 48.1) AS geom) TO '{text}' (FORMAT PARQUET)""")
     con.execute(f"""COPY (SELECT 2 AS osm_id, MAP {{'amenity': 'school'}} AS tags,
         {bbox} AS bbox, ST_Point(11.5, 48.1) AS geom) TO '{mapped}' (FORMAT PARQUET)""")
@@ -188,6 +188,7 @@ def test_the_area_and_the_sql_are_checked(tmp_path) -> None:
         assert len(hits) == len(files)
         keys, _ = module._count_tags(con, module._raw_tags_sql(files, env, "TRUE", storage), None, 10, storage)
         assert keys[0] == ("amenity", len(files))
+        assert not {"name", "check_date"} & {k for k, _ in keys}
 
     # A tag the files also hold as a column is counted from that column, if every file has it.
     col = tmp_path / "col.parquet"
@@ -222,6 +223,8 @@ def test_a_big_view(tmp_path, monkeypatch) -> None:
 
     # The size from row-group bounds: the whole square holds all 40,000.
     assert abs(module._group_rows(module.row_groups(con, files), (11.0, 48.0, 11.3, 48.3)) - 40_000) < 2_100
+    sized = module.mirror_values(con, area=square, feature_type="points", source_name="osm", size_only=True)
+    assert sized["values"] == [] and abs(sized["estimate"] - 40_000) < 2_100
 
     # Over the cap the tag list is the files' tag columns, without counts.
     keys = module.mirror_values(con, area=square, feature_type="points", source_name="osm", quick=True)
