@@ -155,7 +155,7 @@ const ExportNode: React.FC<ExportNodeProps> = ({ id, data, selected }) => {
       <NodeContainer selected={selected}>
         {/* Warning badge for missing dataset name or connection */}
         {/* New nodes carry status "idle": not run yet, so warn as with none */}
-        {hasWarning && (!nodeStatus || nodeStatus === "idle") && (
+        {hasWarning && !nodeStatus_ && (!data.status || data.status === "idle") && (
           <Tooltip title={warningMessage} arrow>
             <WarningBadge
               aria-label={
