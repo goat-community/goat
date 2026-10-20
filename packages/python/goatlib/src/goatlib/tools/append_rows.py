@@ -95,8 +95,9 @@ def check_same_geometry(input_types: set[str], target_geometry: str | None) -> N
     wrong = sorted(t for t in input_types if t != want)
     if wrong:
         found = " and ".join(sorted(input_types))
+        noun = "geometry" if len(input_types) == 1 else "geometries"
         raise AppendError(
-            f"The input has {found} geometries; the target layer has only {want}."
+            f"The input has {found} {noun}; the target layer has {want} geometry."
         )
 
 

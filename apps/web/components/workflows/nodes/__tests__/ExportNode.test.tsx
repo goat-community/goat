@@ -60,7 +60,7 @@ const existing: ExportNodeData = {
   targetLayerName: "Monitoring",
 };
 
-// The badge shows on a node without a status (as before this change).
+// A node that has not run: no status, or the "idle" a new node is created with.
 const fresh = (data: ExportNodeData) => ({ ...data, status: undefined }) as unknown as ExportNodeData;
 
 describe("ExportNode", () => {
@@ -87,6 +87,11 @@ describe("ExportNode", () => {
     renderNode(fresh(existing));
     expect(screen.getByLabelText("append_no_edit_rights")).toBeInTheDocument();
     access.canWrite = true;
+  });
+
+  it("warns on a new node, which is created with status idle", () => {
+    renderNode({ ...existing, destination: undefined, targetLayerId: undefined, targetLayerName: undefined });
+    expect(screen.getByLabelText("dataset_name_required")).toBeInTheDocument();
   });
 
   it("does not warn when the user may edit the target", () => {

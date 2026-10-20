@@ -12,7 +12,7 @@ describe("writeAccessFrom", () => {
   // check before the question is answered: that is a "no" too, so the same
   // warning shows as for a dataset they may only view.
   it("reads a refusal as no", () => {
-    for (const status of [401, 403, 404]) {
+    for (const status of [401, 403]) {
       expect(writeAccessFrom(undefined, { status })).toBe(false);
     }
   });
@@ -20,6 +20,8 @@ describe("writeAccessFrom", () => {
   it("stays unknown while loading or on other errors", () => {
     expect(writeAccessFrom(undefined, undefined)).toBeUndefined();
     expect(writeAccessFrom(undefined, { status: 500 })).toBeUndefined();
+    // A core without the route: no false "no edit rights" warning.
+    expect(writeAccessFrom(undefined, { status: 404 })).toBeUndefined();
     expect(writeAccessFrom(undefined, new Error("network"))).toBeUndefined();
   });
 });

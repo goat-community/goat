@@ -65,8 +65,10 @@ export const useDataset = (datasetId: string) => {
 
 /** Statuses meaning the user may not reach the dataset at all. With login on
  * the access check refuses a dataset they may not see before the question is
- * answered: that is a "no" as well. */
-const REFUSED = new Set([401, 403, 404]);
+ * answered: that is a "no" as well. Not 404: the endpoint answers an unknown
+ * dataset with `can_write: false`, so a 404 means a core without the route,
+ * which says nothing about rights. */
+const REFUSED = new Set([401, 403]);
 
 /** The edit right from the write-access answer or its error: `undefined`
  * while loading or on an error that says nothing about rights. */

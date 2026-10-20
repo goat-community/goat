@@ -229,7 +229,10 @@ def test_mixed_geometry_refused() -> None:
     check_same_geometry(set(), "point")  # no geometry in any row: nothing to check
     with pytest.raises(AppendError, match="point and polygon"):
         check_same_geometry({"point", "polygon"}, "point")
-    with pytest.raises(AppendError, match="line"):
+    with pytest.raises(
+        AppendError,
+        match="^The input has line geometry; the target layer has polygon geometry.$",
+    ):
         check_same_geometry({"line"}, "polygon")
 
 
