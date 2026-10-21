@@ -6,6 +6,14 @@ below, through an ASGI transport. The project tools reach canned core,
 geoapi and processes answers for one fixture project; the answers are
 computed from fixed, filter-aware feature tables, so the oracles that grade
 the answers read the same tables.
+
+The workflow suite has projects of its own: one to build in, the same layers
+for a user who may only view them, and an empty one in Munich, to which
+adding a catalog dataset adds its layers. Processes answers with descriptions
+captured from processes (``tests/fixtures/process_descriptions.json``) and a
+stand-in for its workflow check (``fixture_check``) that follows processes'
+check, the tools' own parameter models included. Core keeps the workflows it
+saves for the graders.
 """
 
 import contextlib
@@ -16,18 +24,36 @@ import random
 import re
 import statistics
 import sys
+import uuid
 from collections import Counter
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 from fastapi import FastAPI
+from goatlib.tools.registry import get_tool
+from goatlib.tools.workflow_arguments import build_check_arguments
+from goatlib.tools.workflow_runner import (
+    VARIABLE_PATTERN,
+    resolve_variables,
+    variable_map,
+)
+from goatlib.workflows.checks import Issue, dangling_edges, find_loops, shape_issues
+from goatlib.workflows.visibility import is_shown
+from pydantic import ValidationError
 
 from assistant.tools.http import ServiceClients
 from assistant.tools.testing import Recorder, RecordingTransport, fake_clients
+from assistant.workflows.tool_info import (
+    LAYER_WIDGETS,
+    NOT_SETTING_SECTIONS,
+    NOT_SETTING_WIDGETS,
+    OPPORTUNITIES,
+)
 from evals.tasks import Oracle
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -137,6 +163,27 @@ EVAL_ROWS: tuple[tuple[str, str, str, str, str, str, str, int], ...] = (
         "de",
         "feature",
         1010,
+    ),
+    # Bavaria-wide: a workflow in Munich limits them to its area.
+    (
+        "eval-supermaerkte-bayern",
+        "Supermärkte",
+        "Bayern",
+        "places",
+        "ODbL-1.0",
+        "de",
+        "feature",
+        1011,
+    ),
+    (
+        "eval-schulen-bayern",
+        "Schulen",
+        "Bayern",
+        "places",
+        "dl-de-by-2.0",
+        "de",
+        "feature",
+        1012,
     ),
 )
 
@@ -253,12 +300,17 @@ def eval_rows() -> list[Any]:
             row_type=row_type,
         )
         wkt, geojson = _box(*_inside(PLACE_BOXES[region]))
+        # A row that adds a fixture layer has that layer's geometry type: the
+        # generator draws one at random, and the record describes the layer
+        # that adding it gives.
+        added = CATALOG_LAYERS.get(row_id)
         item = replace(
             item,
             id=row_id,
             parquet_url=f"{gen.PARQUET_ASSET_BASE_URL}/{row_id}.parquet",
             geometry_wkt=wkt,
             geometry_geojson=geojson,
+            geom_type=added.geometry if added is not None else item.geom_type,
         )
         dataset = gen._dataset_collection_for(item)
         rows.extend([replace(item, collection=dataset.id), dataset])
@@ -307,6 +359,21 @@ def write_eval_catalog(path: Path) -> None:
                 **document,
                 "themes": document["summaries"]["themes"],
                 "language": {"code": row.language},
+            }
+        layer = CATALOG_LAYERS.get(str(document.get("id")))
+        if layer is not None and document.get("type") == "Feature":
+            # The columns the record lists are the fields of the layer that
+            # adding the dataset gives: a model reading them while the layer
+            # is still copying finds the names geoapi lists later.
+            document = {
+                **document,
+                "properties": {
+                    **document["properties"],
+                    "table:columns": [
+                        {"name": name, "type": kind}
+                        for name, kind in layer.fields.items()
+                    ],
+                },
             }
         return document
 
@@ -381,11 +448,12 @@ class FixtureLayer:
     layer_project_id: int
     layer_id: str
     name: str
-    geometry: str  # point, line, polygon
+    geometry: str  # point, line, polygon; empty for a table
     fields: Mapping[str, str]  # name -> JSON type
     features: tuple[dict[str, Any], ...]  # properties plus "_at": (lon, lat)
     locked: bool = False
     group_id: int | None = None
+    layer_type: str = "feature"
 
 
 def _at(rng: random.Random) -> tuple[float, float]:
@@ -483,7 +551,182 @@ def _build_layers() -> tuple[FixtureLayer, ...]:
 
 
 FIXTURE_LAYERS = _build_layers()
-_BY_ID = {layer.layer_id: layer for layer in FIXTURE_LAYERS}
+
+# ---- workflow projects ---------------------------------------------------------
+
+WF_PROJECT_ID = "00000000-0000-0000-0000-0000000005e4"
+VIEWER_PROJECT_ID = "00000000-0000-0000-0000-0000000005e5"
+EMPTY_PROJECT_ID = "00000000-0000-0000-0000-0000000005e6"
+WF_PROJECT_NAME = "Erreichbarkeit Leipzig"
+EMPTY_PROJECT_NAME = "Neues Projekt München"
+
+
+def _build_workflow_layers() -> tuple[FixtureLayer, ...]:
+    rng = random.Random(11)
+    kinds = ["Grundschule"] * 6 + ["Gymnasium"] * 3 + ["Oberschule"] * 3
+    schools = tuple(
+        {"name": f"Schule {n}", "schulart": kind, "_at": _at(rng)}
+        for n, kind in enumerate(kinds, start=1)
+    )
+    residents = tuple(
+        {"einwohner": rng.randint(50, 900), "_at": _at(rng)} for _ in range(40)
+    )
+    chains = ["Edeka", "Rewe", "Lidl", "Aldi"] * 3
+    shops = tuple(
+        {"name": f"Markt {n}", "kette": chain, "_at": _at(rng)}
+        for n, chain in enumerate(chains, start=1)
+    )
+    # Without residents: "the residents" has one layer to come from.
+    districts = tuple({"name": name, "_at": _at(rng)} for name in BEZIRKE)
+    school_fields = {"name": "string", "schulart": "string"}
+    return (
+        FixtureLayer(
+            31,
+            "e2000000-0000-0000-0000-000000000031",
+            "Schulen",
+            "point",
+            school_fields,
+            schools,
+        ),
+        FixtureLayer(
+            32,
+            "e2000000-0000-0000-0000-000000000032",
+            "Schulen (Stand 2019)",
+            "point",
+            school_fields,
+            schools[:9],
+        ),
+        FixtureLayer(
+            33,
+            "e2000000-0000-0000-0000-000000000033",
+            "Einwohner Raster",
+            "polygon",
+            {"einwohner": "integer"},
+            residents,
+        ),
+        FixtureLayer(
+            34,
+            "e2000000-0000-0000-0000-000000000034",
+            "Supermärkte",
+            "point",
+            {"name": "string", "kette": "string"},
+            shops,
+        ),
+        FixtureLayer(
+            35,
+            "e2000000-0000-0000-0000-000000000035",
+            "Stadtbezirke",
+            "polygon",
+            {"name": "string"},
+            districts,
+        ),
+    )
+
+
+WORKFLOW_LAYERS = _build_workflow_layers()
+#: The layer adding a catalog dataset gives, by catalog id.
+CATALOG_LAYERS: dict[str, FixtureLayer] = {
+    "eval-supermaerkte-bayern": replace(
+        WORKFLOW_LAYERS[3],
+        layer_project_id=41,
+        layer_id="e2000000-0000-0000-0000-000000000041",
+        name="Supermärkte Bayern",
+    ),
+    "eval-schulen-bayern": replace(
+        WORKFLOW_LAYERS[0],
+        layer_project_id=42,
+        layer_id="e2000000-0000-0000-0000-000000000042",
+        name="Schulen Bayern",
+    ),
+}
+TEMPLATE_ID = "7e000000-0000-0000-0000-0000000000a1"
+#: A workflow template: catchment areas on foot around schools.
+TEMPLATE: dict[str, Any] = {
+    "id": TEMPLATE_ID,
+    "name": "Schools within walking distance",
+    "description": "Catchment areas on foot around the schools (Schulen, zu Fuß).",
+    "categories": ["Education"],
+    "payload_kind": "workflow",
+    "inputs": [
+        {
+            "key": "node:dataset-schools",
+            "label": "Schools",
+            "mode": "ask",
+            "layer_type": "feature",
+            "geometry_type": "point",
+        }
+    ],
+}
+#: The template's workflow as core keeps it: the schools step asks for its
+#: layer, then a 15-minute walk from the schools, its result saved.
+TEMPLATE_CONFIG: dict[str, Any] = {
+    "nodes": [
+        {
+            "id": "dataset-schools",
+            "type": "dataset",
+            "position": {"x": 0, "y": 0},
+            "data": {
+                "type": "dataset",
+                "label": "Schools",
+                "templateInput": "node:dataset-schools",
+                "unresolved": True,
+            },
+        },
+        {
+            "id": "tool-walk",
+            "type": "tool",
+            "position": {"x": 360, "y": 0},
+            "data": {
+                "type": "tool",
+                "processId": "catchment_area_v2",
+                "label": "catchment_area_v2",
+                "config": {"routing_mode": "walking", "max_cost": 15, "steps": 1},
+                "status": "idle",
+            },
+        },
+        {
+            "id": "export-walk",
+            "type": "export",
+            "position": {"x": 720, "y": 0},
+            "data": {
+                "type": "export",
+                "label": "Walking distance",
+                "datasetName": "Schools within walking distance",
+                "addToProject": True,
+                "overwritePrevious": False,
+            },
+        },
+    ],
+    "edges": [
+        {
+            "id": "edge-schools-walk",
+            "source": "dataset-schools",
+            "target": "tool-walk",
+            "targetHandle": "starting_points",
+        },
+        {
+            "id": "edge-walk-export",
+            "source": "tool-walk",
+            "sourceHandle": "output",
+            "target": "export-walk",
+            "targetHandle": "input",
+        },
+    ],
+    "viewport": {"x": 0, "y": 0, "zoom": 1},
+    "variables": [],
+}
+_BY_ID = {
+    layer.layer_id: layer
+    for layer in (*FIXTURE_LAYERS, *WORKFLOW_LAYERS, *CATALOG_LAYERS.values())
+}
+
+
+def layer_project_id(layer_id: str) -> int | None:
+    """The layer_project_id of a fixed layer (the projects' own and those of
+    ``CATALOG_LAYERS``) by its layer id; None for any other, such as a layer
+    a task added from the catalog, which no task's ``layers`` names."""
+    layer = _BY_ID.get(layer_id)
+    return layer.layer_project_id if layer is not None else None
 
 
 def _layer_named(name: str | None) -> FixtureLayer:
@@ -643,46 +886,50 @@ def _core_routes() -> dict[tuple[str, str], Any]:
     }
 
 
+def _layer_routes(layer: FixtureLayer) -> dict[tuple[str, str], Any]:
+    """geoapi's answers for one layer: its fields and its features."""
+    queryables = {
+        "properties": {
+            name: {"name": name, "type": kind} for name, kind in layer.fields.items()
+        }
+    }
+    queryables["properties"]["geom"] = {
+        "$ref": "https://geojson.org/schema/Geometry.json"
+    }
+
+    def items(request: httpx.Request) -> httpx.Response:
+        params = request.url.params
+        selected = _selected(layer, params.get("filter"))
+        limit = int(params.get("limit", "10"))
+        fields = params["properties"].split(",") if "properties" in params else None
+        features = [
+            {
+                "type": "Feature",
+                "id": index + 1,
+                "geometry": _geometry(layer, feature["_at"]),
+                "properties": _public(feature, fields),
+            }
+            for index, feature in enumerate(selected[:limit])
+        ]
+        return httpx.Response(
+            200,
+            json={
+                "type": "FeatureCollection",
+                "numberMatched": len(selected),
+                "features": features,
+            },
+        )
+
+    return {
+        ("GET", f"/collections/{layer.layer_id}/queryables"): queryables,
+        ("GET", f"/collections/{layer.layer_id}/items"): items,
+    }
+
+
 def _geoapi_routes() -> dict[tuple[str, str], Any]:
     routes: dict[tuple[str, str], Any] = {}
-    for layer in FIXTURE_LAYERS:
-        queryables = {
-            "properties": {
-                name: {"name": name, "type": kind}
-                for name, kind in layer.fields.items()
-            }
-        }
-        queryables["properties"]["geom"] = {
-            "$ref": "https://geojson.org/schema/Geometry.json"
-        }
-        routes[("GET", f"/collections/{layer.layer_id}/queryables")] = queryables
-
-        def items(
-            request: httpx.Request, layer: FixtureLayer = layer
-        ) -> httpx.Response:
-            params = request.url.params
-            selected = _selected(layer, params.get("filter"))
-            limit = int(params.get("limit", "10"))
-            fields = params["properties"].split(",") if "properties" in params else None
-            features = [
-                {
-                    "type": "Feature",
-                    "id": index + 1,
-                    "geometry": _geometry(layer, feature["_at"]),
-                    "properties": _public(feature, fields),
-                }
-                for index, feature in enumerate(selected[:limit])
-            ]
-            return httpx.Response(
-                200,
-                json={
-                    "type": "FeatureCollection",
-                    "numberMatched": len(selected),
-                    "features": features,
-                },
-            )
-
-        routes[("GET", f"/collections/{layer.layer_id}/items")] = items
+    for layer in _BY_ID.values():
+        routes.update(_layer_routes(layer))
     return routes
 
 
@@ -692,8 +939,9 @@ def _bbox(layer: FixtureLayer, features: list[dict[str, Any]]) -> list[float]:
     return [min(lons), min(lats), max(lons), max(lats)]
 
 
-def _process(name: str, inputs: Mapping[str, Any]) -> dict[str, Any]:
-    layer = _BY_ID[str(inputs["collection"])]
+def _process(
+    name: str, layer: FixtureLayer, inputs: Mapping[str, Any]
+) -> dict[str, Any]:
     selected = _selected(layer, inputs.get("filter"))
     attribute = inputs.get("attribute")
     values = [
@@ -763,16 +1011,23 @@ def _process(name: str, inputs: Mapping[str, Any]) -> dict[str, Any]:
     raise ValueError(name)
 
 
-def _processes_routes() -> dict[tuple[str, str], Any]:
+#: A layer id -> the layer, for the layers of one task (fixture layers and
+#: the ones its catalog adds gave); None for a layer the fixture does not have.
+LayerOf = Callable[[str], FixtureLayer | None]
+
+
+def _processes_routes(layer_of: LayerOf) -> dict[tuple[str, str], Any]:
     def answer(name: str) -> Any:
         def respond(request: httpx.Request) -> httpx.Response:
-            return httpx.Response(
-                200, json=_process(name, json.loads(request.content)["inputs"])
-            )
+            inputs = json.loads(request.content)["inputs"]
+            layer = layer_of(str(inputs["collection"]))
+            if layer is None:
+                return httpx.Response(404, json={"detail": "Layer not found"})
+            return httpx.Response(200, json=_process(name, layer, inputs))
 
         return respond
 
-    return {
+    routes: dict[tuple[str, str], Any] = {
         ("POST", f"/processes/{name}/execution"): answer(name)
         for name in (
             "feature-count",
@@ -782,6 +1037,947 @@ def _processes_routes() -> dict[tuple[str, str], Any]:
             "extent",
         )
     }
+
+    def listing(request: httpx.Request) -> httpx.Response:
+        language = "de" if request.headers.get("accept-language") == "de" else "en"
+        return httpx.Response(
+            200, json={"processes": PROCESSES["list"][language], "links": []}
+        )
+
+    def fields(layer_id: str) -> list[str] | None:
+        layer = layer_of(layer_id)
+        return list(layer.fields) if layer is not None else None
+
+    def check(request: httpx.Request) -> httpx.Response:
+        issues = fixture_check(json.loads(request.content), fields)
+        return httpx.Response(200, json={"issues": issues})
+
+    routes[("GET", "/processes")] = listing
+    for tool_id, described in PROCESSES["descriptions"].items():
+        routes[("GET", f"/processes/{tool_id}")] = described
+    routes[("POST", "/workflows/check")] = check
+    return routes
+
+
+PROCESSES: dict[str, Any] = json.loads(
+    (
+        Path(__file__).resolve().parents[1]
+        / "tests"
+        / "fixtures"
+        / "process_descriptions.json"
+    ).read_text(encoding="utf-8")
+)
+
+# ---- the stand-in for processes' workflow check ------------------------------
+#
+# It follows processes' `services/workflow_checks.py` step by step, with the
+# descriptions captured from processes, the tools' own parameter models
+# (`goatlib.tools.registry`) and the arguments a run would build
+# (`goatlib.tools.workflow_arguments`). What it leaves out: the access check
+# (the fixture's layers are all readable), the columns predicted for a step
+# that reads another tool's result (processes only warns about them), If
+# steps (drafts have none) and the `step_not_connected` warning.
+
+#: Layer id -> its field names; None for a layer whose fields are not known.
+LayerFields = Callable[[str], Sequence[str] | None]
+#: The input the runner feeds from a connection that names none.
+_DEFAULT_HANDLE = "input_layer_id"
+#: The editor's handle on a step whose tool it has not loaded yet.
+_EDITOR_HANDLE = "input"
+#: What the editor's form holds for a connected layer input.
+_CONNECTED = "__connected__"
+_FIELD_WIDGET = "field-selector"
+_FIELD_STATISTICS_WIDGET = "field-statistics-selector"
+#: Pydantic puts the kind of a validator's error before its text.
+_VALIDATOR_PREFIXES = ("Value error, ", "Assertion failed, ")
+#: Columns that hold the geometry, not a field.
+_GEOMETRY_COLUMNS = frozenset({"geometry", "geom", "bbox"})
+#: A heatmap's numbered opportunity handles, the names of
+#: ``goatlib.tools._opportunity_handles.NUMBERED_OPPORTUNITY_ID_FIELDS``. That
+#: module imports goatlib's analysis package, so it is not imported here; a
+#: test keeps the two equal.
+OPPORTUNITY_HANDLES: tuple[str, ...] = (
+    "opportunity_layer_1_id",
+    "opportunity_layer_2_id",
+    "opportunity_layer_3_id",
+)
+
+
+def _fixture_fields(layer_id: str) -> list[str] | None:
+    layer = _BY_ID.get(layer_id)
+    return list(layer.fields) if layer is not None else None
+
+
+def _data(node: Mapping[str, Any]) -> dict[str, Any]:
+    data = node.get("data")
+    return data if isinstance(data, dict) else {}
+
+
+def _kind(node: Mapping[str, Any]) -> str:
+    return str(_data(node).get("type") or node.get("type") or "")
+
+
+def _schema(entry: Mapping[str, Any]) -> dict[str, Any]:
+    schema = entry.get("schema")
+    return schema if isinstance(schema, dict) else {}
+
+
+def _variant(schema: Mapping[str, Any]) -> dict[str, Any] | None:
+    """The non-null variant of an optional type."""
+    return next(
+        (
+            variant
+            for variant in schema.get("anyOf") or []
+            if isinstance(variant, dict) and variant.get("type") != "null"
+        ),
+        None,
+    )
+
+
+def _ui(schema: Mapping[str, Any]) -> dict[str, Any]:
+    """A setting's x-ui, also when it sits on the non-null variant."""
+    ui = schema.get("x-ui")
+    if ui is None:
+        variant = _variant(schema)
+        ui = variant.get("x-ui") if variant else None
+    return ui if isinstance(ui, dict) else {}
+
+
+def _is_empty(value: Any) -> bool:
+    return value is None or value == "" or value == []
+
+
+def _is_field_widget(name: str, ui: Mapping[str, Any]) -> bool:
+    widget = ui.get("widget")
+    return widget == _FIELD_WIDGET or (not widget and name.endswith("_field"))
+
+
+def _declared_source(ui: Mapping[str, Any]) -> str | None:
+    """The layer input a field setting's widget names (``source_layer``),
+    without a path into it (``starting_points.layer_id``)."""
+    options = ui.get("widget_options")
+    declared = options.get("source_layer") if isinstance(options, dict) else None
+    return declared.split(".")[0] if isinstance(declared, str) else None
+
+
+def _item_properties(
+    schema: Mapping[str, Any], defs: Mapping[str, Any]
+) -> dict[str, Any] | None:
+    items = schema.get("items")
+    if not isinstance(items, dict):
+        return None
+    ref = items.get("$ref")
+    item = defs.get(ref.removeprefix("#/$defs/"), {}) if isinstance(ref, str) else items
+    properties = item.get("properties") if isinstance(item, dict) else None
+    return properties if isinstance(properties, dict) else None
+
+
+def _variable_names(value: Any) -> list[str]:
+    """Every ``{{@name}}`` reference in a value, at any depth."""
+    if isinstance(value, str):
+        return [str(name) for name in VARIABLE_PATTERN.findall(value)]
+    if isinstance(value, dict):
+        return [name for item in value.values() for name in _variable_names(item)]
+    if isinstance(value, list):
+        return [name for item in value for name in _variable_names(item)]
+    return []
+
+
+def _resolved(field: str, var_map: Mapping[str, Any]) -> str | None:
+    """A field setting's value with its variables resolved, as a run would."""
+    if not VARIABLE_PATTERN.search(field):
+        return field
+    try:
+        resolved = resolve_variables(field, dict(var_map))
+    except ValueError:
+        return None
+    return resolved if isinstance(resolved, str) and resolved else None
+
+
+@dataclass(frozen=True)
+class _FieldRef:
+    """One field name a step's settings point at."""
+
+    setting: str
+    label: str
+    field: str
+    #: The layer input it is read from, when known.
+    source: str | None
+
+
+def _field_refs(
+    described: Mapping[str, Any],
+    config: Mapping[str, Any],
+    handles: set[str],
+    layer_inputs: Sequence[str],
+) -> list[_FieldRef]:
+    """Every field name a tool step's settings point at, and the layer input
+    each is read from, as processes' ``_field_refs`` reads them: a field
+    inside a list item reads the input its own widget names first
+    (``column_statistics[].field`` reads ``source_layer_id``), else the list
+    setting's."""
+    inputs: dict[str, Any] = described["inputs"]
+    defs: dict[str, Any] = described.get("$defs") or {}
+    sole = layer_inputs[0] if len(layer_inputs) == 1 else None
+
+    def source_for(name: str, ui: Mapping[str, Any]) -> str | None:
+        declared = _declared_source(ui)
+        if declared is not None:
+            return declared
+        if name.endswith("_field"):
+            return f"{name.removesuffix('_field')}_layer_id"
+        return sole
+
+    refs: list[_FieldRef] = []
+    for name, entry in inputs.items():
+        schema = _schema(entry)
+        ui = _ui(schema)
+        label = str(entry.get("title") or name)
+        value = config.get(name)
+        if ui.get("widget") == _FIELD_STATISTICS_WIDGET:
+            for item in value if isinstance(value, list) else [value]:
+                field = item.get("field") if isinstance(item, dict) else None
+                if isinstance(field, str) and field:
+                    refs.append(_FieldRef(name, label, field, source_for(name, ui)))
+            continue
+        if _is_field_widget(name, ui):
+            for field in value if isinstance(value, list) else [value]:
+                if isinstance(field, str) and field:
+                    refs.append(_FieldRef(name, label, field, source_for(name, ui)))
+            continue
+        effective = _variant(schema) or schema
+        properties = _item_properties(effective, defs)
+        if effective.get("type") != "array" or properties is None:
+            continue
+        if name == OPPORTUNITIES:
+            for number, handle in enumerate(OPPORTUNITY_HANDLES, start=1):
+                if handle not in handles:
+                    continue
+                for prop, prop_schema in properties.items():
+                    field = config.get(f"opportunity_{number}_{prop}")
+                    prop_ui = _ui(prop_schema)
+                    if (
+                        _is_field_widget(prop, prop_ui)
+                        and isinstance(field, str)
+                        and field
+                    ):
+                        refs.append(
+                            _FieldRef(
+                                f"opportunity_{number}_{prop}",
+                                f"{label} {number} · {prop_ui.get('label') or prop}",
+                                field,
+                                handle,
+                            )
+                        )
+        if not isinstance(value, list):
+            continue
+        for index, item in enumerate(value):
+            if not isinstance(item, dict):
+                continue
+            for prop, prop_schema in properties.items():
+                prop_ui = _ui(prop_schema)
+                field = item.get(prop)
+                if not _is_field_widget(prop, prop_ui) or not isinstance(field, str):
+                    continue
+                if not field:
+                    continue
+                if name == OPPORTUNITIES:
+                    numbered = OPPORTUNITY_HANDLES
+                    source = numbered[index] if index < len(numbered) else None
+                else:
+                    source = _declared_source(prop_ui) or source_for(name, ui)
+                prop_label = prop_ui.get("label") or prop
+                refs.append(_FieldRef(name, f"{label} · {prop_label}", field, source))
+    return refs
+
+
+def _source_node(
+    incoming: Sequence[Mapping[str, Any]],
+    source_input: str | None,
+    by_id: Mapping[str, dict[str, Any]],
+) -> dict[str, Any] | None:
+    """The step connected to ``source_input`` (processes' ``_source_for``)."""
+    if source_input:
+        exact = next(
+            (edge for edge in incoming if edge.get("targetHandle") == source_input),
+            None,
+        )
+        if exact is not None:
+            return by_id.get(str(exact["source"]))
+    unnamed = [
+        edge
+        for edge in incoming
+        if not edge.get("targetHandle") or edge.get("targetHandle") == _EDITOR_HANDLE
+    ]
+    if len(unnamed) == 1:
+        return by_id.get(str(unnamed[0]["source"]))
+    if not source_input and len(incoming) == 1:
+        return by_id.get(str(incoming[0]["source"]))
+    return None
+
+
+def _reason(message: str) -> str:
+    for prefix in _VALIDATOR_PREFIXES:
+        if message.startswith(prefix):
+            return message[len(prefix) :]
+    return message
+
+
+class _StepCheck:
+    """The issues of one tool step, in the order processes reports them."""
+
+    def __init__(
+        self,
+        node: dict[str, Any],
+        nodes: list[dict[str, Any]],
+        edges: list[dict[str, Any]],
+        variables: list[dict[str, Any]],
+        incoming: list[dict[str, Any]],
+        by_id: Mapping[str, dict[str, Any]],
+        fields: LayerFields,
+    ) -> None:
+        self.node, self.nodes, self.edges = node, nodes, edges
+        self.variables, self.incoming, self.by_id = variables, incoming, by_id
+        self.fields = fields
+        self.node_id = str(node["id"])
+        self.var_map = variable_map(variables)
+
+    def issue(
+        self, code: str, message: str, field: str | None = None, **params: Any
+    ) -> Issue:
+        return Issue(code, "error", message, (self.node_id,), field, params)
+
+    def run(self, step: str) -> list[Issue]:
+        data = _data(self.node)
+        process_id = data.get("processId")
+        if not isinstance(process_id, str) or not process_id.strip():
+            return [
+                self.issue("tool_missing", f"{step}: no tool is chosen.", step=step)
+            ]
+        described = PROCESSES["descriptions"].get(process_id)
+        if described is None:
+            return [
+                self.issue(
+                    "tool_removed",
+                    f"{step}: the tool {process_id} does not exist.",
+                    step=step,
+                    tool=process_id,
+                )
+            ]
+        inputs: dict[str, Any] = described["inputs"]
+        raw_config = data.get("config")
+        config: dict[str, Any] = raw_config if isinstance(raw_config, dict) else {}
+        handles = {
+            str(edge.get("targetHandle") or _DEFAULT_HANDLE) for edge in self.incoming
+        }
+        layer_inputs = {
+            name: entry
+            for name, entry in inputs.items()
+            if _ui(_schema(entry)).get("widget") in LAYER_WIDGETS
+        }
+        values = self.values(inputs, layer_inputs, config, handles)
+        issues: list[Issue] = []
+        named = [edge.get("targetHandle") for edge in self.incoming]
+        for handle in dict.fromkeys(h for h in named if isinstance(h, str) and h):
+            if handle not in layer_inputs and handle != _EDITOR_HANDLE:
+                issues.append(
+                    self.issue(
+                        "connection_to_unknown_input",
+                        f"{step}: a connection ends at {handle}, which the tool "
+                        "does not have.",
+                        handle,
+                        step=step,
+                        input=handle,
+                    )
+                )
+        for name, entry in layer_inputs.items():
+            if int(entry.get("minOccurs") or 0) > 0 and name not in handles:
+                label = str(entry.get("title") or name)
+                issues.append(
+                    self.issue(
+                        "input_not_connected",
+                        f"{step}: {label} is not connected.",
+                        name,
+                        step=step,
+                        label=label,
+                    )
+                )
+        numbered = [h for h in OPPORTUNITY_HANDLES if h in inputs]
+        if numbered and not handles & set(numbered):
+            issues.append(
+                self.issue(
+                    "opportunity_not_connected",
+                    f"{step}: no opportunity layer is connected.",
+                    step=step,
+                )
+            )
+        for name, entry in inputs.items():
+            ui = _ui(_schema(entry))
+            if (
+                ui.get("widget") in NOT_SETTING_WIDGETS
+                or ui.get("section") in NOT_SETTING_SECTIONS
+            ):
+                continue
+            required = int(entry.get("minOccurs") or 0) > 0
+            if required and is_shown(ui, values) and _is_empty(config.get(name)):
+                label = str(entry.get("title") or name)
+                issues.append(
+                    self.issue(
+                        "setting_required",
+                        f"{step}: {label} is required.",
+                        name,
+                        step=step,
+                        label=label,
+                    )
+                )
+        for setting, value in config.items():
+            for name in dict.fromkeys(_variable_names(value)):
+                if name not in self.var_map:
+                    issues.append(
+                        self.issue(
+                            "variable_undefined",
+                            f"{step}: the variable {name} does not exist.",
+                            setting,
+                            step=step,
+                            variable=name,
+                        )
+                    )
+        issues += self.invalid_settings(step, process_id, described, values, issues)
+        issues += self.field_issues(step, described, config, values, handles)
+        return issues
+
+    def values(
+        self,
+        inputs: Mapping[str, Any],
+        layer_inputs: Mapping[str, Any],
+        config: Mapping[str, Any],
+        handles: set[str],
+    ) -> dict[str, Any]:
+        """What the editor's form decides visibility on: the defaults, the
+        settings, and a marker in every connected layer input."""
+        values = {
+            name: _schema(entry)["default"]
+            for name, entry in inputs.items()
+            if "default" in _schema(entry)
+        }
+        values.update(config)
+        for name, entry in layer_inputs.items():
+            if name in handles:
+                points = _ui(_schema(entry)).get("widget") == "starting-points"
+                values[name] = {"layer_id": _CONNECTED} if points else _CONNECTED
+        return values
+
+    def invalid_settings(
+        self,
+        step: str,
+        process_id: str,
+        described: Mapping[str, Any],
+        values: Mapping[str, Any],
+        issues: list[Issue],
+    ) -> list[Issue]:
+        """``setting_invalid``: what the tool's parameter model rejects in the
+        arguments a run would build, without the settings already reported
+        and the missing values of settings the form hides."""
+        tool = get_tool(process_id)
+        try:
+            arguments = build_check_arguments(
+                self.node, self.nodes, self.edges, self.variables
+            )
+            if tool is None:
+                return []
+            tool.get_params_class()(**arguments)
+            return []
+        except ValidationError as error:
+            errors = error.errors(include_url=False)
+        except Exception:  # a missing variable, reported on its own
+            return []
+        inputs: dict[str, Any] = described["inputs"]
+        reported = {
+            issue.field
+            for issue in issues
+            if issue.field is not None
+            and issue.code
+            in ("input_not_connected", "setting_required", "variable_undefined")
+        }
+        if any(issue.code == "opportunity_not_connected" for issue in issues):
+            reported.add(OPPORTUNITIES)
+        hidden = {
+            name
+            for name, entry in inputs.items()
+            if not is_shown(_ui(_schema(entry)), dict(values))
+        }
+        found: list[Issue] = []
+        seen: set[tuple[str | None, str]] = set()
+        for problem in errors:
+            loc = tuple(problem.get("loc") or ())
+            name = loc[0] if loc and isinstance(loc[0], str) else None
+            if name in reported or (
+                problem.get("type") == "missing" and name in hidden
+            ):
+                continue
+            field, label = self.invalid_setting(described, name, loc)
+            reason = _reason(str(problem.get("msg", "")))
+            key = (field, "") if field is not None else (None, reason)
+            if key in seen:
+                continue
+            seen.add(key)
+            message = (
+                f"{step}: {label}: {reason}"
+                if field is not None
+                else f"{step}: {reason}"
+            )
+            found.append(
+                self.issue(
+                    "setting_invalid",
+                    message,
+                    field,
+                    step=step,
+                    label=label,
+                    reason=reason,
+                )
+            )
+        return found
+
+    def invalid_setting(
+        self, described: Mapping[str, Any], name: str | None, loc: tuple[Any, ...]
+    ) -> tuple[str | None, str]:
+        """The setting a parameter error belongs to, and its label: an
+        opportunity's settings are ``opportunity_<N>_<name>`` on the step."""
+        inputs: dict[str, Any] = described["inputs"]
+        if (
+            name == OPPORTUNITIES
+            and len(loc) >= 3
+            and isinstance(loc[1], int)
+            and isinstance(loc[2], str)
+        ):
+            handles = {str(edge.get("targetHandle")) for edge in self.incoming}
+            numbers = [
+                number
+                for number, handle in enumerate(OPPORTUNITY_HANDLES, start=1)
+                if handle in handles
+            ]
+            if loc[1] < len(numbers):
+                number, prop = numbers[loc[1]], loc[2]
+                schema = _schema(inputs[OPPORTUNITIES])
+                properties = (
+                    _item_properties(
+                        _variant(schema) or schema, described.get("$defs") or {}
+                    )
+                    or {}
+                )
+                prop_schema = properties.get(prop) or {}
+                prop_label = (
+                    _ui(prop_schema).get("label") or prop_schema.get("title") or prop
+                )
+                title = str(inputs[OPPORTUNITIES].get("title") or OPPORTUNITIES)
+                return (
+                    f"opportunity_{number}_{prop}",
+                    f"{title} {number} · {prop_label}",
+                )
+        if name is not None and name in inputs:
+            return name, str(inputs[name].get("title") or name)
+        return None, ""
+
+    def field_issues(
+        self,
+        step: str,
+        described: Mapping[str, Any],
+        config: Mapping[str, Any],
+        values: Mapping[str, Any],
+        handles: set[str],
+    ) -> list[Issue]:
+        """``field_not_in_layer``: a field setting naming a field that the
+        dataset it reads does not have. Only a dataset with a layer is
+        judged: an open step has no fields yet, and a field read from another
+        tool's result is a prediction processes only warns about."""
+        inputs: dict[str, Any] = described["inputs"]
+        layer_inputs = [
+            name
+            for name, entry in inputs.items()
+            if _ui(_schema(entry)).get("widget") in LAYER_WIDGETS
+        ]
+        found: list[Issue] = []
+        for ref in _field_refs(described, config, handles, layer_inputs):
+            entry = inputs.get(ref.setting)
+            if entry is not None and not is_shown(_ui(_schema(entry)), dict(values)):
+                continue
+            name = _resolved(ref.field, self.var_map)
+            origin = _source_node(self.incoming, ref.source, self.by_id)
+            if name is None or origin is None or _kind(origin) != "dataset":
+                continue
+            layer_id = _data(origin).get("layerId")
+            known = self.fields(layer_id) if isinstance(layer_id, str) else None
+            if known is None or name in known:
+                continue
+            found.append(
+                self.issue(
+                    "field_not_in_layer",
+                    f"{step}: {ref.label} names the field {name}, which the layer "
+                    "does not have.",
+                    ref.setting,
+                    step=step,
+                    label=ref.label,
+                    field_name=name,
+                )
+            )
+        return found
+
+
+def _step_name(node: Mapping[str, Any]) -> str:
+    """The name a person sees on a step, as processes names it: a tool step
+    labelled with its tool's id goes by the tool's title."""
+    data = _data(node)
+    label = data.get("label")
+    named = isinstance(label, str) and bool(label.strip())
+    if _kind(node) != "tool":
+        return str(label) if named else _kind(node)
+    process_id = data.get("processId")
+    if named and label != process_id:
+        return str(label)
+    described = PROCESSES["descriptions"].get(str(process_id))
+    if described is not None:
+        return str(described.get("title") or process_id)
+    return str(label) if named else "tool"
+
+
+def fixture_check(
+    body: Mapping[str, Any], fields: LayerFields = _fixture_fields
+) -> list[dict[str, Any]]:
+    """The stand-in for processes' workflow check (see above): the issues of
+    the steps and connections in ``body``, as ``Issue.to_dict()`` rows.
+    ``fields`` gives a layer's field names by layer id."""
+    damaged = shape_issues({"nodes": body.get("nodes"), "edges": body.get("edges")})
+    if damaged:
+        return [issue.to_dict() for issue in damaged]
+    nodes: list[dict[str, Any]] = body["nodes"]
+    edges: list[dict[str, Any]] = body["edges"]
+    raw_variables = body.get("variables")
+    variables: list[dict[str, Any]] = (
+        raw_variables if isinstance(raw_variables, list) else []
+    )
+    by_id = {str(node["id"]): node for node in nodes}
+    incoming: dict[str, list[dict[str, Any]]] = {node_id: [] for node_id in by_id}
+    for edge in edges:
+        source, target = edge.get("source"), edge.get("target")
+        if source in by_id and target in by_id:
+            incoming[str(target)].append(edge)
+    issues: list[Issue] = []
+    for loop in find_loops(nodes, edges):
+        names = [_step_name(by_id[node_id]) for node_id in loop]
+        issues.append(
+            Issue(
+                "loop",
+                "error",
+                f"These steps form a loop: {', '.join(names)}.",
+                tuple(loop),
+                params={"steps": names},
+            )
+        )
+    if dangling_edges(nodes, edges):
+        issues.append(
+            Issue(
+                "connection_to_removed_step",
+                "error",
+                "A connection points to a step that does not exist.",
+            )
+        )
+    for node in nodes:
+        node_id, kind, step = str(node["id"]), _kind(node), _step_name(node)
+        data = _data(node)
+        if kind == "dataset" and (
+            data.get("unresolved") is True or not data.get("layerId")
+        ):
+            issues.append(
+                Issue(
+                    "layer_not_chosen",
+                    "error",
+                    f"{step}: no layer is chosen.",
+                    (node_id,),
+                    params={"step": step},
+                )
+            )
+        elif kind == "export" and not incoming[node_id]:
+            issues.append(
+                Issue(
+                    "export_not_connected",
+                    "warning",
+                    f"{step}: nothing is connected to it.",
+                    (node_id,),
+                    params={"step": step},
+                )
+            )
+        elif kind == "export" and not str(data.get("datasetName") or "").strip():
+            issues.append(
+                Issue(
+                    "export_name_missing",
+                    "error",
+                    f"{step}: the dataset name is missing.",
+                    (node_id,),
+                    "datasetName",
+                    {"step": step},
+                )
+            )
+        elif kind == "tool":
+            issues += _StepCheck(
+                node, nodes, edges, variables, incoming[node_id], by_id, fields
+            ).run(step)
+    return [issue.to_dict() for issue in issues]
+
+
+def _layer_rows(layers: Iterable[FixtureLayer]) -> list[dict[str, Any]]:
+    return [
+        {
+            "id": layer.layer_project_id,
+            "layer_id": layer.layer_id,
+            "name": layer.name,
+            "type": layer.layer_type,
+            "feature_layer_geometry_type": layer.geometry or None,
+            "layer_project_group_id": None,
+            "order": order,
+            "locked": layer.locked,
+        }
+        for order, layer in enumerate(layers)
+    ]
+
+
+#: The first layer_project_id of a catalog dataset added in a task, after
+#: the fixed ones of ``CATALOG_LAYERS``.
+_FIRST_ADDED_LAYER = 43
+
+
+def _catalog_layer(item: Mapping[str, Any], layer_project_id: int) -> FixtureLayer:
+    """The layer adding a catalog item gives: the item's title and geometry
+    type, and as its fields the columns its record lists (without the
+    geometry), so the record and geoapi name the same fields. It has no
+    features: its data would still be copying."""
+    props = item.get("properties") or {}
+    columns = [
+        column
+        for column in props.get("table:columns") or []
+        if isinstance(column, dict)
+        and isinstance(column.get("name"), str)
+        and column["name"] not in _GEOMETRY_COLUMNS
+    ]
+    geometry = str(props.get("goat:geometryType") or "")
+    return FixtureLayer(
+        layer_project_id,
+        str(uuid.uuid5(uuid.NAMESPACE_URL, f"eval-catalog:{item['id']}")),
+        str(props.get("title") or item["id"]),
+        geometry,
+        {
+            str(column["name"]): str(column.get("type") or "string")
+            for column in columns
+        },
+        (),
+        layer_type="feature" if geometry else "table",
+    )
+
+
+def _workflow_core_routes(
+    catalog: FastAPI,
+    register: Callable[[FixtureLayer], None],
+    saved: list[dict[str, Any]],
+) -> dict[tuple[str, str], Any]:
+    """Core for the workflow suite's projects, fresh for each task: adding a
+    catalog dataset puts its layers into the project's list (and geoapi's,
+    through ``register``), and every workflow core saves goes into ``saved``,
+    where the graders read it."""
+    layers: dict[str, list[FixtureLayer]] = {
+        WF_PROJECT_ID: list(WORKFLOW_LAYERS),
+        VIEWER_PROJECT_ID: list(WORKFLOW_LAYERS),
+        EMPTY_PROJECT_ID: [],
+    }
+    names = {
+        WF_PROJECT_ID: WF_PROJECT_NAME,
+        VIEWER_PROJECT_ID: WF_PROJECT_NAME,
+        EMPTY_PROJECT_ID: EMPTY_PROJECT_NAME,
+    }
+    #: Catalog item id -> the layer adding it gave in this task.
+    added: dict[str, FixtureLayer] = {}
+
+    async def catalog_layers(catalog_id: str) -> list[FixtureLayer]:
+        """The layers adding a catalog id gives, as core resolves it: an
+        item's layer, or every layer of a dataset (``src-<item id>`` for the
+        named rows)."""
+        known = CATALOG_LAYERS.get(catalog_id.removeprefix("src-"))
+        if known is not None:
+            return [known]
+        transport = httpx.ASGITransport(app=catalog)
+        async with httpx.AsyncClient(
+            transport=transport, base_url="http://catalog"
+        ) as client:
+            response = await client.get(f"/stac/resolve/{quote(catalog_id, safe='')}")
+        if response.status_code != 200:
+            return []
+        resolved = response.json()
+        items = (
+            [resolved.get("item")]
+            if resolved.get("kind") == "item"
+            else resolved.get("items") or []
+        )
+        found: list[FixtureLayer] = []
+        for item in items:
+            if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+                continue
+            if item["id"] not in added:
+                layer = _catalog_layer(item, _FIRST_ADDED_LAYER + len(added))
+                added[item["id"]] = layer
+                register(layer)
+            found.append(added[item["id"]])
+        return found
+
+    def layer_list(project_id: str) -> Callable[[httpx.Request], httpx.Response]:
+        def respond(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json=_layer_rows(layers[project_id]))
+
+        return respond
+
+    def add_catalog(project_id: str) -> Any:
+        async def respond(request: httpx.Request) -> httpx.Response:
+            if project_id == VIEWER_PROJECT_ID:
+                return httpx.Response(
+                    403,
+                    json={
+                        "detail": "Adding layers to a project requires editor access"
+                    },
+                )
+            found = await catalog_layers(request.url.params.get("catalog_ids", ""))
+            if not found:
+                return httpx.Response(404, json={"detail": "Catalog item not found"})
+            for layer in found:
+                if layer not in layers[project_id]:
+                    layers[project_id].append(layer)
+            return httpx.Response(200, json=_layer_rows(found))
+
+        return respond
+
+    def keep(project_id: str, body: dict[str, Any]) -> dict[str, Any]:
+        workflow_id = f"0b6f0000-0000-0000-0000-{len(saved) + 1:012d}"
+        saved.append({**body, "id": workflow_id, "project_id": project_id})
+        return saved[-1]
+
+    def create(project_id: str) -> Callable[[httpx.Request], httpx.Response]:
+        def respond(request: httpx.Request) -> httpx.Response:
+            if project_id == VIEWER_PROJECT_ID:
+                # Core answers 401 for missing rights.
+                return httpx.Response(401, json={"detail": "Unauthorized"})
+            return httpx.Response(
+                201, json=keep(project_id, json.loads(request.content))
+            )
+
+        return respond
+
+    def templates(request: httpx.Request) -> httpx.Response:
+        # As core searches (``crud_template``): the whole search text,
+        # case-insensitive, in the name or the description.
+        search = request.url.params.get("search", "").casefold()
+        hit = request.url.params.get("kind") in (None, "workflow") and (
+            search in str(TEMPLATE["name"]).casefold()
+            or search in str(TEMPLATE["description"]).casefold()
+        )
+        return httpx.Response(
+            200, json={"items": [TEMPLATE] if hit else [], "total": int(hit)}
+        )
+
+    def use(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        project_id = str(body.get("project_id"))
+        if project_id not in layers or project_id == VIEWER_PROJECT_ID:
+            return httpx.Response(401, json={"detail": "Unauthorized"})
+        bound = body.get("bindings") or {}
+        # Kept as core got them (input key -> layer id): the graders read
+        # which layers the template's inputs were bound to.
+        workflow = keep(
+            project_id,
+            {"name": body.get("name") or TEMPLATE["name"], "bindings": dict(bound)},
+        )
+        return httpx.Response(
+            200,
+            json={
+                "project_id": project_id,
+                "workflow_id": workflow["id"],
+                "added_layer_project_ids": [],
+                "unresolved_inputs": [
+                    item for item in TEMPLATE["inputs"] if item["key"] not in bound
+                ],
+                "copy_jobs": [],
+            },
+        )
+
+    def preview(request: httpx.Request) -> httpx.Response:
+        # As core binds the template for a use, without writing: a bound
+        # input reads its layer, through the project's entry of it.
+        body = json.loads(request.content)
+        project_id = str(body.get("project_id"))
+        if project_id not in layers or project_id == VIEWER_PROJECT_ID:
+            return httpx.Response(401, json={"detail": "Unauthorized"})
+        bound = body.get("bindings") or {}
+        config = json.loads(json.dumps(TEMPLATE_CONFIG))
+        for node in config["nodes"]:
+            key = node["data"].get("templateInput")
+            if key in bound:
+                node["data"].pop("unresolved", None)
+                node["data"]["layerId"] = bound[key]
+                entry = layer_project_id(bound[key])
+                if entry is not None:
+                    node["data"]["projectLayerId"] = entry
+        return httpx.Response(
+            200,
+            json={
+                "config": config,
+                "unresolved_inputs": [
+                    item for item in TEMPLATE["inputs"] if item["key"] not in bound
+                ],
+            },
+        )
+
+    def workflow(workflow_id: str) -> Callable[[httpx.Request], httpx.Response]:
+        def respond(request: httpx.Request) -> httpx.Response:
+            row = next((row for row in saved if row["id"] == workflow_id), None)
+            if row is None:
+                return httpx.Response(404, json={"detail": "Workflow not found"})
+            return httpx.Response(200, json=row)
+
+        return respond
+
+    routes: dict[tuple[str, str], Any] = {
+        ("GET", "/api/v2/template"): templates,
+        # workflow_create_from_template reads the template before it uses it.
+        ("GET", f"/api/v2/template/{TEMPLATE_ID}"): TEMPLATE,
+        ("POST", f"/api/v2/template/{TEMPLATE_ID}/use/preview"): preview,
+        ("POST", f"/api/v2/template/{TEMPLATE_ID}/use"): use,
+    }
+    for project_id, name in names.items():
+        base = f"/api/v2/project/{project_id}"
+        routes[("GET", base)] = {"id": project_id, "name": name}
+        routes[("GET", f"{base}/layer")] = layer_list(project_id)
+        routes[("GET", f"{base}/group")] = []
+        routes[("GET", f"{base}/workflow")] = []
+        routes[("GET", f"{base}/report-layout")] = []
+        routes[("POST", f"{base}/workflow")] = create(project_id)
+        routes[("POST", f"{base}/layer-catalog")] = add_catalog(project_id)
+        # The ids keep() gives, in order: a task creates a few at most.
+        for n in range(1, 6):
+            workflow_id = f"0b6f0000-0000-0000-0000-{n:012d}"
+            routes[("GET", f"{base}/workflow/{workflow_id}")] = workflow(workflow_id)
+    return routes
+
+
+class _Processes(Recorder):
+    """Processes' routes; a tool without a description answers 404, as
+    processes does for a tool it does not know. Its toolbox (``GET
+    /processes``) lists the fixture's tools only, so a draft naming another
+    tool is refused before the check."""
+
+    def __call__(self, request: httpx.Request) -> httpx.Response:
+        response = super().__call__(request)
+        if (
+            response.status_code == 599
+            and request.method == "GET"
+            and re.fullmatch(r"/processes/[^/]+", request.url.path)
+        ):
+            return httpx.Response(404, json={"detail": "Process not found"})
+        return response
 
 
 class Backends:
@@ -794,12 +1990,26 @@ class Backends:
         """Close the catalog's DuckDB connection (the app's lifespan never runs)."""
         self.catalog.state.store.snapshot().con.close()
 
-    def clients(self) -> tuple[ServiceClients, dict[str, list[httpx.Request]]]:
-        core, geoapi, processes = (
-            Recorder(_core_routes()),
-            Recorder(_geoapi_routes()),
-            Recorder(_processes_routes()),
+    def clients(
+        self,
+    ) -> tuple[ServiceClients, dict[str, list[httpx.Request]], list[dict[str, Any]]]:
+        """Fresh services for one task, the requests they get, and the
+        workflows core saves while the task runs."""
+        geoapi = Recorder(_geoapi_routes())
+        added: dict[str, FixtureLayer] = {}
+        saved: list[dict[str, Any]] = []
+
+        def register(layer: FixtureLayer) -> None:
+            added[layer.layer_id] = layer
+            geoapi.routes.update(_layer_routes(layer))
+
+        def layer_of(layer_id: str) -> FixtureLayer | None:
+            return _BY_ID.get(layer_id) or added.get(layer_id)
+
+        core = Recorder(
+            {**_core_routes(), **_workflow_core_routes(self.catalog, register, saved)}
         )
+        processes = _Processes(_processes_routes(layer_of))
         catalog = RecordingTransport(httpx.ASGITransport(app=self.catalog))
         services = fake_clients(
             core=core, geoapi=geoapi, processes=processes, catalog=catalog
@@ -810,7 +2020,7 @@ class Backends:
             "processes": processes.requests,
             "catalog": catalog.requests,
         }
-        return services, requests
+        return services, requests, saved
 
     async def catalog_count(self, params: Mapping[str, Any]) -> int:
         transport = httpx.ASGITransport(app=self.catalog)

@@ -1,5 +1,9 @@
 """Runs one eval task with a model: the production agent, prompt, tool layer
-and limits, against the fixed backends, and records what happened."""
+and limits, against the fixed backends, and records what happened.
+
+A task with ``answer_card`` runs a second turn when the first showed a card:
+the eval user answers it (``auto_answer``) and the turn gets the answer the
+way the app renders it (``assistant.asks.answer_lines``)."""
 
 import asyncio
 import json
@@ -9,6 +13,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import httpx
+from pydantic import ValidationError
 from pydantic_ai import AgentRunResultEvent
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
@@ -24,9 +29,17 @@ from pydantic_ai.messages import (
     UserPromptPart,
 )
 from pydantic_ai.models import Model
-from pydantic_ai.usage import RunUsage, UsageLimits
+from pydantic_ai.usage import RunUsage
 
 from assistant.agent import RunDeps, build_agent
+from assistant.asks import (
+    ASK_TOOL,
+    AskHistory,
+    AskUserInput,
+    CardAnswer,
+    QuestionAnswer,
+    answer_lines,
+)
 from assistant.budget import RunBudget
 from assistant.config import AssistantSettings
 from assistant.context import PageContext, parse_context
@@ -34,6 +47,7 @@ from assistant.events import DataPart, RunEvent
 from assistant.login import StaticLogin
 from assistant.prompt import render_note, with_note
 from assistant.tools.runtime import ToolEnv, client_secrets
+from assistant.tools.toolset import earlier_writes
 from evals.backends import Backends
 from evals.tasks import EvalTask
 
@@ -63,6 +77,8 @@ class Transcript:
     first_text_seconds: float | None
     #: Of ``input_tokens``, read from the provider's prompt cache.
     cache_read_tokens: int = 0
+    #: The workflows core saved during the run, as it stored them.
+    saved: list[dict[str, Any]] = field(default_factory=list)
 
 
 def _content(value: Any) -> Any:
@@ -76,22 +92,32 @@ def _content(value: Any) -> Any:
 
 class _ToolLog:
     """The run's tool calls, built from the stream as it happens, so a run that
-    fails halfway still shows what it did (the safety checks read this)."""
+    fails halfway still shows what it did (the safety checks read this).
+
+    Every call is kept: some providers number tool call ids per answer and so
+    reuse them, also within one turn. A result belongs to the latest call
+    with its id that has none yet."""
 
     def __init__(self) -> None:
-        self._calls: dict[str, ToolCall] = {}
+        self._calls: list[ToolCall] = []
+        self._waiting: list[tuple[str, ToolCall]] = []
 
     def see(self, event: Any) -> None:
         if isinstance(event, FunctionToolCallEvent):
             part = event.part
-            self._calls[part.tool_call_id] = ToolCall(
-                part.tool_name, part.args_as_dict(), None, False
-            )
+            call = ToolCall(part.tool_name, part.args_as_dict(), None, False)
+            self._calls.append(call)
+            self._waiting.append((part.tool_call_id, call))
         elif isinstance(event, FunctionToolResultEvent):
             reply = event.part
-            call = self._calls.get(reply.tool_call_id)
-            if call is None:
+            waiting = [
+                index
+                for index, (call_id, _) in enumerate(self._waiting)
+                if call_id == reply.tool_call_id
+            ]
+            if not waiting:
                 return
+            _, call = self._waiting.pop(waiting[-1])
             call.result = _content(reply.content)
             # A ToolFailed from the tool: the model sees the failure and the run goes on.
             # Anything but success (failed, denied, interrupted), as runs/translate.py reads it.
@@ -101,7 +127,30 @@ class _ToolLog:
 
     @property
     def calls(self) -> list[ToolCall]:
-        return list(self._calls.values())
+        return list(self._calls)
+
+
+def _written(calls: list[ToolCall]) -> dict[str, dict[str, Any]]:
+    """The results of the write calls that succeeded, by call key, as the
+    run manager seeds a run with those of the conversation
+    (``toolset.earlier_writes`` over the stored parts)."""
+    stored = [
+        {
+            "role": "assistant",
+            "parts": [
+                {
+                    "type": "tool",
+                    "tool_name": call.name,
+                    "args": call.args,
+                    "output": call.result,
+                    "state": "output",
+                }
+                for call in calls
+                if not call.failed
+            ],
+        }
+    ]
+    return earlier_writes(stored)
 
 
 def _is_text(event: Any) -> bool:
@@ -123,83 +172,152 @@ def _history(task: EvalTask, page: PageContext) -> list[ModelMessage]:
     return messages
 
 
+def auto_answer(card_id: str, card: AskUserInput) -> tuple[CardAnswer, str]:
+    """The eval user's answer to a card: every question with its first
+    option, the recommended one when there is one (``AskQuestion`` puts it
+    first), and the text the dock sends with it."""
+    answer = CardAnswer(
+        card_id=card_id,
+        answers=[
+            QuestionAnswer(question=index, options=[0])
+            for index in range(len(card.questions))
+        ],
+    )
+    text = ". ".join(
+        f"{question.header}: {question.options[0].label}" for question in card.questions
+    )
+    return answer, text
+
+
+def _shown_card(calls: list[ToolCall]) -> tuple[str, AskUserInput] | None:
+    """The last card the run showed, with its id."""
+    for call in reversed(calls):
+        if call.name != ASK_TOOL or call.failed or not isinstance(call.result, dict):
+            continue
+        try:
+            return str(call.result["card_id"]), AskUserInput.model_validate(call.args)
+        except (KeyError, ValidationError):
+            return None
+    return None
+
+
 async def run_task(
     task: EvalTask, model: Model, backends: Backends, settings: AssistantSettings
 ) -> Transcript:
     page = parse_context(task.context)
-    services, requests = backends.clients()
+    services, requests, saved = backends.clients()
     events: list[RunEvent] = []
 
     async def emit(event: RunEvent) -> None:
         events.append(event)
 
-    env = ToolEnv(
-        services=services,
-        login=StaticLogin("eval-token"),
-        user_id=EVAL_USER,
-        data_policy=task.data_policy,
-        page=page,
-        locale=task.locale,
-        extra_secrets=client_secrets(settings),
-    )
-    deps = RunDeps(
-        message_id=str(uuid4()),
-        emit=emit,
-        data_policy=task.data_policy,
-        env=env,
-        prompt_note=render_note(
-            page, page if task.history else None, task.locale, task.prompt
-        ),
-        budget=RunBudget(
-            max_tokens=settings.run_max_tokens,
-            max_tool_calls=settings.run_max_tool_calls,
-        ),
-    )
-    env.emit_data = deps.emit_data
     agent = build_agent(model)
-    limits = UsageLimits(
-        tool_calls_limit=settings.run_max_tool_calls,
-        total_tokens_limit=settings.run_max_tokens,
+    budget = RunBudget(
+        max_tokens=settings.run_max_tokens,
+        max_tool_calls=settings.run_max_tool_calls,
     )
+    limits = budget.usage_limits()
     started = time.monotonic()
     first_text: float | None = None
-    result = None
+    output = ""
     error: str | None = None
     log = _ToolLog()
-    # The caller's usage, as RunManager does: tokens of a run that fails or
-    # times out are still counted.
-    usage = RunUsage()
-    try:
+    #: One per turn, as each run of the app has its own limits.
+    usages: list[RunUsage] = []
+
+    async def turn(
+        prompt: str,
+        history: list[ModelMessage],
+        previous: PageContext | None,
+        asks: AskHistory,
+        answer: str,
+        written: dict[str, dict[str, Any]],
+    ) -> list[ModelMessage]:
+        """One run of the conversation, as RunManager runs it: its own limits
+        and time, the conversation's earlier write results (``written``)."""
+        nonlocal first_text, output
+        env = ToolEnv(
+            services=services,
+            login=StaticLogin("eval-token"),
+            user_id=EVAL_USER,
+            data_policy=task.data_policy,
+            page=page,
+            locale=task.locale,
+            extra_secrets=client_secrets(settings),
+            asks=asks,
+        )
+        deps = RunDeps(
+            message_id=str(uuid4()),
+            emit=emit,
+            data_policy=task.data_policy,
+            env=env,
+            prompt_note=render_note(page, previous, task.locale, prompt),
+            prompt_answer=answer,
+            budget=budget,
+        )
+        env.emit_data = deps.emit_data
+        deps.earlier_results.update(written)
+        # The caller's usage, as RunManager does: tokens of a run that fails
+        # or times out are still counted.
+        usage = RunUsage()
+        usages.append(usage)
+        messages: list[ModelMessage] = []
         async with asyncio.timeout(settings.run_max_seconds):
             async with agent.run_stream_events(
-                with_note(deps.prompt_note, task.prompt),
+                with_note(deps.prompt_note, prompt, answer),
                 deps=deps,
-                message_history=_history(task, page) or None,
+                message_history=history or None,
                 usage_limits=limits,
                 usage=usage,
             ) as stream:
                 async for event in stream:
                     log.see(event)
                     if isinstance(event, AgentRunResultEvent):
-                        result = event.result
+                        output = str(event.result.output)
+                        messages = event.result.all_messages()
                     elif first_text is None and _is_text(event):
                         first_text = time.monotonic() - started
+        return messages
+
+    try:
+        messages = await turn(
+            task.prompt,
+            _history(task, page),
+            page if task.history else None,
+            AskHistory(),
+            "",
+            {},
+        )
+        first = log.calls
+        shown = _shown_card(first) if task.answer_card else None
+        if shown is not None:
+            card_id, card = shown
+            answer, text = auto_answer(card_id, card)
+            await turn(
+                text,
+                messages,
+                page,
+                AskHistory(cards={card_id: card}, answers={card_id: answer}),
+                answer_lines(card, answer),
+                _written(first),
+            )
     except Exception as exc:  # a failed run is a failed task, not a failed eval
         error = f"{type(exc).__name__}: {exc}"
     finally:
         await services.aclose()
     return Transcript(
         task_id=task.id,
-        answer=str(result.output) if result is not None else "",
+        answer=output,
         tool_calls=log.calls,
         proposals=[
             e.data for e in events if isinstance(e, DataPart) and e.name == "proposal"
         ],
         requests=requests,
         error=error,
-        input_tokens=usage.input_tokens,
-        output_tokens=usage.output_tokens,
+        input_tokens=sum(usage.input_tokens for usage in usages),
+        output_tokens=sum(usage.output_tokens for usage in usages),
         seconds=time.monotonic() - started,
         first_text_seconds=first_text,
-        cache_read_tokens=usage.cache_read_tokens,
+        cache_read_tokens=sum(usage.cache_read_tokens for usage in usages),
+        saved=saved,
     )

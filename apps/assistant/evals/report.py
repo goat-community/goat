@@ -75,6 +75,12 @@ def build_report(
                 "cache_read_tokens": transcript.cache_read_tokens,
                 "error": scrub(transcript.error, known),
                 "tools": [call.name for call in transcript.tool_calls],
+                # The workflows core saved in the task, as `python -m evals
+                # runs --add-from` reads them.
+                "workflows": [
+                    {"name": row.get("name"), "config": row.get("config")}
+                    for row in transcript.saved
+                ],
                 "grades": [
                     {
                         "check": g.check,
@@ -153,7 +159,9 @@ def _write_json(path: Path, data: Any) -> None:
 
 def write_report(report: dict[str, Any], directory: Path = RESULTS_DIR) -> Path:
     directory.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.fromisoformat(report["finished_at"]).strftime("%Y%m%d-%H%M%S")
+    # To the microsecond: runs of one model started together finish within a
+    # second of each other, and a rewrite of a run keeps its finished_at.
+    stamp = datetime.fromisoformat(report["finished_at"]).strftime("%Y%m%d-%H%M%S-%f")
     name = f"{report['model']['provider']}-{report['model']['model']}"
     slug = "".join(c if c.isalnum() or c in "-." else "-" for c in name)
     path = directory / f"{stamp}-{slug}.json"

@@ -3,39 +3,27 @@
   "models": [
     {
       "provider": "openai_compatible",
-      "model": "anthropic/claude-haiku-5.5",
-      "judge": {
-        "provider": "openai_compatible",
-        "model": "openai/gpt-oss-120b"
-      },
-      "eval_set_version": 7,
-      "score": 0.94,
-      "date": "2026-10-13",
-      "results": "20261013-134306-openai-compatible-anthropic-claude-haiku-5.5.json"
-    },
-    {
-      "provider": "openai_compatible",
       "model": "deepseek/deepseek-v4.1-flash",
       "judge": {
         "provider": "openai_compatible",
         "model": "openai/gpt-oss-120b"
       },
-      "eval_set_version": 7,
-      "score": 0.96,
-      "date": "2026-10-13",
-      "results": "20261013-134240-openai-compatible-deepseek-deepseek-v4.1-flash.json"
+      "eval_set_version": 16,
+      "score": 0.928,
+      "date": "2026-10-21",
+      "results": "20261021-134033-557606-openai-compatible-deepseek-deepseek-v4.1-flash.json"
     },
     {
       "provider": "openai_compatible",
-      "model": "openai/gpt-6-luna",
+      "model": "deepseek/deepseek-v4.1-flash-1017",
       "judge": {
         "provider": "openai_compatible",
         "model": "openai/gpt-oss-120b"
       },
-      "eval_set_version": 7,
-      "score": 0.92,
-      "date": "2026-10-13",
-      "results": "20261013-134051-openai-compatible-openai-gpt-6-luna.json"
+      "eval_set_version": 16,
+      "score": 0.913,
+      "date": "2026-10-21",
+      "results": "20261021-202225-655893-openai-compatible-deepseek-deepseek-v4.1-flash-1017.json"
     }
   ]
 }

@@ -1,9 +1,10 @@
 """``python -m evals`` (from apps/assistant): run the eval set against a model,
-and promote a passing model into the tested-models list.
+promote a passing model into the tested-models list, and keep the regression
+workflows (``runs``, workflow_runs.json).
 
-It spends provider tokens, so it never runs in CI (it refuses when CI is set)
-and always names the model it grades: GOAT AI as ASSISTANT_DEFAULT_* configure
-it, or --provider/--model.
+A run spends provider tokens, so it never runs in CI (it refuses when CI is
+set) and always names the model it grades: GOAT AI as ASSISTANT_DEFAULT_*
+configure it, or --provider/--model.
 """
 
 import argparse
@@ -13,6 +14,7 @@ import sys
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import get_args
 
 from dotenv import load_dotenv
 
@@ -21,12 +23,13 @@ from assistant.llm.endpoints import EndpointPolicy
 from assistant.llm.failures import secrets_of
 from assistant.llm.providers import OpenModels, Target, default_target, open_models
 from assistant.llm.types import PROVIDER_TYPES
+from evals import runs
 from evals.backends import Backends, write_eval_catalog
 from evals.graders import Grade, grade
 from evals.harness import Transcript, run_task
 from evals.judge import ModelJudge, apply_judge
 from evals.report import RESULTS_DIR, TESTED_FILE, build_report, promote, write_report
-from evals.tasks import EvalTask, load_tasks
+from evals.tasks import EvalTask, Suite, load_tasks
 
 ROOT = Path(__file__).resolve().parents[3]
 EVAL_KEY_ENV = "ASSISTANT_EVAL_API_KEY"
@@ -44,7 +47,7 @@ def _parser() -> argparse.ArgumentParser:
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("list", help="list the tasks")
     run = commands.add_parser("run", help="run tasks against a model")
-    run.add_argument("--suite", choices=["catalog", "project"])
+    run.add_argument("--suite", choices=list(get_args(Suite)))
     run.add_argument(
         "--task", action="append", default=[], help="a task id; repeatable"
     )
@@ -85,6 +88,16 @@ def _parser() -> argparse.ArgumentParser:
     prom.add_argument("results", type=Path)
     prom.add_argument(
         "--tested-file", type=Path, default=TESTED_FILE, help=argparse.SUPPRESS
+    )
+    runs_command = commands.add_parser(
+        "runs",
+        help="refresh the configs of the regression workflows (workflow_runs.json)",
+    )
+    runs_command.add_argument(
+        "--add-from",
+        type=Path,
+        metavar="RESULTS",
+        help="first add the workflows this eval run's results file records",
     )
     return parser
 
@@ -276,6 +289,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"not promoted: {exc}", file=sys.stderr)
             return 1
         print(f"added {entry['provider']} / {entry['model']} to {args.tested_file}")
+        return 0
+    if args.command == "runs":
+        if args.add_from is not None:
+            added, skipped = runs.add_from_report(args.add_from)
+            for reason in skipped:
+                print(f"not added: {reason}", file=sys.stderr)
+            print(f"added {added} workflow(s) to {runs.RUNS_FILE}")
+        print(f"refreshed {runs.refresh()} draft config(s) in {runs.RUNS_FILE}")
         return 0
     if _in_ci():
         print(

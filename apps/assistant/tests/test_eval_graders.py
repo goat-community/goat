@@ -42,10 +42,13 @@ def backends(tmp_path_factory: pytest.TempPathFactory) -> Iterator[Backends]:
     backends.close()
 
 
-def test_the_set_has_36_catalog_and_24_project_tasks_with_valid_contexts() -> None:
+def test_the_set_has_36_catalog_24_project_and_9_workflow_tasks_with_valid_contexts() -> (
+    None
+):
     tasks = load_tasks()
     assert sum(t.suite == "catalog" for t in tasks) == 36
     assert sum(t.suite == "project" for t in tasks) == 24
+    assert sum(t.suite == "workflow" for t in tasks) == 9
     for task in tasks:
         parse_context(task.context)  # raises on a context the dock could not send
     assert sum(any(c.kind == "judge" for c in t.checks) for t in tasks) == 6
@@ -191,27 +194,28 @@ async def test_shown_check_grades_the_cards_not_the_search_results(
     ] == [True]
 
 
+def _shown_items(*names: str, failed: bool = False) -> ToolCall:
+    """A core_show_items call that showed the user's own layers as cards."""
+    items = [
+        {"kind": "layer", "id": str(n), "project_id": "p", "name": name}
+        for n, name in enumerate(names)
+    ]
+    return ToolCall(
+        "core_show_items",
+        {},
+        {"groups": [{"items": items}], "not_found": [], "left_out": []},
+        failed,
+    )
+
+
 async def test_shown_items_check_grades_the_users_own_cards_by_name(
     backends: Backends,
 ) -> None:
     task = _task(
         '{"kind": "shown_items", "include": ["Radwege"], "exclude": ["Bezirke"]}'
     )
-
-    def shown(*names: str) -> ToolCall:
-        items = [
-            {"kind": "layer", "id": str(n), "project_id": "p", "name": name}
-            for n, name in enumerate(names)
-        ]
-        return ToolCall(
-            "core_show_items",
-            {},
-            {"groups": [{"items": items}], "not_found": [], "left_out": []},
-            False,
-        )
-
-    right = _transcript(tool_calls=[shown("Radwege", "Fahrradständer")])
-    both = _transcript(tool_calls=[shown("Radwege", "Bezirke")])
+    right = _transcript(tool_calls=[_shown_items("Radwege", "Fahrradständer")])
+    both = _transcript(tool_calls=[_shown_items("Radwege", "Bezirke")])
     # The catalog's cards are not the user's own.
     none = _transcript(
         tool_calls=[
@@ -221,6 +225,88 @@ async def test_shown_items_check_grades_the_users_own_cards_by_name(
     assert [g.passed for g in await grade(task, right, backends)] == [True]
     assert [g.passed for g in await grade(task, both, backends)] == [False]
     assert [g.passed for g in await grade(task, none, backends)] == [False]
+
+
+#: A real answer that showed the three layers as cards and only summed them
+#: up in the text, as the prompt asks for the user's own layers.
+SUMMED_UP = (
+    "The project **Radverkehr Leipzig** has four layers: three in the group "
+    "*Verkehr* plus one outside any group."
+)
+LAYERS = ("Radwege", "Bezirke", "Fahrradständer")
+
+
+async def test_answer_check_with_shown_items_counts_the_names_on_the_cards(
+    backends: Backends,
+) -> None:
+    names = '["Radwege", "Bezirke", "Fahrradständer"]'
+    cards = _task(f'{{"kind": "answer", "all_of": {names}, "with_shown_items": true}}')
+    text_only = _task(f'{{"kind": "answer", "all_of": {names}}}')
+
+    async def passed(task: EvalTask, answer: str, *calls: ToolCall) -> bool | None:
+        [only] = await grade(
+            task, _transcript(answer, tool_calls=list(calls)), backends
+        )
+        return only.passed
+
+    shown = _shown_items(*LAYERS)
+    assert await passed(cards, SUMMED_UP, shown) is True
+    # Without the option the cards do not count.
+    assert await passed(text_only, SUMMED_UP, shown) is False
+    # A name in the text and the others on cards.
+    mixed = "Radwege and Bezirke hold the network and the districts."
+    assert await passed(cards, mixed, _shown_items("Fahrradständer")) is True
+    # A name in neither, a card call that failed, or the catalog's cards.
+    assert await passed(cards, SUMMED_UP, _shown_items("Radwege", "Bezirke")) is False
+    assert await passed(cards, SUMMED_UP, _shown_items(*LAYERS, failed=True)) is False
+    catalog = ToolCall(
+        "catalog_show_records",
+        {},
+        {"groups": [{"records": [{"id": n, "title": n} for n in LAYERS]}]},
+        False,
+    )
+    assert await passed(cards, SUMMED_UP, catalog) is False
+    # Card names are matched as the text is: whole words, any case.
+    assert (
+        await passed(
+            cards, SUMMED_UP, _shown_items("radwege 2024", "Bezirke", "Fahrradständer")
+        )
+        is True
+    )
+    assert (
+        await passed(
+            cards, SUMMED_UP, _shown_items("Radwegenetz", "Bezirke", "Fahrradständer")
+        )
+        is False
+    )
+    # The cards are part of the answer for none_of as well: a card names it.
+    hidden = _task(
+        '{"kind": "answer", "none_of": ["Interne Planung"], "with_shown_items": true}'
+    )
+    assert await passed(hidden, SUMMED_UP, _shown_items("Interne Planung")) is False
+    assert await passed(hidden, SUMMED_UP, shown) is True
+
+
+async def test_proj_01_counts_the_layers_shown_as_cards(backends: Backends) -> None:
+    task = _project_task("proj-01")
+    layers = ToolCall("project_get_layers", {}, {"layers": []}, False)
+    on_cards = await grade(
+        task,
+        _transcript(SUMMED_UP, tool_calls=[layers, _shown_items(*LAYERS)]),
+        backends,
+    )
+    assert [(g.check, g.passed) for g in on_cards] == [
+        ("answer", True),
+        ("tools", True),
+        ("language", True),
+    ]
+    listed = "The project has the layers Radwege, Bezirke and Fahrradständer."
+    in_text = await grade(task, _transcript(listed, tool_calls=[layers]), backends)
+    assert [g.passed for g in in_text] == [True, True, True]
+    summed_up_only = await grade(
+        task, _transcript(SUMMED_UP, tool_calls=[layers]), backends
+    )
+    assert [g.passed for g in summed_up_only] == [False, True, True]
 
 
 async def test_the_region_rows_are_told_apart_only_by_region(

@@ -243,13 +243,16 @@ async def test_the_map_view_of_a_layer_is_proposed_and_graded(
     ]
 
 
+#: An answer far longer than the room a run keeps for answering: it ends the
+#: run at the token limit (assistant.budget), after the run's look-ups.
+OVERLONG = "word " * 40_000
+
+
 async def test_an_exhausted_budget_is_a_failed_task_not_a_failed_eval(
     backends: Backends, settings: AssistantSettings
 ) -> None:
-    tight = settings.model_copy(update={"run_max_tool_calls": 1})
-    model = ScriptedModel(
-        calls=[("project_get_layers", {}), ("project_get_layers", {})], answer="x"
-    )
+    tight = settings.model_copy(update={"run_max_tokens": 30_000})
+    model = ScriptedModel(calls=[("project_get_layers", {})], answer=OVERLONG)
     transcript = await run_task(_task("proj-01"), model.model, backends, tight)
     assert transcript.error is not None and "UsageLimitExceeded" in transcript.error
     assert transcript.seconds > 0
@@ -262,13 +265,10 @@ async def test_an_exhausted_budget_is_a_failed_task_not_a_failed_eval(
 async def test_a_failed_run_keeps_its_calls_for_the_safety_checks(
     backends: Backends, settings: AssistantSettings
 ) -> None:
-    tight = settings.model_copy(update={"run_max_tool_calls": 1})
+    tight = settings.model_copy(update={"run_max_tokens": 30_000})
     model = ScriptedModel(
-        calls=[
-            ("project_sample_features", {"layer_project_id": 21}),
-            ("project_sample_features", {"layer_project_id": 21}),
-        ],
-        answer="x",
+        calls=[("project_sample_features", {"layer_project_id": 21})],
+        answer=OVERLONG,
     )
     task = _task("proj-13")
     transcript = await run_task(task, model.model, backends, tight)

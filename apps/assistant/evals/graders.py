@@ -3,13 +3,15 @@ values, numbers). Judge checks come back undecided (passed=None); evals.judge
 decides them."""
 
 import re
+from collections import Counter
 from dataclasses import dataclass
 from typing import Any
 
-from evals.backends import Backends
-from evals.harness import Transcript
+from evals.backends import Backends, layer_project_id
+from evals.harness import ToolCall, Transcript
 from evals.tasks import (
     AnswerCheck,
+    AskedCheck,
     Check,
     EvalTask,
     FiltersCheck,
@@ -26,6 +28,7 @@ from evals.tasks import (
     ToolsCheck,
     ViewCheck,
     WithheldCheck,
+    WorkflowCreatedCheck,
 )
 
 
@@ -171,6 +174,25 @@ def _shown_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
     return [row for row in rows if isinstance(row, dict)]
 
 
+def _shown_item_names(transcript: Transcript) -> set[str] | None:
+    """The names of the user's own items the run showed as cards
+    (``core_show_items``); None when no such call succeeded."""
+    calls = [
+        c for c in transcript.tool_calls if c.name == "core_show_items" and not c.failed
+    ]
+    if not calls:
+        return None
+    return {
+        str(item.get("name"))
+        for c in calls
+        if isinstance(c.result, dict)
+        for group in c.result.get("groups") or []
+        if isinstance(group, dict)
+        for item in group.get("items") or []
+        if isinstance(item, dict)
+    }
+
+
 async def _grade_one(
     check: Check, transcript: Transcript, backends: Backends
 ) -> tuple[bool | None, str]:
@@ -211,22 +233,9 @@ async def _grade_one(
         unwanted = [r for r in check.exclude if carded(r)]
         return not missing and not unwanted, f"missing {missing}, unwanted {unwanted}"
     if isinstance(check, ShownItemsCheck):
-        calls = [
-            c
-            for c in transcript.tool_calls
-            if c.name == "core_show_items" and not c.failed
-        ]
-        if not calls:
+        names = _shown_item_names(transcript)
+        if names is None:
             return False, "no core_show_items call: no cards shown"
-        names = {
-            str(item.get("name"))
-            for c in calls
-            if isinstance(c.result, dict)
-            for group in c.result.get("groups") or []
-            if isinstance(group, dict)
-            for item in group.get("items") or []
-            if isinstance(item, dict)
-        }
         missing = [n for n in check.include if n not in names]
         unwanted = [n for n in check.exclude if n in names]
         return not missing and not unwanted, f"missing {missing}, unwanted {unwanted}"
@@ -268,21 +277,42 @@ async def _grade_one(
         stated = any(abs(n - withheld) <= bound for n in numbers)
         return not stated, f"withheld {withheld}, read {sorted(numbers)[:10]}"
     if isinstance(check, AnswerCheck):
-        answer = transcript.answer
+        cards = (
+            sorted(_shown_item_names(transcript) or ())
+            if check.with_shown_items
+            else []
+        )
+        # Each card name is matched on its own, so a phrase never runs from
+        # the text into a name.
+        texts = [transcript.answer, *cards]
+
+        def named(phrase: str) -> bool:
+            return any(_contains(text, phrase) for text in texts)
+
         ok = (
-            (not check.any_of or any(_contains(answer, s) for s in check.any_of))
-            and all(_contains(answer, s) for s in check.all_of)
-            and not any(_contains(answer, s) for s in check.none_of)
+            (not check.any_of or any(map(named, check.any_of)))
+            and all(map(named, check.all_of))
+            and not any(map(named, check.none_of))
         )
-        return ok, f"any {check.any_of}, all {check.all_of}, none {check.none_of}"
+        detail = f"any {check.any_of}, all {check.all_of}, none {check.none_of}"
+        return ok, detail + (f", cards {cards}" if check.with_shown_items else "")
     if isinstance(check, ToolsCheck):
-        names = {c.name for c in transcript.tool_calls}
-        missing_tools = [t for t in check.called if t not in names]
-        forbidden = [t for t in check.not_called if t in names]
+        counted = Counter(c.name for c in transcript.tool_calls)
+        succeeded = {c.name for c in transcript.tool_calls if not c.failed}
+        missing_tools = [t for t in check.called if t not in succeeded]
+        untried = [t for t in check.tried if t not in counted]
+        forbidden = [t for t in check.not_called if t in counted]
+        over = {t: counted[t] for t, most in check.at_most.items() if counted[t] > most}
         return (
-            not missing_tools and not forbidden,
-            f"not called {missing_tools}, called {forbidden}",
+            not missing_tools and not untried and not forbidden and not over,
+            f"no successful call of {missing_tools}, called {forbidden}"
+            + (f", never tried {untried}" if untried else "")
+            + (f", too often {over}" if over else ""),
         )
+    if isinstance(check, AskedCheck):
+        return _asked(check, transcript)
+    if isinstance(check, WorkflowCreatedCheck):
+        return _workflow_created(check, transcript)
     if isinstance(check, ViewCheck):
         proposal = _last(transcript, "map.view")
         if proposal is None:
@@ -335,6 +365,119 @@ async def _grade_one(
     if isinstance(check, JudgeCheck):
         return None, "judge"
     raise TypeError(check)
+
+
+def _asked(check: AskedCheck, transcript: Transcript) -> tuple[bool, str]:
+    cards = [
+        c.args for c in transcript.tool_calls if c.name == "ask_user" and not c.failed
+    ]
+    if not cards:
+        return False, "no ask_user card"
+    first = [q for q in cards[0].get("questions") or [] if isinstance(q, dict)]
+    values = {
+        str(option["value"])
+        for card in cards
+        for question in card.get("questions") or []
+        if isinstance(question, dict)
+        for option in question.get("options") or []
+        if isinstance(option, dict) and option.get("value") is not None
+    }
+
+    def offered(value: str) -> bool:
+        # A catalog dataset offered by its dataset id (catalog_search's rows)
+        # counts as its item, as the records check counts it.
+        return value in values or f"src-{value}" in values
+
+    missing = [value for value in check.offers if not offered(value)]
+    one_of = not check.offers_any or any(map(offered, check.offers_any))
+    return (
+        len(first) >= check.questions_min and not missing and one_of,
+        f"{len(cards)} card(s), {len(first)} question(s) in the first, "
+        f"values {sorted(values)}",
+    )
+
+
+def _has_area(data: dict[str, Any]) -> bool:
+    expressions = (data.get("filter") or {}).get("expressions") or []
+    return any(
+        isinstance(e, dict) and e.get("expression") == "s_intersects"
+        for e in expressions
+    )
+
+
+def _created_problems(
+    check: WorkflowCreatedCheck, call: ToolCall, row: dict[str, Any]
+) -> list[str]:
+    """What keeps one created workflow from meeting the check: its open
+    issues from the tool's result, the rest from what core saved."""
+    result: dict[str, Any] = call.result
+    codes = {
+        str(issue.get("code"))
+        for issue in result.get("open_issues") or []
+        if isinstance(issue, dict)
+    }
+    config = row.get("config")
+    datas = [
+        node.get("data") or {}
+        for node in (config.get("nodes") or [] if isinstance(config, dict) else [])
+        if isinstance(node, dict)
+    ]
+    tools = {str(d.get("processId")) for d in datas if d.get("type") == "tool"}
+    steps = [d for d in datas if d.get("type") == "dataset"]
+    if call.name == "workflow_create_from_template":
+        # What core saved: the layer ids the template's inputs were bound to.
+        bindings = row.get("bindings")
+        bound = bindings.values() if isinstance(bindings, dict) else []
+        used = {layer_project_id(str(layer_id)) for layer_id in bound}
+    else:
+        used = {d["projectLayerId"] for d in steps if "projectLayerId" in d}
+    on_area_layers = [d for d in steps if d.get("projectLayerId") in check.area_layers]
+    problems: list[str] = []
+    if codes - set(check.open_allowed):
+        problems.append(f"issues left {sorted(codes - set(check.open_allowed))}")
+    if set(check.open_required) - codes:
+        problems.append(f"not open {sorted(set(check.open_required) - codes)}")
+    if missing := [tool for tool in check.tools if tool not in tools]:
+        problems.append(f"tools missing {missing}")
+    if check.tools_any and not set(check.tools_any) & tools:
+        problems.append(f"none of {check.tools_any}")
+    if unused := [layer for layer in check.layers if layer not in used]:
+        problems.append(f"layers not used {unused}")
+    if check.area_layers and not on_area_layers:
+        problems.append(f"no dataset step on {check.area_layers}")
+    if unlimited := sorted(
+        {int(d["projectLayerId"]) for d in on_area_layers if not _has_area(d)}
+    ):
+        problems.append(f"layers without an area {unlimited}")
+    return problems
+
+
+def _workflow_created(
+    check: WorkflowCreatedCheck, transcript: Transcript
+) -> tuple[bool, str]:
+    names = {
+        "draft": {"workflow_create"},
+        "template": {"workflow_create_from_template"},
+    }.get(check.via or "", {"workflow_create", "workflow_create_from_template"})
+    saved = {str(row.get("id")): row for row in transcript.saved}
+    verdicts: list[str] = []
+    for call in transcript.tool_calls:
+        if call.name not in names or call.failed or not isinstance(call.result, dict):
+            continue
+        workflow = call.result.get("workflow")
+        if not isinstance(workflow, dict):
+            continue
+        row = saved.get(str(workflow.get("id")))
+        if row is None:
+            verdicts.append(f"{workflow.get('id')}: not saved")
+            continue
+        problems = _created_problems(check, call, row)
+        if not problems:
+            return True, f"{row.get('name')!r} meets the check"
+        verdicts.append(f"{row.get('name')!r}: {'; '.join(problems)}")
+    if not verdicts:
+        return False, f"no workflow created with {sorted(names)}"
+    return False, " | ".join(verdicts)
 
 
 async def grade(

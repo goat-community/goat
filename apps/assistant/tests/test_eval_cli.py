@@ -205,9 +205,13 @@ def test_a_run_writes_a_report(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
 
 
 def test_promotion_is_refused_below_the_score() -> None:
-    # 50 of 60 (0.83): below the score, while each suite stays at 0.8 or more
-    # (catalog 29 of 36, project 21 of 24).
-    plain = _plain_ids("catalog", False, 7) + _plain_ids("project", False, 3)
+    # 58 of 69 (0.84): below the score, while each suite stays at 0.8 or more
+    # (catalog 29 of 36, project 21 of 24, workflow 8 of 9).
+    plain = (
+        _plain_ids("catalog", False, 7)
+        + _plain_ids("project", False, 3)
+        + _plain_ids("workflow", False, 1)
+    )
     refusal = promotion_refusal(_report(fail=tuple(plain)))
     assert refusal is not None and "score" in refusal
 
@@ -235,10 +239,14 @@ def test_promotion_is_refused_for_a_partial_run() -> None:
 
 
 def test_promotion_goes_by_the_task_records_not_the_summary() -> None:
-    plain = tuple(_plain_ids("catalog", False, 7) + _plain_ids("project", False, 3))
+    plain = tuple(
+        _plain_ids("catalog", False, 7)
+        + _plain_ids("project", False, 3)
+        + _plain_ids("workflow", False, 1)
+    )
     report = _report(fail=plain)
     report["summary"] = {
-        "tasks": 60,
+        "tasks": 69,
         "score": 1.0,
         "undecided": 0,
         "critical_failed": [],
@@ -570,6 +578,20 @@ def test_a_failed_report_write_leaves_the_old_file(
         write_report(changed, tmp_path)
     assert path.read_text() == old
     assert [p.name for p in tmp_path.iterdir()] == [path.name]
+
+
+def test_runs_that_finish_in_the_same_second_keep_their_own_files(
+    tmp_path: Path,
+) -> None:
+    """Parallel runs of one model often finish within a second: each keeps its
+    own results file, and rewriting one run (a later judge) keeps its name."""
+    first = {**_report(), "finished_at": "2026-10-21T13:33:54.120000+00:00"}
+    second = {**_report(), "finished_at": "2026-10-21T13:33:54.870000+00:00"}
+    a = write_report(first, tmp_path)
+    b = write_report(second, tmp_path)
+    assert a != b
+    assert write_report({**first, "judge": None}, tmp_path) == a
+    assert len(list(tmp_path.iterdir())) == 2
 
 
 def test_a_failed_promotion_write_leaves_the_old_list(
