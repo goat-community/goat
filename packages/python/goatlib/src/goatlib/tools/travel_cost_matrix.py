@@ -40,6 +40,7 @@ from goatlib.bundles.artifacts.street_network import (
     fetch_linked_routing_network,
     fetch_routing_network,
 )
+from goatlib.io.config import parquet_copy_options
 from goatlib.models.io import DatasetMetadata
 from goatlib.tools._routing_limits import (
     DEFAULT_MAX_TIME_ACTIVE_MIN,
@@ -48,6 +49,7 @@ from goatlib.tools._routing_limits import (
     leg_budget_widget_options,
     resolve_budget_input,
     resolve_leg_budget_input,
+    speed_default_by_field,
     validate_budget,
     validate_cost_type,
     validate_extent,
@@ -417,10 +419,7 @@ class TravelCostMatrixWindmillParams(ToolInputBase):
                 ]
             },
             widget_options={
-                "default_by_field": {
-                    "field": "routing_mode",
-                    "values": {"walking": 5, "bicycle": 15, "pedelec": 23},
-                },
+                "default_by_field": speed_default_by_field("routing_mode"),
                 "max_value_from": {
                     "fields": [
                         {
@@ -527,10 +526,7 @@ class TravelCostMatrixWindmillParams(ToolInputBase):
             field_order=23,
             label_key="speed_kmh",
             widget_options={
-                "default_by_field": {
-                    "field": "access_mode",
-                    "values": {"walk": 5, "bicycle": 15, "pedelec": 23},
-                },
+                "default_by_field": speed_default_by_field("access_mode", leg=True),
                 "max_value_from": {
                     "fields": [
                         {
@@ -621,10 +617,7 @@ class TravelCostMatrixWindmillParams(ToolInputBase):
             field_order=27,
             label_key="speed_kmh",
             widget_options={
-                "default_by_field": {
-                    "field": "egress_mode",
-                    "values": {"walk": 5, "bicycle": 15, "pedelec": 23},
-                },
+                "default_by_field": speed_default_by_field("egress_mode", leg=True),
                 "max_value_from": {
                     "fields": [
                         {
@@ -804,7 +797,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
                 None,
             )
             if not geom_col:
-                raise RuntimeError(f"No geometry column found in {parquet_path}")
+                raise RuntimeError("The point layer has no geometry column.")
 
             # Validate id_column against the parquet schema so the f-string SQL
             # below can't be coerced into running attacker-controlled DuckDB.
@@ -877,7 +870,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
                         )) AS INTEGER) AS travel_cost
                     FROM (VALUES {o_values}) AS o(id, lat, lon)
                     CROSS JOIN (VALUES {d_values}) AS d(id, lat, lon)
-                ) TO '{output_path}' (FORMAT PARQUET, COMPRESSION ZSTD)
+                ) TO '{output_path}' {parquet_copy_options('COMPRESSION ZSTD')}
             """)
         finally:
             con.close()
@@ -922,7 +915,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
                         GROUP BY dest_idx
                     ) m ON d._row_idx = m.dest_idx
                     ORDER BY d._row_idx
-                ) TO '{output_path}' (FORMAT PARQUET, COMPRESSION ZSTD)
+                ) TO '{output_path}' {parquet_copy_options('COMPRESSION ZSTD')}
             """)
         finally:
             con.close()
@@ -1165,6 +1158,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
                 geometry_type="Point",
                 geometry_column="geometry",
             )
+            self._fill_second_layer_geometry_type(table_info_dests, dests_metadata)
             result_info_dests = asyncio.get_event_loop().run_until_complete(
                 self._create_db_records(
                     output_layer_id=output_layer_id_dests,

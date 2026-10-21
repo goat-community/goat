@@ -29,6 +29,7 @@ from goatlib.analysis.accessibility.base import HeatmapToolBase, sanitize_sql_na
 from goatlib.analysis.schemas.catchment_area_v2 import (
     CostType,
     RoutingMode,
+    speed_or_default,
 )
 from goatlib.analysis.schemas.heatmap import PotentialExpression, PotentialType
 from goatlib.analysis.schemas.heatmap_v2 import (
@@ -39,6 +40,7 @@ from goatlib.analysis.schemas.heatmap_v2 import (
     TwoSFCAType,
 )
 from goatlib.config.settings import settings
+from goatlib.io.config import parquet_copy_options
 from goatlib.models.io import DatasetMetadata
 from goatlib.tools._routing_limits import (
     MAX_TIME_ACTIVE_MIN,
@@ -97,20 +99,6 @@ _PT_ACCESSEGRESS_MODES = frozenset(
 # AOI-cell cap.
 MAX_SEED_POINTS_TOTAL = 50_000
 
-# Mode default speeds (km/h) used when the user doesn't supply one. The
-# UI's "speed" field lives under show_advanced=True so most form
-# submissions arrive with speed=None — feeding 0.0 to the C++ routing
-# code causes edge costs to be computed via division by zero, which then
-# get filtered out by the adjacency build and origins end up reaching
-# almost no nodes (scores collapse to zero).
-_MODE_SPEED_DEFAULTS: dict[RoutingMode, float] = {
-    RoutingMode.walking: 5.0,
-    RoutingMode.bicycle: 15.0,
-    RoutingMode.pedelec: 23.0,
-    # Car uses per-edge OSM maxspeed (C++ ignores cfg.speed_km_h).
-    RoutingMode.car: 0.0,
-}
-
 
 def _unbounded_by_reference_area(params: HeatmapV2Params) -> bool:
     """A street closest-average run with a reference area has no travel
@@ -133,7 +121,7 @@ def _within_area_reach(
     of the engine's own reach (it sizes it at 0.8x), which drops the rest."""
     car = params.routing_mode == RoutingMode.car
     minutes = MAX_TIME_CAR_MIN if car else MAX_TIME_ACTIVE_MIN
-    speed = 50.0 if car else (params.speed or _MODE_SPEED_DEFAULTS[params.routing_mode])
+    speed = 50.0 if car else speed_or_default(params.speed or None, params.routing_mode)
     xs = [x for x, _ in area_cells]
     ys = [y for _, y in area_cells]
     furthest_y = max(ys, key=abs)
@@ -218,7 +206,7 @@ class HeatmapV2Tool(HeatmapToolBase):
         geom_type = (meta.geometry_type or "").lower()
         crs = meta.crs
         if crs is None:
-            raise ValueError(f"Opportunity layer {opp.input_path} has no CRS")
+            raise ValueError(f"Opportunity layer {idx + 1} has no geometry column.")
         source_crs = crs.to_string()
         weight_expr = self._weight_expression(opp, geom_col, source_crs, geom_type)
 
@@ -384,11 +372,12 @@ class HeatmapV2Tool(HeatmapToolBase):
         cfg.max_cost = (
             float(max_cost) if max_cost is not None else float(params.max_cost)
         )
-        cfg.speed_km_h = (
-            params.speed
-            if params.speed is not None
-            else _MODE_SPEED_DEFAULTS.get(params.routing_mode, 0.0)
-        )
+        # The speed field sits under show_advanced, so most runs arrive with
+        # speed=None and route at the mode's default. At 0.0 the C++ edge costs
+        # divide by zero, the adjacency build drops them, origins reach almost
+        # no nodes and scores collapse to zero. Car uses per-edge OSM maxspeed
+        # (C++ ignores cfg.speed_km_h).
+        cfg.speed_km_h = speed_or_default(params.speed, params.routing_mode)
         # An uploaded street network bundle's graph overrides the global network.
         cfg.edge_dir = str(params.edge_path or self._edge_dir)
         cfg.node_dir = str(params.node_path or self._node_dir)
@@ -630,7 +619,7 @@ class HeatmapV2Tool(HeatmapToolBase):
                 SELECT u.cell::BIGINT AS cell, SUM(u.v / c.n) AS demand
                 FROM uniq u JOIN cnt c USING (rid)
                 GROUP BY u.cell
-              ) TO '{out_path}' (FORMAT PARQUET)
+              ) TO '{out_path}' {parquet_copy_options()}
             """
         else:
             sql = f"""
@@ -644,7 +633,7 @@ class HeatmapV2Tool(HeatmapToolBase):
                   FROM {table} WHERE {geom_col} IS NOT NULL
                 )
                 GROUP BY cell
-              ) TO '{out_path}' (FORMAT PARQUET)
+              ) TO '{out_path}' {parquet_copy_options()}
             """
         self.con.execute(sql)
         return out_path

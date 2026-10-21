@@ -25,6 +25,7 @@ import processes.routers.workflows as workflows_router
 from processes.deps.auth import get_user_id
 from processes.main import app
 from processes.services import access
+from processes.services.workflow_checks import recorded_feature_count
 
 USER = "8f19467a-6287-4563-8905-588c3a736f39"
 PROJECT = "3e870eb8-9633-44e9-8a43-36a7290f1ced"
@@ -102,6 +103,7 @@ class FakeCheck:
         language: str,
         unreadable_layer_ids: frozenset[str],
         layer_fields: Any,
+        layer_feature_count: Any = None,
     ) -> list[Issue]:
         self.calls.append(
             {
@@ -109,6 +111,7 @@ class FakeCheck:
                 "variables": variables,
                 "language": language,
                 "unreadable_layer_ids": unreadable_layer_ids,
+                "layer_feature_count": layer_feature_count,
             }
         )
         return list(self.issues)
@@ -237,6 +240,20 @@ def test_the_check_answers_with_the_issues_in_the_callers_language(
     assert call["language"] == "de"
     assert call["unreadable_layer_ids"] == frozenset()
     assert call["variables"] == []
+
+
+def test_the_check_and_a_run_know_the_feature_counts_core_keeps(
+    client: TestClient, check: FakeCheck, submitted: list[dict[str, Any]]
+) -> None:
+    """The heatmap's destination limit is judged on the counts catalog
+    copies recorded, by the check and by a run alike."""
+    _check(client, [ROADS, BUFFER], ROADS_TO_BUFFER)
+    _run(client, [ROADS, BUFFER], ROADS_TO_BUFFER)
+
+    assert [call["layer_feature_count"] for call in check.calls] == [
+        recorded_feature_count,
+        recorded_feature_count,
+    ]
 
 
 def test_a_damaged_workflow_is_checked_with_200(

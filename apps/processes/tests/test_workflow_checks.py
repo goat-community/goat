@@ -4,13 +4,16 @@ Real tools from the registry: buffer (one input, settings shown by
 `visible_when`), aggregate_points (required settings), heatmap_2sfca (a
 required setting shown only once its layer is connected), heatmap_gravity
 (numbered opportunity inputs), catchment_area_v2 (starting points), dissolve
-(multi-select fields). Layer fields come from a fake `layer_fields`.
+(multi-select fields). Layer fields come from a fake `layer_fields`, feature
+counts from a fake `layer_feature_count`.
 """
 
 import threading
 from typing import Any
 
 import pytest
+from goatlib.analysis.accessibility.heatmap_v2 import MAX_SEED_POINTS_TOTAL
+from goatlib.tools.if_node import IF_FALSE_HANDLE, IF_TRUE_HANDLE
 from goatlib.workflows.checks import Issue
 
 from processes.services.workflow_checks import check_workflow, step_name
@@ -82,6 +85,19 @@ class FakeFields:
         return self.fields.get(layer_id)
 
 
+class FakeCounts:
+    """`layer_feature_count` answering from a dict, remembering what it was
+    asked."""
+
+    def __init__(self, counts: dict[str, int] | None = None) -> None:
+        self.counts = counts or {}
+        self.asked: list[str] = []
+
+    async def __call__(self, layer_id: str) -> int | None:
+        self.asked.append(layer_id)
+        return self.counts.get(layer_id)
+
+
 async def check(
     nodes: list[dict[str, Any]],
     edges: list[dict[str, Any]],
@@ -90,6 +106,7 @@ async def check(
     language: str = "en",
     unreadable: frozenset[str] = frozenset(),
     fields: FakeFields | None = None,
+    counts: FakeCounts | None = None,
 ) -> list[Issue]:
     return await check_workflow(
         nodes,
@@ -98,6 +115,7 @@ async def check(
         language=language,
         unreadable_layer_ids=unreadable,
         layer_fields=fields or FakeFields(),
+        layer_feature_count=counts or FakeCounts(),
     )
 
 
@@ -425,6 +443,31 @@ async def test_an_export_step_needs_a_name_once_something_is_connected() -> None
     assert issue.field == "datasetName"
 
 
+async def test_an_export_straight_behind_a_dataset_needs_a_name() -> None:
+    """Without a tool step the run still saves the dataset's rows
+    (`workflow_runner`), so the workflow is judged like any other."""
+    nodes = [dataset(), step("out", "export", label="Save", datasetName="  ")]
+
+    issue = only(await check(nodes, [edge("data", "out")]), "export_name_missing")
+
+    assert issue.level == "error"
+    assert issue.node_ids == ("out",)
+
+
+async def test_an_export_straight_behind_a_dataset_with_a_name_has_no_issue() -> None:
+    nodes = [dataset(), step("out", "export", label="Save", datasetName="Schools")]
+
+    assert await check(nodes, [edge("data", "out")]) == []
+
+
+async def test_an_export_behind_a_dataset_next_to_a_tool_needs_a_name() -> None:
+    nodes, edges = buffer_chain({"distances": [100]})
+    nodes.append(step("out", "export", label="Save", datasetName="  "))
+    edges.append(edge("data", "out"))
+
+    assert codes(await check(nodes, edges)) == ["export_name_missing"]
+
+
 async def test_an_export_step_with_nothing_connected_is_only_a_warning() -> None:
     # It saves nothing, and a run passes it by.
     nodes, edges = buffer_chain({"distances": [100]})
@@ -622,6 +665,33 @@ async def test_every_name_of_a_multi_select_field_setting_is_checked() -> None:
     assert issue.params["field_name"] == "kind"
 
 
+async def test_a_list_items_field_is_read_from_the_layer_its_own_widget_names() -> None:
+    # aggregate_polygon's statistics name no layer on the list itself; each
+    # item's field reads source_layer_id, not the areas.
+    statistics = [{"operation": "sum", "field": "guessed"}]
+    nodes = [
+        dataset("residents"),
+        dataset("districts", OTHER),
+        tool(
+            "agg",
+            "aggregate_polygon",
+            {"area_type": "polygon", "column_statistics": statistics},
+        ),
+    ]
+    edges = [
+        edge("residents", "agg", "source_layer_id"),
+        edge("districts", "agg", "area_layer_id"),
+    ]
+    fields = FakeFields({LAYER: ["population"], OTHER: ["guessed"]})
+
+    issue = only(await check(nodes, edges, fields=fields), "field_not_in_layer")
+
+    assert issue.field == "column_statistics"
+    assert issue.params["field_name"] == "guessed"
+    statistics[0]["field"] = "population"
+    assert codes(await check(nodes, edges, fields=fields)) == []
+
+
 async def test_an_opportunity_field_is_read_from_its_numbered_layer() -> None:
     heatmap = tool(
         "heat",
@@ -795,3 +865,382 @@ async def test_the_steps_output_is_predicted_off_the_event_loop(
     )
 
     assert threads and threading.main_thread() not in threads
+
+
+# -- the heatmap's destination limit -------------------------------------------
+
+AREA_FILTER = {
+    "op": "and",
+    "expressions": [
+        {
+            "id": "f1",
+            "type": "spatial",
+            "attribute": "geom",
+            "expression": "s_intersects",
+            "value": '{"type":"Polygon","coordinates":[[[11,48],[12,48],[12,49],[11,48]]]}',
+        }
+    ],
+}
+THIRD = "33333333-3333-3333-3333-333333333333"
+
+
+def heatmap(
+    process_id: str = "heatmap_closest_average", **config: Any
+) -> dict[str, Any]:
+    return tool("heat", process_id, {"routing_mode": "walking", **config})
+
+
+def opportunities(*node_ids: str) -> list[dict[str, Any]]:
+    return [
+        edge(node_id, "heat", f"opportunity_layer_{number}_id")
+        for number, node_id in enumerate(node_ids, start=1)
+    ]
+
+
+@pytest.mark.parametrize(
+    ("process_id", "title"),
+    [
+        ("heatmap_closest_average", "Heatmap Closest Average"),
+        ("heatmap_gravity", "Heatmap Gravity"),
+        ("heatmap_2sfca", "Heatmap 2SFCA"),
+    ],
+)
+async def test_destinations_above_the_heatmaps_limit_are_an_error(
+    process_id: str, title: str
+) -> None:
+    counts = FakeCounts({LAYER: 934_847})
+
+    issues = await check(
+        [dataset(), heatmap(process_id)], opportunities("data"), counts=counts
+    )
+
+    issue = only(issues, "too_many_destinations")
+    assert issue.level == "error"
+    assert issue.node_ids == ("heat",)
+    assert issue.field is None
+    assert issue.params == {
+        "step": title,
+        "features": 934_847,
+        "limit": MAX_SEED_POINTS_TOTAL,
+    }
+    assert issue.message == (
+        f"{title}: the opportunity layers without a filter have 934,847 features "
+        f"together, more than the {MAX_SEED_POINTS_TOTAL:,} the heatmap takes. "
+        "Limit them to an area or with a filter."
+    )
+
+
+async def test_the_destinations_of_every_opportunity_layer_add_up() -> None:
+    nodes = [
+        dataset(),
+        dataset("hospitals", OTHER),
+        dataset("doctors", THIRD),
+        heatmap(),
+    ]
+    edges = opportunities("data", "hospitals", "doctors")
+    half = MAX_SEED_POINTS_TOTAL // 2
+
+    under = FakeCounts({LAYER: half, OTHER: half})
+    over = FakeCounts({LAYER: half, OTHER: half, THIRD: 1})
+
+    assert "too_many_destinations" not in codes(await check(nodes, edges, counts=under))
+    issue = only(await check(nodes, edges, counts=over), "too_many_destinations")
+    assert issue.params["features"] == MAX_SEED_POINTS_TOTAL + 1
+
+
+async def test_a_filter_on_an_opportunity_layer_leaves_the_limit_to_the_run() -> None:
+    """The count after a filter is not known without reading the layer, so a
+    filtered layer adds nothing, however large it is."""
+    counts = FakeCounts({LAYER: 934_847, OTHER: 10})
+    nodes = [
+        dataset(filter=AREA_FILTER),
+        dataset("hospitals", OTHER),
+        heatmap(),
+    ]
+
+    issues = await check(nodes, opportunities("data", "hospitals"), counts=counts)
+
+    assert "too_many_destinations" not in codes(issues)
+
+
+async def test_unfiltered_layers_over_the_limit_beside_a_filtered_one() -> None:
+    """The layers without a filter are over the limit on their own: a filter
+    on another layer cannot bring the run under it."""
+    counts = FakeCounts({LAYER: 934_847, OTHER: 10})
+    nodes = [dataset(), dataset("hospitals", OTHER, filter=AREA_FILTER), heatmap()]
+
+    issues = await check(nodes, opportunities("data", "hospitals"), counts=counts)
+
+    issue = only(issues, "too_many_destinations")
+    assert issue.params["features"] == 934_847
+
+
+async def test_an_empty_filter_is_no_filter() -> None:
+    empty = {"op": "and", "expressions": []}
+    counts = FakeCounts({LAYER: 934_847})
+
+    issues = await check(
+        [dataset(filter=empty), heatmap()], opportunities("data"), counts=counts
+    )
+
+    assert codes(issues) == ["too_many_destinations"]
+
+
+def branch(
+    target: str, handle: str | None = None, taken: str = IF_TRUE_HANDLE
+) -> dict[str, Any]:
+    """A connection from the If step's `taken` output."""
+    return {**edge("if", target, handle), "sourceHandle": taken}
+
+
+async def test_destinations_behind_an_if_step_are_a_warning() -> None:
+    """The run skips a heatmap on the If's branch not taken: the limit may
+    never be reached, so the issue does not refuse the run."""
+    condition = {"op": "and", "expressions": [COUNT_ROW]}
+    nodes = [dataset(), if_step(condition=condition), heatmap()]
+    edges = [edge("data", "if"), branch("heat", "opportunity_layer_1_id")]
+
+    issues = await check(nodes, edges, counts=FakeCounts({LAYER: 934_847}))
+
+    issue = only(issues, "too_many_destinations")
+    assert issue.level == "warning"
+    assert issue.node_ids == ("heat",)
+    assert issue.params == {
+        "step": "Heatmap Closest Average",
+        "features": 934_847,
+        "limit": MAX_SEED_POINTS_TOTAL,
+    }
+
+
+async def test_a_heatmap_on_an_ifs_false_branch_is_a_warning_too() -> None:
+    condition = {"op": "and", "expressions": [COUNT_ROW]}
+    nodes = [dataset(), if_step(condition=condition), heatmap()]
+    edges = [
+        edge("data", "if"),
+        branch("heat", "opportunity_layer_1_id", taken=IF_FALSE_HANDLE),
+    ]
+
+    issues = await check(nodes, edges, counts=FakeCounts({LAYER: 934_847}))
+
+    assert only(issues, "too_many_destinations").level == "warning"
+
+
+async def test_a_heatmap_behind_an_if_on_another_input_is_a_warning() -> None:
+    """The run skips a step that the If's branch not taken reaches, whatever
+    else it reads: a large layer connected straight to the heatmap is never
+    used then either."""
+    condition = {"op": "and", "expressions": [COUNT_ROW]}
+    nodes = [
+        dataset(),
+        dataset("hospitals", OTHER),
+        if_step(condition=condition),
+        heatmap(),
+    ]
+    edges = [
+        edge("data", "heat", "opportunity_layer_1_id"),
+        edge("hospitals", "if"),
+        branch("heat", "opportunity_layer_2_id"),
+    ]
+    counts = FakeCounts({LAYER: 934_847, OTHER: 10})
+
+    issues = await check(nodes, edges, counts=counts)
+
+    issue = only(issues, "too_many_destinations")
+    assert issue.level == "warning"
+    assert issue.params["features"] == 934_857
+
+
+async def test_a_heatmap_both_branches_of_an_if_reach_keeps_the_error() -> None:
+    """Either branch the If takes runs the heatmap."""
+    condition = {"op": "and", "expressions": [COUNT_ROW]}
+    nodes = [dataset(), if_step(condition=condition), heatmap()]
+    edges = [
+        edge("data", "if"),
+        branch("heat", "opportunity_layer_1_id"),
+        branch("heat", "opportunity_layer_2_id", taken=IF_FALSE_HANDLE),
+    ]
+
+    issues = await check(nodes, edges, counts=FakeCounts({LAYER: 934_847}))
+
+    assert only(issues, "too_many_destinations").level == "error"
+
+
+async def test_an_if_step_elsewhere_keeps_the_error() -> None:
+    """An If that the heatmap is not behind cannot skip it."""
+    condition = {"op": "and", "expressions": [COUNT_ROW]}
+    nodes = [
+        dataset(),
+        if_step(condition=condition),
+        tool("ring", "buffer", {"distances": [100]}),
+        heatmap(),
+    ]
+    edges = [
+        edge("data", "heat", "opportunity_layer_1_id"),
+        edge("data", "if"),
+        branch("ring", "input_layer_id"),
+    ]
+
+    issues = await check(nodes, edges, counts=FakeCounts({LAYER: 934_847}))
+
+    assert only(issues, "too_many_destinations").level == "error"
+
+
+async def test_a_filter_behind_an_if_step_leaves_the_limit_to_the_run() -> None:
+    """An If step passes its input layer on with the dataset's filter
+    (`workflow_runner.dataset_filter_for_source`), so the run reads the
+    filtered rows, whose count is not known."""
+    condition = {"op": "and", "expressions": [COUNT_ROW]}
+    nodes = [dataset(filter=AREA_FILTER), if_step(condition=condition), heatmap()]
+    edges = [edge("data", "if"), edge("if", "heat", "opportunity_layer_1_id")]
+
+    issues = await check(nodes, edges, counts=FakeCounts({LAYER: 934_847}))
+
+    assert "too_many_destinations" not in codes(issues)
+
+
+async def test_a_tool_step_on_an_opportunity_input_adds_nothing() -> None:
+    """A step's result has no recorded count, whatever its input has."""
+    counts = FakeCounts({LAYER: 10, OTHER: 934_847})
+    nodes = [
+        dataset(),
+        dataset("hospitals", OTHER),
+        tool("ring", "buffer", {"distances": [100]}),
+        heatmap(),
+    ]
+    edges = [
+        edge("data", "heat", "opportunity_layer_1_id"),
+        edge("hospitals", "ring", "input_layer_id"),
+        edge("ring", "heat", "opportunity_layer_2_id"),
+    ]
+
+    issues = await check(nodes, edges, counts=counts)
+
+    assert "too_many_destinations" not in codes(issues)
+    assert counts.asked == [LAYER]
+
+
+async def test_without_a_feature_count_lookup_nothing_is_looked_up(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from processes.services import workflow_checks
+
+    async def never(*args: Any) -> Any:
+        raise AssertionError("a feature count was looked up")
+
+    monkeypatch.setattr(workflow_checks, "recorded_feature_count", never)
+    monkeypatch.setattr(workflow_checks, "_get_pool", never)
+
+    issues = await check_workflow(
+        [dataset(), heatmap()],
+        opportunities("data"),
+        [],
+        language="en",
+        unreadable_layer_ids=frozenset(),
+        layer_fields=FakeFields(),
+    )
+
+    assert issues == []
+
+
+async def test_destinations_of_unknown_size_are_left_to_the_run() -> None:
+    counts = FakeCounts()
+
+    issues = await check([dataset(), heatmap()], opportunities("data"), counts=counts)
+
+    assert issues == []
+    assert counts.asked == [LAYER]
+
+
+async def test_a_reference_area_leaves_the_limit_to_the_run() -> None:
+    """Closest average on a street mode drops the destinations beyond the
+    reach of its reference area before it applies the limit."""
+    counts = FakeCounts({LAYER: 934_847})
+    nodes = [dataset(), dataset("city", OTHER), heatmap()]
+    edges = [*opportunities("data"), edge("city", "heat", "reference_area_layer_id")]
+
+    issues = await check(nodes, edges, counts=counts)
+
+    assert "too_many_destinations" not in codes(issues)
+
+
+@pytest.mark.parametrize(
+    ("process_id", "routing_mode"),
+    [
+        ("heatmap_gravity", "walking"),
+        ("heatmap_2sfca", "walking"),
+        ("heatmap_closest_average", "pt"),
+    ],
+)
+async def test_a_reference_area_that_only_clips_the_result_counts_everything(
+    process_id: str, routing_mode: str
+) -> None:
+    """Gravity, 2SFCA and closest average by public transport clip their
+    result to the reference area, but route from every destination."""
+    counts = FakeCounts({LAYER: 934_847})
+    nodes = [
+        dataset(),
+        dataset("city", OTHER),
+        heatmap(process_id, routing_mode=routing_mode),
+    ]
+    edges = [*opportunities("data"), edge("city", "heat", "reference_area_layer_id")]
+
+    issues = await check(nodes, edges, counts=counts)
+
+    assert "too_many_destinations" in codes(issues)
+
+
+@pytest.mark.parametrize(
+    ("process_id", "reported"),
+    [("heatmap_closest_average", False), ("heatmap_gravity", True)],
+)
+async def test_a_reference_area_in_the_settings_counts_as_one(
+    process_id: str, reported: bool
+) -> None:
+    counts = FakeCounts({LAYER: 934_847})
+    nodes = [dataset(), heatmap(process_id, reference_area_layer_id=OTHER)]
+
+    issues = await check(nodes, opportunities("data"), counts=counts)
+
+    assert ("too_many_destinations" in codes(issues)) is reported
+
+
+async def test_a_reference_area_with_an_unknown_mode_leaves_the_limit_to_the_run() -> (
+    None
+):
+    """Without a routing mode the check cannot tell whether the run trims the
+    destinations to the area's reach."""
+    counts = FakeCounts({LAYER: 934_847})
+    nodes = [dataset(), dataset("city", OTHER), tool("heat", "heatmap_closest_average")]
+    edges = [*opportunities("data"), edge("city", "heat", "reference_area_layer_id")]
+
+    issues = await check(nodes, edges, counts=counts)
+
+    assert "too_many_destinations" not in codes(issues)
+
+
+@pytest.mark.parametrize(
+    "process_id", ["heatmap_gravity_legacy", "heatmap_closest_average_legacy"]
+)
+async def test_heatmaps_without_the_limit_never_count(process_id: str) -> None:
+    counts = FakeCounts({LAYER: 934_847})
+
+    issues = await check(
+        [dataset(), heatmap(process_id)], opportunities("data"), counts=counts
+    )
+
+    assert "too_many_destinations" not in codes(issues)
+    assert counts.asked == []
+
+
+async def test_the_size_of_an_unreadable_layer_is_never_looked_up() -> None:
+    counts = FakeCounts({LAYER: 934_847})
+
+    issues = await check(
+        [dataset(), heatmap()],
+        opportunities("data"),
+        unreadable=frozenset({LAYER}),
+        counts=counts,
+    )
+
+    assert "too_many_destinations" not in codes(issues)
+    assert counts.asked == []

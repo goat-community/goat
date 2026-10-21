@@ -713,6 +713,10 @@ RESOURCES_PERMISSIONS = [
         "method": ["POST"],
     },
     {
+        "url_pattern": "template/{template_id}/use/preview",
+        "method": ["POST"],
+    },
+    {
         "url_pattern": "template/{template_id}/refresh",
         "method": ["POST"],
     },

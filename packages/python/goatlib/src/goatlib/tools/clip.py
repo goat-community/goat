@@ -83,6 +83,7 @@ class ClipToolRunner(BaseToolRunner[ClipToolParams]):
 
     tool_class = ClipTool
     output_geometry_type = None  # Preserves input geometry type
+    output_geometry_follows_input = True
     default_output_name = get_default_layer_name("clip", "en")
 
     @classmethod

@@ -83,6 +83,7 @@ class DifferenceToolRunner(BaseToolRunner[DifferenceToolParams]):
 
     tool_class = DifferenceTool
     output_geometry_type = None  # Depends on input
+    output_geometry_follows_input = True
     default_output_name = get_default_layer_name("difference", "en")
 
     @classmethod

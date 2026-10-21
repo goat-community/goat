@@ -54,6 +54,7 @@ from processes.services.workflow_checks import (
     LayerFields,
     check_workflow,
     ducklake_layer_fields,
+    recorded_feature_count,
 )
 
 RUNNER_PATH = "f/goat/tools/workflow_runner"
@@ -239,6 +240,7 @@ async def refused_runs(
                 language="en",
                 unreadable_layer_ids=frozenset(),
                 layer_fields=layer_fields,
+                layer_feature_count=recorded_feature_count,
             )
         except Exception as exc:
             issues = [

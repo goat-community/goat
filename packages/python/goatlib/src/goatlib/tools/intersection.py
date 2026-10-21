@@ -101,6 +101,7 @@ class IntersectionToolRunner(BaseToolRunner[IntersectionToolParams]):
 
     tool_class = IntersectionTool
     output_geometry_type = None  # Depends on input
+    output_geometry_follows_input = True
     default_output_name = get_default_layer_name("intersection", "en")
 
     @classmethod

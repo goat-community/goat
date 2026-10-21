@@ -16,6 +16,10 @@ from typing import Any
 # The access/egress leg cap is owned by the analysis layer — that is what
 # consumes the lookup tables the cap describes. Imported rather than restated
 # so the form cap and the analysis field bound cannot drift apart.
+from goatlib.analysis.schemas.catchment_area_v2 import (
+    DEFAULT_SPEED_KMH,
+    LEG_DEFAULT_SPEED_KMH,
+)
 from goatlib.analysis.schemas.heatmap_v2 import MAX_LEG_TIME_LOOKUP_MIN
 
 # Defaults (minutes / metres).
@@ -164,6 +168,19 @@ def budget_widget_options() -> dict[str, Any]:
             ],
             "message": ACTIVE_TIME_LIMIT_MSG,
         },
+    }
+
+
+def speed_default_by_field(mode_field: str, *, leg: bool = False) -> dict[str, Any]:
+    """`default_by_field` for a speed field: each active mode's default speed,
+    keyed by the value of `mode_field`. `leg=True` for a PT access or egress
+    leg, whose modes are named `walk` / `bicycle` / `pedelec`. The values come
+    from the table the routing tools fall back to when a run names no speed, so
+    the form and a run without it route at the same speed."""
+    speeds = LEG_DEFAULT_SPEED_KMH if leg else DEFAULT_SPEED_KMH
+    return {
+        "field": mode_field,
+        "values": {str(mode): speed for mode, speed in speeds.items()},
     }
 
 

@@ -36,17 +36,13 @@ class UnionTool(AnalysisTool):
         # Validate geometry columns
         input_geom = input_meta.geometry_column
         if not input_geom:
-            raise ValueError(
-                f"Could not detect geometry column for input: {params.input_path}"
-            )
+            raise ValueError("The input layer has no geometry column.")
 
         overlay_geom = None
         if overlay_meta:
             overlay_geom = overlay_meta.geometry_column
             if not overlay_geom:
-                raise ValueError(
-                    f"Could not detect geometry column for overlay: {params.overlay_path}"
-                )
+                raise ValueError("The overlay layer has no geometry column.")
 
         # Validate geometry types
         self.validate_geometry_types(
@@ -258,22 +254,31 @@ class UnionTool(AnalysisTool):
             else ""
         )
 
-        # Build field selections
-        input_fields = self._build_field_selection(
-            self.con, input_table, input_geom, "i", ""
+        # Attribute columns of each side; either may have none (a dissolve
+        # without group fields writes a geometry alone). Each of the three
+        # parts below lists the same columns in the same order, NULL where its
+        # side is missing, so UNION ALL lines them up.
+        input_cols = self._attribute_columns(input_table, input_geom)
+        overlay_cols = self._attribute_columns(overlay_table, overlay_geom)
+        prefix = params.overlay_fields_prefix or ""
+        input_fields = [f'i."{col}"' for col in input_cols]
+        null_input_fields = [f'NULL AS "{col}"' for col in input_cols]
+        overlay_fields = [f'o."{col}" AS "{prefix}{col}"' for col in overlay_cols]
+        null_overlay_fields = [f'NULL AS "{prefix}{col}"' for col in overlay_cols]
+        overlap_select = _select_list(
+            input_fields,
+            overlay_fields,
+            f"ST_Intersection(i.{input_geom}, o.{overlay_geom}) AS {input_geom}",
         )
-        overlay_fields = self._build_field_selection(
-            self.con,
-            overlay_table,
-            overlay_geom,
-            "o",
-            params.overlay_fields_prefix or "",
+        input_only_select = _select_list(
+            input_fields,
+            null_overlay_fields,
+            f"ST_Difference(i.{input_geom}, u.geom) AS {input_geom}",
         )
-        null_overlay_fields = self._get_null_overlay_fields(
-            self.con, overlay_table, overlay_geom, params.overlay_fields_prefix or ""
-        )
-        null_input_fields = self._get_null_input_fields(
-            self.con, input_table, input_geom
+        overlay_only_select = _select_list(
+            null_input_fields,
+            overlay_fields,
+            f"ST_Difference(o.{overlay_geom}, u.geom) AS {input_geom}",
         )
 
         # Create unified geometries for difference operations
@@ -297,9 +302,7 @@ class UnionTool(AnalysisTool):
         self.con.execute(f"""
             CREATE OR REPLACE VIEW overlapping_features AS
             SELECT
-                {input_fields},
-                {overlay_fields},
-                ST_Intersection(i.{input_geom}, o.{overlay_geom}) AS {input_geom}
+                {overlap_select}
             FROM {input_table} i
             INNER JOIN {overlay_table} o ON ST_Intersects(i.{input_geom}, o.{overlay_geom})
             WHERE ST_IsValid(i.{input_geom})
@@ -313,9 +316,7 @@ class UnionTool(AnalysisTool):
         self.con.execute(f"""
             CREATE OR REPLACE VIEW input_only AS
             SELECT
-                {input_fields},
-                {null_overlay_fields},
-                ST_Difference(i.{input_geom}, u.geom) AS {input_geom}
+                {input_only_select}
             FROM {input_table} i
             CROSS JOIN unified_overlay u
             WHERE ST_IsValid(i.{input_geom})
@@ -328,9 +329,7 @@ class UnionTool(AnalysisTool):
         self.con.execute(f"""
             CREATE OR REPLACE VIEW overlay_only AS
             SELECT
-                {null_input_fields},
-                {overlay_fields},
-                ST_Difference(o.{overlay_geom}, u.geom) AS {input_geom}
+                {overlay_only_select}
             FROM {overlay_table} o
             CROSS JOIN unified_input u
             WHERE ST_IsValid(o.{overlay_geom})
@@ -370,79 +369,17 @@ class UnionTool(AnalysisTool):
 
         logger.info("Two-layer union data written to %s", output_path)
 
-    def get_allowed_output_geometry_types(
-        self: Self,
-        view_name: str,
-        geom_column: str,
-    ) -> str | None:
-        """
-        Determines allowed output geometry types based on input geometry type.
-        Returns a SQL IN clause string or None if all types allowed.
+    def _attribute_columns(self: Self, table_name: str, geom_column: str) -> list[str]:
+        """Every column of the table but the geometry and the bbox."""
+        rows = self.con.execute(f"DESCRIBE {table_name}").fetchall()
+        return [row[0] for row in rows if row[0] not in (geom_column, "bbox")]
 
-        This is used to filter out degenerate geometries after operations like union.
-        """
-        # Detect geometry type from first feature
-        input_geom_type = self.con.execute(f"""
-            SELECT ST_GeometryType({geom_column})
-            FROM {view_name}
-            LIMIT 1
-        """).fetchone()[0]
 
-        # Determine allowed output geometry types based on input type
-        # Accept both single and multi versions of the same geometry family
-        input_geom_upper = input_geom_type.upper()
-        if "POLYGON" in input_geom_upper:  # Matches POLYGON or MULTIPOLYGON
-            return "('POLYGON', 'MULTIPOLYGON')"
-        elif "LINESTRING" in input_geom_upper:  # Matches LINESTRING or MULTILINESTRING
-            return "('LINESTRING', 'MULTILINESTRING')"
-        elif "POINT" in input_geom_upper:  # Matches POINT or MULTIPOINT
-            return "('POINT', 'MULTIPOINT')"
-        else:
-            # Fallback: allow any geometry type
-            return None
-
-    def _build_field_selection(
-        self, con, table_name: str, geom_column: str, alias: str, prefix: str
-    ) -> str:
-        """Build field selection SQL for a table, excluding geometry column."""
-        result = con.execute(f"DESCRIBE {table_name}").fetchall()
-        all_columns = [row[0] for row in result]
-        data_columns = [col for col in all_columns if col != geom_column]
-
-        field_exprs = []
-        for col in data_columns:
-            if prefix:
-                field_exprs.append(f"{alias}.{col} AS {prefix}{col}")
-            else:
-                field_exprs.append(f"{alias}.{col}")
-
-        return (
-            ", ".join(field_exprs)
-            if field_exprs
-            else f"{alias}.__dummy__ AS __no_fields__"
-        )
-
-    def _get_null_overlay_fields(
-        self, con, overlay_table: str, overlay_geom: str, prefix: str
-    ) -> str:
-        """Generate NULL values for overlay fields when they don't exist."""
-        result = con.execute(f"DESCRIBE {overlay_table}").fetchall()
-        overlay_columns = [row[0] for row in result if row[0] != overlay_geom]
-
-        null_exprs = []
-        for col in overlay_columns:
-            field_name = f"{prefix}{col}" if prefix else col
-            null_exprs.append(f"NULL AS {field_name}")
-
-        return ", ".join(null_exprs) if null_exprs else "NULL AS __no_overlay_fields__"
-
-    def _get_null_input_fields(self, con, input_table: str, input_geom: str) -> str:
-        """Generate NULL values for input fields when they don't exist."""
-        result = con.execute(f"DESCRIBE {input_table}").fetchall()
-        input_columns = [row[0] for row in result if row[0] != input_geom]
-
-        null_exprs = []
-        for col in input_columns:
-            null_exprs.append(f"NULL AS {col}")
-
-        return ", ".join(null_exprs) if null_exprs else "NULL AS __no_input_fields__"
+def _select_list(*parts: list[str] | str) -> str:
+    """A select list of the given column expressions, empty lists skipped."""
+    columns = [
+        column
+        for part in parts
+        for column in ([part] if isinstance(part, str) else part)
+    ]
+    return ",\n                ".join(columns)

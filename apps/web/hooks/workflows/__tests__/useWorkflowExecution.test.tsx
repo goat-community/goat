@@ -14,7 +14,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkflowIssuesError, executeWorkflow } from "@/lib/api/workflows";
 import { jobsReduces } from "@/lib/store/jobs/slice";
 import { workflowReducer } from "@/lib/store/workflow/slice";
-import type { WorkflowNode } from "@/lib/validations/workflow";
+import type { WorkflowEdge, WorkflowNode } from "@/lib/validations/workflow";
 import type { WorkflowIssue } from "@/lib/validations/workflowIssues";
 
 import { useWorkflowExecution } from "@/hooks/workflows/useWorkflowExecution";
@@ -75,11 +75,18 @@ const LAYER_NOT_CHOSEN: WorkflowIssue = {
   source: "check",
 };
 
-const renderExecution = (nodes: WorkflowNode[]) => {
+const exportNode: WorkflowNode = {
+  id: "export-1",
+  type: "export",
+  position: { x: 0, y: 0 },
+  data: { type: "export", label: "Save as dataset", datasetName: "Schulen" },
+} as unknown as WorkflowNode;
+
+const renderExecution = (nodes: WorkflowNode[], edges: WorkflowEdge[] = []) => {
   const store = configureStore({
     reducer: { workflow: workflowReducer, jobs: jobsReduces },
     preloadedState: {
-      workflow: { ...workflowReducer(undefined, { type: "init" }), nodes },
+      workflow: { ...workflowReducer(undefined, { type: "init" }), nodes, edges },
       jobs: { runningJobIds: [] },
     },
   });
@@ -97,6 +104,19 @@ describe("useWorkflowExecution run gate", () => {
 
   it("cannot run a workflow without a tool step", () => {
     const { result } = renderExecution([resolvedDatasetNode]);
+    expect(result.current.canExecute).toBe(false);
+  });
+
+  it("can run a workflow that only saves a dataset", () => {
+    const { result } = renderExecution(
+      [resolvedDatasetNode, exportNode],
+      [{ id: "e1", source: "dataset-2", target: "export-1" } as WorkflowEdge]
+    );
+    expect(result.current.canExecute).toBe(true);
+  });
+
+  it("cannot run an export with nothing connected to it", () => {
+    const { result } = renderExecution([resolvedDatasetNode, exportNode]);
     expect(result.current.canExecute).toBe(false);
   });
 });

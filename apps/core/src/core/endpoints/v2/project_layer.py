@@ -204,9 +204,10 @@ async def add_catalog_items_to_project(
     )
     from starlette.concurrency import run_in_threadpool
 
-    from core.services.materialize_heal import decide_heal
+    from core.services.materialize_heal import copy_on_disk, decide_heal
 
     mirror = FSPath(settings.CATALOG_DATA_DIR) / "mirror_items.parquet"
+    layers_dir = FSPath(settings.CATALOG_LAYERS_DIR)
     if not mirror.exists():
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -261,25 +262,31 @@ async def add_catalog_items_to_project(
             layer_id = uuid_module.UUID(result["layer_id"])
             # Enqueue for a fresh layer — and re-enqueue for an existing one
             # whose data never arrived (`failed`, or `pending` with no job
-            # behind it because the original enqueue failed). That makes
-            # re-adding the dataset the recovery path: no retry affordance,
-            # selecting it again heals it. The rules live in
-            # `services.materialize_heal` — including how old a `pending` or
-            # `running` has to be before it counts as lost.
+            # behind it because the original enqueue failed) or is gone
+            # (`ready`, but its file is not on disk). That makes re-adding the
+            # dataset the recovery path: no retry affordance, selecting it
+            # again heals it. The rules live in `services.materialize_heal` —
+            # including how old a `pending` or `running` has to be before it
+            # counts as lost.
             should_enqueue = result["created"]
             add_link = True
             if not should_enqueue:
-                raw_doc = await conn.fetchval(
+                row = await conn.fetchrow(
                     f"""
-                    SELECT other_properties->'catalog_materialize'
+                    SELECT type, other_properties->'catalog_materialize' AS doc
                     FROM "{settings.SCHEMA}".layer WHERE id = $1
                     """,
                     layer_id,
                 )
+                raw_doc = row["doc"] if row else None
                 materialize_doc = (
                     json.loads(raw_doc) if isinstance(raw_doc, str) else raw_doc
                 )
-                decision = decide_heal(materialize_doc)
+                # Off the event loop: the data volume may be a network mount.
+                copy_present = await run_in_threadpool(
+                    copy_on_disk, layers_dir, layer_id, row["type"] if row else None
+                )
+                decision = decide_heal(materialize_doc, copy_present=copy_present)
                 should_enqueue = decision.should_enqueue
                 if decision.reset_to_pending:
                     # Back to pending so the tree shows "preparing" again.

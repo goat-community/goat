@@ -9,7 +9,7 @@ import logging
 from pathlib import Path
 from typing import Any, List, Optional, Self
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, model_validator
 
 from goatlib.analysis.geoprocessing.dissolve import DissolveTool
 from goatlib.analysis.schemas.base import FieldStatistic
@@ -121,12 +121,24 @@ class DissolveToolParams(ToolInputBase, LayerInputMixin, DissolveParams):
         ),
     )
 
+    @model_validator(mode="after")
+    def _statistics_need_a_statistic(self: Self) -> Self:
+        # The form does not run with statistics switched on and none chosen;
+        # the run would otherwise compute none.
+        if self.calculate_statistics and not self.field_statistics:
+            raise ValueError(
+                "field_statistics needs at least one statistic when "
+                "calculate_statistics is on."
+            )
+        return self
+
 
 class DissolveToolRunner(BaseToolRunner[DissolveToolParams]):
     """Dissolve tool runner for Windmill."""
 
     tool_class = DissolveTool
     output_geometry_type = None  # Dynamic based on input geometry
+    output_geometry_follows_input = True
     default_output_name = get_default_layer_name("dissolve", "en")
 
     @classmethod

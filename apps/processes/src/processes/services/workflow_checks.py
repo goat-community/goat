@@ -20,12 +20,23 @@ from typing import Any
 
 from cachetools import LRUCache
 from fastapi import HTTPException
-from goatlib.tools._opportunity_handles import NUMBERED_OPPORTUNITY_ID_FIELDS
-from goatlib.tools.if_node import _statistic_row_to_sql_term
+from goatlib.analysis.accessibility.heatmap_v2 import MAX_SEED_POINTS_TOTAL
+from goatlib.tools._opportunity_handles import (
+    NUMBERED_OPPORTUNITY_ID_FIELDS,
+    NumberedOpportunityLayersMixin,
+)
+from goatlib.tools.heatmap_v2 import HeatmapV2WindmillParams
+from goatlib.tools.if_node import (
+    IF_FALSE_HANDLE,
+    IF_TRUE_HANDLE,
+    _statistic_row_to_sql_term,
+)
 from goatlib.tools.schema_prediction import predict_node_output_schema
 from goatlib.tools.workflow_arguments import build_check_arguments
 from goatlib.tools.workflow_runner import (
     VARIABLE_PATTERN,
+    convert_filter_to_cql,
+    mark_skipped_descendants,
     resolve_variables,
     variable_map,
 )
@@ -38,7 +49,7 @@ from goatlib.workflows.checks import (
     shape_issues,
 )
 from goatlib.workflows.visibility import is_shown
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from processes.config import settings
 from processes.models.processes import InputDescription, ProcessDescription
@@ -50,6 +61,9 @@ logger = logging.getLogger(__name__)
 
 # Layer id -> the field names a person sees, None when they are not known.
 LayerFields = Callable[[str], Awaitable[list[str] | None]]
+# Layer id -> how many features it has, None when that is not known without
+# counting them.
+LayerFeatureCount = Callable[[str], Awaitable[int | None]]
 
 LAYER_WIDGETS = frozenset({"layer-selector", "starting-points"})
 # Not settings a person fills in on a workflow step: layer inputs are
@@ -74,6 +88,8 @@ FIELD_STATISTICS_WIDGET = "field-statistics-selector"
 EDITOR_DEFAULT_HANDLE = "input"
 # A layer's geometry column, by the names GOAT's layers use.
 GEOMETRY_COLUMNS = frozenset({"geometry", "geom"})
+# The heatmap input whose area can stand in for the travel budget.
+REFERENCE_AREA_INPUT = "reference_area_layer_id"
 
 
 @lru_cache(maxsize=512)
@@ -268,6 +284,31 @@ def _reason(message: str) -> str:
     return message
 
 
+def _caps_destinations(params_class: type[BaseModel]) -> bool:
+    """Whether a tool's run refuses more than MAX_SEED_POINTS_TOTAL seed
+    points over its opportunity layers: the heatmaps of `heatmap_v2` that take
+    them (gravity, closest average, 2SFCA). Connectivity caps its area
+    instead; the legacy heatmaps read a precomputed matrix."""
+    return issubclass(params_class, HeatmapV2WindmillParams) and issubclass(
+        params_class, NumberedOpportunityLayersMixin
+    )
+
+
+def _filtered(node: dict[str, Any]) -> bool:
+    """Whether a dataset step's filter is a condition: the runner passes it on
+    with the layer to the tool the step feeds, directly or through If steps,
+    which pass the layer on with it (`workflow_runner.dataset_filter_for_source`).
+    A filter that does not convert counts as one: how many features it keeps
+    is unknown either way."""
+    raw = _data(node).get("filter")
+    if not raw:
+        return False
+    try:
+        return convert_filter_to_cql(raw) is not None
+    except Exception:
+        return True
+
+
 @dataclass(frozen=True)
 class _FieldRef:
     """One field name a step's settings point at."""
@@ -290,19 +331,25 @@ def _field_refs(
     each is read from: the editor's `fieldRefsOf`
     (`apps/web/lib/utils/workflowDatasets.ts`).
 
-    Also read, which the editor's version leaves out: every name of a
-    multi-select field setting, every entry of a field-statistics list, a
-    `source_layer` naming a nested input (`starting_points.layer_id`), and the
-    per-opportunity settings (`opportunity_{N}_{name}`) a workflow step keeps
-    for the opportunity layer on handle N.
+    Both read a list item's field from the input the item's own widget names
+    (`column_statistics[].field` reads `source_layer_id`). Also read, which
+    the editor's version leaves out: every name of a multi-select field
+    setting, every entry of a field-statistics list, a `source_layer` naming
+    a nested input (`starting_points.layer_id`), and the per-opportunity
+    settings (`opportunity_{N}_{name}`) a workflow step keeps for the
+    opportunity layer on handle N.
     """
     layer_inputs = list(_layer_inputs(description))
     sole_input = layer_inputs[0] if len(layer_inputs) == 1 else None
 
-    def source_for(name: str, ui: dict[str, Any]) -> str | None:
+    def declared_source(ui: dict[str, Any]) -> str | None:
         declared = (ui.get("widget_options") or {}).get("source_layer")
-        if isinstance(declared, str):
-            return declared.split(".")[0]
+        return declared.split(".")[0] if isinstance(declared, str) else None
+
+    def source_for(name: str, ui: dict[str, Any]) -> str | None:
+        declared = declared_source(ui)
+        if declared is not None:
+            return declared
         if name.endswith("_field"):
             return f"{name.removesuffix('_field')}_layer_id"
         return sole_input
@@ -371,7 +418,7 @@ def _field_refs(
                         else None
                     )
                 else:
-                    source = source_for(name, ui)
+                    source = declared_source(prop_ui) or source_for(name, ui)
                 prop_label = prop_ui.get("label") or prop
                 refs.append(_FieldRef(name, f"{label} · {prop_label}", field, source))
     return refs
@@ -388,6 +435,7 @@ class _WorkflowCheck:
         language: str,
         unreadable_layer_ids: frozenset[str],
         layer_fields: LayerFields,
+        layer_feature_count: LayerFeatureCount | None,
     ) -> None:
         self.nodes = nodes
         self.edges = edges
@@ -396,6 +444,7 @@ class _WorkflowCheck:
         self.language = language
         self.unreadable_layer_ids = unreadable_layer_ids
         self.layer_fields = layer_fields
+        self.layer_feature_count = layer_feature_count
         self.by_id = {str(node["id"]): node for node in nodes}
         self.incoming: dict[str, list[dict[str, Any]]] = {i: [] for i in self.by_id}
         self.connected: set[str] = set()
@@ -406,6 +455,7 @@ class _WorkflowCheck:
                 self.connected.update((str(source), str(target)))
         self._arguments: dict[str, dict[str, Any] | None] = {}
         self._fields: dict[str, list[str] | None] = {}
+        self._feature_counts: dict[str, int | None] = {}
         self._columns: dict[str, set[str] | None] = {}
         self.unreadable_steps = self._unreadable_steps()
 
@@ -681,6 +731,7 @@ class _WorkflowCheck:
                     issues.append(self._undefined(node_id, step, setting, name))
         issues += self._invalid_settings(node, description, step, values, issues)
         issues += await self._field_issues(node, description, step, values, handles)
+        issues += await self._destination_issues(node, description, step, handles)
         return issues
 
     # -- valid values ----------------------------------------------------------
@@ -887,6 +938,116 @@ class _WorkflowCheck:
             )
         return issues
 
+    async def _destination_issues(
+        self,
+        node: dict[str, Any],
+        description: ProcessDescription,
+        step: str,
+        handles: set[str],
+    ) -> list[Issue]:
+        """`too_many_destinations`: the dataset layers without a filter on a
+        heatmap's opportunity inputs have more features together than its run
+        takes (`_caps_destinations`). The run counts seed points: one per
+        point, one per covered cell of a polygon, so a feature count above the
+        limit means more seeds than that, features without a geometry aside.
+
+        What the check cannot count adds nothing, which the run counts itself:
+        a layer the run filters (`_filtered`), a step's result, a layer whose
+        count is not known. A step whose run trims the destinations to its
+        reference area's reach first is left to the run as a whole
+        (`_trimmed_to_reference_area`). A heatmap an If step may skip
+        (`_may_be_skipped`) gets the issue as a warning: the run may never
+        reach the limit, so it is not refused.
+        """
+        tool = tool_registry.get_tool(description.id)
+        if self.layer_feature_count is None or tool is None:
+            return []
+        if not _caps_destinations(tool.params_class):
+            return []
+        if self._trimmed_to_reference_area(node, tool.params_class, handles):
+            return []
+        total = 0
+        for handle in NUMBERED_OPPORTUNITY_ID_FIELDS:
+            if handle not in handles:
+                continue
+            source = self._source_for(node, handle)
+            origin = self._origin(source)
+            if origin is None or _kind(origin) != "dataset":
+                continue
+            if _filtered(origin):
+                continue
+            total += await self._dataset_feature_count(origin) or 0
+        if total <= MAX_SEED_POINTS_TOTAL:
+            return []
+        return [
+            Issue(
+                "too_many_destinations",
+                "warning" if self._may_be_skipped(str(node["id"])) else "error",
+                f"{step}: the opportunity layers without a filter have {total:,} "
+                f"features together, more than the {MAX_SEED_POINTS_TOTAL:,} the "
+                "heatmap takes. Limit them to an area or with a filter.",
+                (str(node["id"]),),
+                params={
+                    "step": step,
+                    "features": total,
+                    "limit": MAX_SEED_POINTS_TOTAL,
+                },
+            )
+        ]
+
+    def _may_be_skipped(self, node_id: str) -> bool:
+        """Whether a run may skip the step: an If step skips each step that
+        only the branch it does not take reaches, whatever else the step
+        reads (`workflow_runner.mark_skipped_descendants`, the run's own
+        rule). A step both branches reach always runs."""
+        return any(
+            node_id in mark_skipped_descendants(str(step["id"]), self.edges, taken, {})
+            for step in self.nodes
+            if _kind(step) == "if"
+            for taken in (IF_TRUE_HANDLE, IF_FALSE_HANDLE)
+        )
+
+    def _trimmed_to_reference_area(
+        self, node: dict[str, Any], params_class: type[BaseModel], handles: set[str]
+    ) -> bool:
+        """Whether the step's run drops the destinations beyond its reference
+        area's reach before it applies the limit: the tool's own rule
+        (`budget_replaced_by_reference_area`, closest average on a street
+        mode), on the arguments a run would build. A step with a reference
+        area whose arguments cannot be read that way counts as trimmed."""
+        if REFERENCE_AREA_INPUT not in handles and not _config(node).get(
+            REFERENCE_AREA_INPUT
+        ):
+            return False
+        arguments = self._arguments_of(node)
+        if arguments is None:
+            return True
+        if not issubclass(params_class, HeatmapV2WindmillParams):
+            return True
+        try:
+            # Unvalidated: the rule reads two settings, which a step that
+            # fails validation elsewhere may still have.
+            params: HeatmapV2WindmillParams = params_class.model_construct(**arguments)
+            return bool(params.budget_replaced_by_reference_area())
+        except Exception:
+            return True
+
+    async def _dataset_feature_count(self, node: dict[str, Any]) -> int | None:
+        """A dataset step's feature count; None for a layer the caller may not
+        read (never looked up), one not chosen yet, or one whose count is not
+        known."""
+        data = _data(node)
+        layer_id = data.get("layerId")
+        if self.layer_feature_count is None or data.get("unresolved") is True:
+            return None
+        if not isinstance(layer_id, str) or not layer_id:
+            return None
+        if str(node["id"]) in self.unreadable_steps:
+            return None
+        if layer_id not in self._feature_counts:
+            self._feature_counts[layer_id] = await self.layer_feature_count(layer_id)
+        return self._feature_counts[layer_id]
+
     def _resolved(self, field: str) -> str | None:
         """A field setting's value with its variables resolved, as a run
         would; None when that is not a field name."""
@@ -999,6 +1160,20 @@ class _WorkflowCheck:
         return set(predicted.columns)
 
 
+def _runs_something(steps: list[dict[str, Any]], edges: list[dict[str, Any]]) -> bool:
+    """Whether a run of the workflow does anything: it runs each tool step,
+    and saves what is connected to an export step, a dataset's rows too
+    (`workflow_runner`)."""
+    if any(_kind(step) == "tool" for step in steps):
+        return True
+    ids = {str(step["id"]) for step in steps}
+    exports = {str(step["id"]) for step in steps if _kind(step) == "export"}
+    return any(
+        str(edge.get("source")) in ids and str(edge.get("target")) in exports
+        for edge in edges
+    )
+
+
 async def check_workflow(
     nodes: list[dict[str, Any]],
     edges: list[dict[str, Any]],
@@ -1007,23 +1182,32 @@ async def check_workflow(
     language: str,
     unreadable_layer_ids: frozenset[str],
     layer_fields: LayerFields,
+    layer_feature_count: LayerFeatureCount | None = None,
 ) -> list[Issue]:
     """Every issue of a workflow, in the order: the workflow as a whole, then
     each step in the order of `nodes`, then steps without any connection.
 
-    A damaged workflow gets only its damaged issues. A workflow without a
-    tool step has none: there is nothing to run. `unreadable_layer_ids` are
+    A damaged workflow gets only its damaged issues. A workflow whose run
+    does nothing has none (`_runs_something`). `unreadable_layer_ids` are
     the layers (and bundles) the caller may not read, from the access check;
-    `layer_fields` looks up a dataset's fields and is not asked about those.
+    `layer_fields` looks up a dataset's fields and `layer_feature_count` its
+    feature count, and neither is asked about those. Without
+    `layer_feature_count` no count is known.
     """
     damaged: list[Issue] = shape_issues({"nodes": nodes, "edges": edges})
     if damaged:
         return damaged
     steps = node_list({"nodes": nodes, "edges": edges})
-    if not any(_kind(step) == "tool" for step in steps):
+    if not _runs_something(steps, edges):
         return []
     check = _WorkflowCheck(
-        steps, edges, variables, language, unreadable_layer_ids, layer_fields
+        steps,
+        edges,
+        variables,
+        language,
+        unreadable_layer_ids,
+        layer_fields,
+        layer_feature_count,
     )
     return await check.run()
 
@@ -1094,3 +1278,34 @@ async def ducklake_layer_fields(layer_id: str) -> list[str] | None:
     if _settled(changed):
         _field_cache[key] = fields
     return list(fields)
+
+
+# -- the feature count of a layer ---------------------------------------------
+
+
+async def recorded_feature_count(layer_id: str) -> int | None:
+    """`LayerFeatureCount` for the service: the feature count a catalog
+    dataset's copy recorded (`other_properties.catalog_materialize`), the one
+    core shows the assistant too. None for any other layer, and whenever it
+    cannot be read: nothing else keeps a count, and the check runs on every
+    edit, so it never counts a table's rows.
+    """
+    try:
+        layer_id = normalize_layer_id(layer_id)
+    except InvalidLayerIdError:
+        return None
+    try:
+        pool = await _get_pool()
+        stored: str | None = await pool.fetchval(
+            "SELECT other_properties #>> '{catalog_materialize,feature_count}' "
+            f"FROM {settings.CUSTOMER_SCHEMA}.layer WHERE id = $1::uuid",
+            layer_id,
+        )
+    except Exception:
+        logger.warning(
+            "Could not read the feature count of layer %s", layer_id, exc_info=True
+        )
+        return None
+    if stored is None or not (stored.isascii() and stored.isdigit()):
+        return None
+    return int(stored)

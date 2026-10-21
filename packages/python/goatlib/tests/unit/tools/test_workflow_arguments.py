@@ -68,6 +68,61 @@ def test_a_connected_dataset_feeds_the_input_with_its_filter() -> None:
     get_tool("buffer").get_params_class()(**args)
 
 
+def test_a_dataset_behind_an_if_step_feeds_the_input_with_its_filter() -> None:
+    """An If passes the dataset's layer on with its filter, in a check as in
+    a run (`workflow_runner.dataset_filter_for_source`)."""
+    expression = {"attribute": "kind", "expression": "is", "value": "school"}
+    data = _dataset(filter={"op": "and", "expressions": [expression]})
+    condition = {"id": "if", "type": "if", "data": {"type": "if"}}
+    buffer = _tool("buffer", "buffer", {"distances": [100], "units": "meters"})
+    edges = [_edge("data", "if", "input"), _edge("if", "buffer", "input_layer_id")]
+
+    args = build_check_arguments(buffer, [data, condition, buffer], edges, [])
+
+    assert args["input_layer_filter"] == {
+        "op": "=",
+        "args": [{"property": "kind"}, "school"],
+    }
+    get_tool("buffer").get_params_class()(**args)
+
+
+def _condition(node_id: str = "if") -> dict[str, Any]:
+    return {"id": node_id, "type": "if", "data": {"type": "if"}}
+
+
+def test_an_if_step_delivers_the_layer_it_passes_on() -> None:
+    """An If passes its input's layer on, so a check gives the step behind it
+    the same id as a run does: a dataset's own layer, and a tool's temp
+    layer named after that tool's step."""
+    data = _dataset()
+    first = _tool("first", "buffer", {"distances": [100]})
+    centroid = _tool("centroid", "centroid", {})
+    edges = [
+        _edge("data", "if-a", "input"),
+        _edge("if-a", "first", "input_layer_id"),
+        _edge("first", "if-b", "input"),
+        _edge("if-b", "centroid", "input_layer_id"),
+    ]
+    nodes = [data, _condition("if-a"), first, _condition("if-b"), centroid]
+
+    assert build_check_arguments(first, nodes, edges, [])["input_layer_id"] == LAYER
+    assert (
+        build_check_arguments(centroid, nodes, edges, [])["input_layer_id"]
+        == f"{PLACEHOLDER_ID}:first:{PLACEHOLDER_ID}"
+    )
+
+
+def test_an_if_step_without_an_input_still_fills_the_input() -> None:
+    """`if_input_count` reports the If; the step behind it is judged as if
+    something came through."""
+    buffer = _tool("buffer", "buffer", {"distances": [100]})
+    edges = [_edge("if", "buffer", "input_layer_id")]
+
+    args = build_check_arguments(buffer, [_condition(), buffer], edges, [])
+
+    assert args["input_layer_id"] == f"{PLACEHOLDER_ID}:if:{PLACEHOLDER_ID}"
+
+
 def test_an_upstream_tool_step_delivers_a_placeholder_temp_layer() -> None:
     first = _tool("first", "buffer", {"distances": [100]})
     second = _tool("second", "centroid", {})
@@ -168,6 +223,41 @@ def test_the_check_builds_what_the_run_builds() -> None:
     for node in (first, clip):
         run = build_tool_inputs(node, edges, nodes, results, params)
         check = build_check_arguments(node, nodes, edges, variables)
+        assert check == {k: v for k, v in run.items() if v is not None}
+
+
+def test_the_check_builds_what_the_run_builds_behind_if_steps() -> None:
+    """In a run an If's result passes its input's layer id on
+    (`if_node.execute_if_node`); the check gives the same ids."""
+    data = _dataset()
+    first = _tool("first", "buffer", {"distances": [100]})
+    clip = _tool("clip", "clip", {})
+    nodes = [data, _condition("if-a"), first, _condition("if-b"), clip]
+    edges = [
+        _edge("data", "if-a", "input"),
+        _edge("if-a", "first", "input_layer_id"),
+        _edge("first", "if-b", "input"),
+        _edge("if-b", "clip", "input_layer_id"),
+        _edge("if-a", "clip", "overlay_layer_id"),
+    ]
+    params = WorkflowRunnerParams(
+        user_id=PLACEHOLDER_ID,
+        project_id=PLACEHOLDER_ID,
+        workflow_id=PLACEHOLDER_ID,
+        folder_id=PLACEHOLDER_ID,
+        nodes=nodes,
+        edges=edges,
+    )
+    first_layer = f"{PLACEHOLDER_ID}:first:{PLACEHOLDER_ID}"
+    results = {
+        "if-a": {"temp_layer_id": LAYER},
+        "first": {"temp_layer_id": first_layer},
+        "if-b": {"temp_layer_id": first_layer},
+    }
+
+    for node in (first, clip):
+        run = build_tool_inputs(node, edges, nodes, results, params)
+        check = build_check_arguments(node, nodes, edges, [])
         assert check == {k: v for k, v in run.items() if v is not None}
 
 

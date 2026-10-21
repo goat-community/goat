@@ -103,7 +103,7 @@ This tab contains categorized tools available for workflow construction, similar
 
 - **Data I/O**
   - <code>+ Add dataset</code>: Create dataset nodes
-  - <code>Save as dataset</code>: Save workflow results as permanent datasets. Configure the **Dataset name**, toggle **Add to project** to automatically add the result to the project layer list, and enable **Overwrite on re-run** to replace the previously exported dataset each time the workflow runs instead of creating a new one.
+  - <code>Save as dataset</code>: Save workflow results as permanent datasets. Configure the **Dataset name**, toggle **Add to project** to automatically add the result to the project layer list, and enable **Overwrite on re-run** to replace the previously exported dataset each time the workflow runs instead of creating a new one. Connected directly to a dataset node, it saves the features that match the node's filter, in the dataset's style.
 
 :::tip Good practice
 Give each **Save as dataset** node a descriptive name and enable **Overwrite on re-run** when running the same workflow repeatedly. This keeps your project clean by avoiding duplicate layers after each run.
@@ -263,6 +263,17 @@ If the saved version of a workflow cannot be read, for example because it was ch
   <div class="step-number">3</div>
   <div class="content">The workflow is added to your project. Where the template left an input open, pick a layer once it is in the project.</div>
 </div>
+
+### Build a workflow with the AI assistant
+
+You can also describe an analysis to the AI assistant and have it build the workflow. In a project you can edit, open the assistant with <code>Ask AI</code> in the upper bar, in the <code>Map</code> or <code>Workflows</code> view, and describe what you need, for example <em>Build a workflow that finds the areas within a 15-minute walk of the schools and counts the residents in them</em>.
+
+- When a workflow template fits, the assistant uses it. Otherwise it builds the workflow from the tools of your Toolbox, checks it with the same check as the editor (see <a href="#checking-and-running-a-workflow">Checking and running a workflow</a>) and fixes what it can. It creates the workflow only when what is left is yours to choose: the layers of the steps it left open, and the settings that read them, such as a field.
+- When you have to choose, for example which dataset to use, the assistant asks you in a card with one or more questions, at the bottom of the assistant in place of the message field. Several questions appear one at a time: choose an option (or several, where the question allows it), or pick <code>Type your own answer</code> and enter it; then click <code>Next</code>. <code>Review</code> then lists your answers, and <code>Send answer</code> sends them. A single question has <code>Send answer</code> right below it. The option the assistant suggests is marked <code>Recommended</code> and comes first. To answer in the message field instead, click <code>Reply in text instead</code>.
+- The assistant adds a dataset from the catalog to your project only when you choose it as an option in such a card, not when you name it in an answer you type. A template is the exception: the datasets it ships come into your project with it (see <a href="../getting_started/start_from_a_template#datasets-in-a-template">Datasets in a template</a>).
+- If you choose to leave a dataset open, or no fitting data exists, the assistant leaves the dataset node empty and names the step for what is missing. The node then shows <code>No dataset</code> and <code>Pick a layer</code>, and the issue list shows <code>No dataset is chosen for this step.</code> under the step's name. <code>Run</code> stays greyed out until you have picked a layer and filled in what the issue list then asks for in the steps that use it.
+- The assistant creates a new workflow and never changes or deletes an existing one. If you are still in the project and the workflow you have open has no unsaved changes, the new workflow opens in the editor at once; otherwise click <code>Open</code> on the workflow card in the answer.
+- The assistant never runs a workflow: review it and click <code>Run</code> yourself.
 
 ### Save a workflow as a template
 

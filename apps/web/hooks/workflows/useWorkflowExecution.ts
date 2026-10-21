@@ -16,6 +16,7 @@ import type { AppDispatch } from "@/lib/store";
 import { setRunningJobIds } from "@/lib/store/jobs/slice";
 import { selectEdges, selectNodes, selectVariables } from "@/lib/store/workflow/selectors";
 import { claimJobAnnouncement } from "@/lib/utils/jobAnnouncement";
+import { workflowRunsSomething } from "@/lib/utils/workflowRuns";
 import type { WorkflowIssue } from "@/lib/validations/workflowIssues";
 
 import { useAppSelector } from "@/hooks/store/ContextHooks";
@@ -304,10 +305,8 @@ export function useWorkflowExecution({ workflow, projectId, folderId }: UseWorkf
     if (!projectId || !workflowId) return false;
     if (state.isExecuting) return false;
 
-    // Must have at least one tool node
-    const hasToolNodes = nodes.some((n) => n.data?.type === "tool");
-    return hasToolNodes;
-  }, [projectId, workflowId, state.isExecuting, nodes]);
+    return workflowRunsSomething(nodes, edges);
+  }, [projectId, workflowId, state.isExecuting, nodes, edges]);
 
   /**
    * Execute the workflow. Resolves to the issues of a run processes refused

@@ -23,6 +23,7 @@ from pydantic import BaseModel, Field
 from goatlib.tools.if_node import IF_FALSE_HANDLE, execute_if_node
 from goatlib.tools.workflow_dataset_nodes import (
     current_layer_ids,
+    dataset_style,
     project_layer_ids,
     with_current_layer_ids,
 )
@@ -523,6 +524,56 @@ def convert_filter_to_cql(filter_config: dict) -> dict | None:
     return {"op": logical_op, "args": cql_args}
 
 
+def if_input_source(
+    if_node_id: str,
+    edges: list[dict[str, Any]],
+    all_nodes: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """The node whose layer an If step passes on: the source of its input
+    connection (the first one; an If takes exactly one)."""
+    edge = next((e for e in edges if e["target"] == if_node_id), None)
+    if edge is None:
+        return None
+    return next((n for n in all_nodes if n["id"] == edge["source"]), None)
+
+
+def passed_on_step(
+    source_node: dict[str, Any],
+    edges: list[dict[str, Any]],
+    all_nodes: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """The step whose layer `source_node` delivers: the node itself, or for
+    an If step the step before it, as an If passes its input layer on
+    unchanged (a chain of Ifs is followed back). None when an If has no
+    input or the chain loops."""
+    seen: set[str] = set()
+    node: dict[str, Any] | None = source_node
+    while node is not None and node.get("data", {}).get("type") == "if":
+        if node["id"] in seen:
+            return None
+        seen.add(node["id"])
+        node = if_input_source(node["id"], edges, all_nodes)
+    return node
+
+
+def dataset_filter_for_source(
+    source_node: dict[str, Any],
+    edges: list[dict[str, Any]],
+    all_nodes: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """The CQL2-JSON filter that comes with the layer `source_node` delivers.
+
+    A dataset step delivers its layer with its own filter, and If steps pass
+    it on with it (`passed_on_step`). A tool step's result has no filter: the
+    filter of a dataset it reads applies when it runs.
+    """
+    node = passed_on_step(source_node, edges, all_nodes)
+    if node is None or node.get("data", {}).get("type") != "dataset":
+        return None
+    raw_filter = node.get("data", {}).get("filter") or None
+    return convert_filter_to_cql(raw_filter) if raw_filter else None
+
+
 def export_style(
     export_data: dict[str, Any], source_result: dict[str, Any] | None
 ) -> dict[str, Any] | None:
@@ -590,14 +641,8 @@ def tool_arguments(
         # Get layer_id from source
         layer_id = layer_id_for_source(source_node)
         if layer_id:
-            # Get optional filter from dataset nodes
-            source_type = source_node.get("data", {}).get("type")
-            filter_config = None
-            if source_type == "dataset":
-                raw_filter = source_node.get("data", {}).get("filter") or None
-                filter_config = (
-                    convert_filter_to_cql(raw_filter) if raw_filter else None
-                )
+            # The dataset's filter, also when If steps pass its layer on
+            filter_config = dataset_filter_for_source(source_node, edges, all_nodes)
 
             # Check if the target field expects an object with a layer_id
             # property (e.g. StartingPointsLayer) rather than a plain string
@@ -849,6 +894,40 @@ def run_tool_node(
     }
 
 
+def copy_passed_on_dataset(
+    step: dict[str, Any],
+    layer_id: str | None,
+    edges: list[dict[str, Any]],
+    all_nodes: list[dict[str, Any]],
+    params: WorkflowRunnerParams,
+) -> tuple[str, dict[str, Any]]:
+    """Write the dataset rows a dataset step, or an If step passing them on,
+    delivers to that step's own temp folder, the one finalize_layer reads for
+    an export behind it.
+
+    Only a tool step writes its result to a temp folder; a dataset step
+    delivers its layer as it is, with its filter, and an If passes both on
+    (`dataset_filter_for_source`). `layer_create_filtered` in temp mode reads
+    the layer with that filter and writes the rows there, with the dataset
+    layer's style (`dataset_layer_style`) in their temp metadata.
+    """
+    dataset = passed_on_step(step, edges, all_nodes) or step
+    inputs = add_run_context(
+        {
+            "source_layer_id": layer_id,
+            # The tool takes a filter; an empty one keeps every row.
+            "cql_filter": dataset_filter_for_source(step, edges, all_nodes) or {},
+            "source_properties": dataset_layer_style(params, dataset),
+        },
+        step,
+        user_id=params.user_id,
+        project_id=params.project_id,
+        folder_id=params.folder_id,
+        workflow_id=params.workflow_id,
+    )
+    return run_tool_node(step["id"], "layer_create_filtered", inputs)
+
+
 async def _connect() -> tuple[asyncpg.Connection, str]:
     """A connection to the GOAT database, and its customer schema."""
     from goatlib.tools.base import ToolSettings
@@ -898,6 +977,42 @@ def resolve_dataset_layers(params: WorkflowRunnerParams) -> list[dict[str, Any]]
         return params.nodes
     nodes: list[dict[str, Any]] = with_current_layer_ids(params.nodes, current)
     return nodes
+
+
+def dataset_layer_style(
+    params: WorkflowRunnerParams, dataset_node: dict[str, Any]
+) -> dict[str, Any] | None:
+    """The style an export saves a dataset step's rows in (``dataset_style``);
+    None gives the saved layer the default style, also when the look-up
+    fails: the style must not fail the export."""
+    if not (dataset_node.get("data") or {}).get("layerId"):
+        return None
+
+    async def lookup() -> dict[str, Any] | None:
+        conn, schema = await _connect()
+        try:
+            return await dataset_style(
+                conn,
+                schema,
+                user_id=params.user_id,
+                project_id=params.project_id,
+                node=dataset_node,
+            )
+        finally:
+            await conn.close()
+
+    try:
+        return asyncio.run(lookup())
+    except Exception as e:
+        # Only the error type: job output is shown to the user (see
+        # resolve_dataset_layers).
+        message = (
+            f"Could not look up the style of dataset node {dataset_node['id']} "
+            f"({type(e).__name__}); its rows are saved in the default style"
+        )
+        logger.warning(message)
+        print(f"[workflow_runner] {message}")
+        return None
 
 
 def cleanup_previous_results(params: WorkflowRunnerParams) -> None:
@@ -992,30 +1107,17 @@ def main(
             try:
                 # Single input edge — the upstream layer flows through to the
                 # active True/False branch.
-                incoming_input = next(
-                    (e for e in edges if e["target"] == node_id),
-                    None,
-                )
                 upstream_layer_id: str | None = None
                 upstream_filter: dict | None = None
-                if incoming_input:
-                    source_node = next(
-                        (n for n in nodes if n["id"] == incoming_input["source"]),
-                        None,
+                source_node = if_input_source(node_id, edges, nodes)
+                if source_node is not None:
+                    upstream_layer_id = get_input_layer_id(source_node, results)
+                    # The filter that comes with the layer (a dataset's, also
+                    # through earlier Ifs), so the condition is evaluated over
+                    # the rows the steps behind this If receive.
+                    upstream_filter = dataset_filter_for_source(
+                        source_node, edges, nodes
                     )
-                    if source_node is not None:
-                        upstream_layer_id = get_input_layer_id(source_node, results)
-                        # Carry the source layer's filter (dataset nodes) so the
-                        # condition is evaluated over the filtered rows.
-                        if source_node.get("data", {}).get("type") == "dataset":
-                            raw_filter = (
-                                source_node.get("data", {}).get("filter") or None
-                            )
-                            upstream_filter = (
-                                convert_filter_to_cql(raw_filter)
-                                if raw_filter
-                                else None
-                            )
                 if_result = execute_if_node(
                     node,
                     upstream_layer_id,
@@ -1095,6 +1197,10 @@ def main(
         ]
         if export_nodes:
             print(f"[workflow_runner] Processing {len(export_nodes)} export node(s)...")
+        nodes_by_id = {n["id"]: n for n in nodes}
+        # Dataset or If id -> the result of copying the dataset rows it
+        # delivers.
+        dataset_copies: dict[str, dict[str, Any]] = {}
 
         for export_node in export_nodes:
             export_node_id = export_node["id"]
@@ -1118,12 +1224,23 @@ def main(
                 continue
 
             # Pick the first non-empty produced source, else any produced source.
-            produced = [
-                (e["source"], results.get(e["source"]))
-                for e in edges
-                if e["target"] == export_node_id
-                and results.get(e["source"], {}).get("temp_layer_id")
+            incoming = [e["source"] for e in edges if e["target"] == export_node_id]
+            produced: list[tuple[str, dict[str, Any]]] = [
+                (source_id, results[source_id])
+                for source_id in incoming
+                if results.get(source_id, {}).get("temp_layer_id")
             ]
+            if not produced:
+                # A dataset step has no result, it delivers its layer: the
+                # first one connected is saved when no step's result is.
+                datasets = [
+                    source_id
+                    for source_id in incoming
+                    if nodes_by_id.get(source_id, {}).get("data", {}).get("type")
+                    == "dataset"
+                    and get_input_layer_id(nodes_by_id[source_id], results)
+                ]
+                produced = [(datasets[0], {})] if datasets else []
             if not produced:
                 print(
                     f"[workflow_runner] Export node {export_node_id}: "
@@ -1146,6 +1263,37 @@ def main(
                 # If-nodes pass an upstream temp_layer_id through without writing a temp dir.
                 temp_parts = (source_result.get("temp_layer_id") or "").split(":")
                 temp_node_id = temp_parts[1] if len(temp_parts) >= 2 else source_node_id
+
+                # A dataset's layer, delivered by its step or passed on by an
+                # If, is in no temp folder: its rows are copied to that step's
+                # own one first, once per step.
+                source_node = nodes_by_id.get(source_node_id, {})
+                origin = passed_on_step(source_node, edges, nodes) or {}
+                if origin.get("data", {}).get("type") == "dataset":
+                    if source_node_id not in dataset_copies:
+                        try:
+                            copy_job_id, dataset_copies[source_node_id] = (
+                                copy_passed_on_dataset(
+                                    source_node,
+                                    get_input_layer_id(source_node, results),
+                                    edges,
+                                    nodes,
+                                    params,
+                                )
+                            )
+                            node_jobs[source_node_id] = copy_job_id
+                        except Exception as e:
+                            # Kept like a returned error: every export
+                            # behind the step reports it, none copies again.
+                            dataset_copies[source_node_id] = {"error": e}
+                    copy_error = dataset_copies[source_node_id].get("error")
+                    if copy_error is not None:
+                        print(
+                            f"[workflow_runner] Export node {export_node_id}: "
+                            f"copying the rows of {source_node_id} failed: {copy_error}"
+                        )
+                        errors.append(_step_error(export_node_id, copy_error))
+                        continue
 
                 finalize_inputs = {
                     "user_id": params.user_id,

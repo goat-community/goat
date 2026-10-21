@@ -25,6 +25,14 @@ description: |
     `global.auth.allowedClients` (AUTH_ALLOWED_CLIENTS) for the tokens it
     accepts, and `postgresql.external.transactionPooler`
     (POSTGRES_TRANSACTION_POOLER) for its database pool.
+  - NEW: `catalog.layersDir` and `catalog.tilesDir` set where promoted
+    catalog layers (their parquet copies) and their PMTiles live on the data
+    volume, rendered as CATALOG_LAYERS_DIR / CATALOG_TILES_DIR into geoapi, the
+    print, tools and workflows workers and their WHITELIST_ENVS, and
+    (CATALOG_LAYERS_DIR) processes and core. Before, only geoapi got them,
+    from `geoapi.config`, so moving them there left the workers writing to
+    the default and processes and core looking there. A `geoapi.config`,
+    `processes.config` or `core.config` key of the same name still wins.
 
   v0.7.0:
 

@@ -40,6 +40,19 @@ processes builds the step's arguments with the runner's own code
 so the message of a `model_validator` error is what people see on the step.
 Write it for them.
 
+A run built without the form (a workflow the assistant drafts, a template, an
+API call) must behave like one built with it. The editor derives some settings
+from others (x-ui `default_by_field`, `default_from`, `compute_from`,
+`default_all`) and does not run while a setting it shows without a default is
+empty, so each tool applies the same value itself, from the constant its widget
+option is built from (the per-mode speeds are `DEFAULT_SPEED_KMH` in
+`analysis/schemas/catchment_area_v2.py`), or refuses in its parameter model.
+The generated Windmill script (`tools/codegen.py`) declares every optional
+argument as None and drops the None ones, so a setting a job leaves out reaches
+the model as absent: a default the model resolves from the job's other settings,
+such as a travel budget per mode and cost type, applies. A static default in the
+signature would reach the model as if the job had set it.
+
 ## Token verification
 
 core, geoapi, processes and catalog verify Keycloak tokens with one class,
@@ -127,6 +140,67 @@ step's error reduced by `workflows/run_errors.py`: the Windmill error's
 processes applies the same reduction to a failed child job while a run goes
 on, so a step's error reads the same during and after the run.
 
+## Exports behind a dataset or an If step
+
+An export saves what `finalize_layer` finds in the temp folder of the step it
+reads, and only a tool step writes one. A dataset step writes nothing: it
+delivers its layer with its filter, and an If step passes both on
+(`dataset_filter_for_source` in `tools/workflow_runner.py`). Behind an If on a
+tool, the temp layer id the If passes on names that tool's step, whose folder
+is saved. Behind a dataset, directly or through Ifs, the run first copies the
+dataset's rows, with its filter, into the temp folder of the step the export
+is connected to (`layer_create_filtered` in temp mode, once per step; a
+failed copy is the error of every export behind the step), so they are saved
+like a tool's result. The copy carries the dataset's style, its
+project entry's or else the layer's own, shown even where the dataset is
+hidden (`dataset_style` in `tools/workflow_dataset_nodes.py`); a template's
+remembered style for the export still wins. An export connected to both a
+step's result and a dataset saves the step's result.
+
+## Results without rows
+
+A step can get or give a layer without rows: a dataset filter outside the
+data's extent, an overlay without overlap. DuckDB writes the GeoParquet `geo`
+metadata only for a file with rows, and without it reads a GEOMETRY column
+back as plain BLOB, so the next tool would find no geometry column. Every
+parquet COPY in goatlib therefore takes its options from
+`parquet_copy_options` (`io/config.py`), which names a GeoParquet version
+that also stores the column as Parquet's own GEOMETRY type. A unit test keeps
+it that way, also for a COPY that leaves the format to the file name; only
+`layer_export`'s download for programs outside GOAT spells its own. Files
+written without DuckDB (pyarrow in `layer_create`) set their types
+themselves. `write_optimized_parquet` (`io/parquet.py`) gives an empty result
+the same columns as a full one, bbox included. The overlay tools take the
+geometry family they keep from the input's first geometry and keep every type
+when there is none.
+
+A layer's type comes from its rows' geometries, so a result without rows
+takes the geometry type its tool gives it instead (`result_geometry_type` in
+`tools/base.py`): the type the analysis reports, the runner's
+`output_geometry_type` (a catchment area's follows its kind), or, for a tool
+whose result keeps its input's geometry (`output_geometry_follows_input`:
+clip, erase, intersection, union, dissolve, join, merge, a dataset's filtered
+copy), the type of the first layer it read. `_write_temp_result` works it out
+also for a runner with its own `run()`, and the temp result carries it to the
+export, which saves a feature layer of that type. A custom SQL result without
+rows has no such type and is saved as a table layer. A second layer that a
+runner's own `run()` saves beside its result outside a workflow (the points of
+an origin-destination run, for example; a workflow step writes only the first
+layer) takes the type its own metadata names
+(`_fill_second_layer_geometry_type`), never the first layer's
+`output_geometry_type`. A member of a filtered bundle copy that the filter
+empties keeps its source layer's geometry type.
+
+An export whose data has a geometry type turns a table layer it writes into
+a feature layer: an overwrite in place (`_update_layer_metadata` in
+`tools/layer_replace.py`), and a re-run that writes a new layer behind a
+project entry made for a table (copy-on-write, in finalize). The map draws an
+entry only with a style (`visibility`, `filled`, `color`), and an entry made
+for a table holds none, or only the keys the web's layer tree writes
+(`legend`). So the layer and its entries get the default style beneath the
+keys they hold, which win (`style_entries_as_feature_layer`); an entry's own
+style stays. A feature layer never becomes a table.
+
 ## DuckLake catalog connections
 
 Every DuckLake read runs a few catalog queries inside a Postgres transaction,
@@ -177,6 +251,37 @@ catalog connections go to the database itself (`DUCKLAKE_POSTGRES_SERVER`).
 `workflows/` holds the parts of the workflow checks that core and processes share. Core refuses a damaged config on save with `checks.shape_issues`; processes runs the same function first in its full check and builds on `find_loops`, `dangling_edges` and `visibility.is_shown`. The package imports the standard library only: core installs goatlib without its extras, so a pydantic model or a tool import here would stop core from starting on its own image (`apps/core/tests/unit/test_runs_without_the_geospatial_stack.py` loads it the way the image does).
 
 `visibility.py` is a port of the editor's `visible_when` / `hidden_when` evaluator (`apps/web/lib/utils/ogc-utils.ts`), with JavaScript's equality and truthiness, because a required setting counts as missing only while the editor shows it. `visibility_cases.json` is read by the Python and the web tests alike, so a change to one evaluator that the other does not share fails a test.
+
+## Workflow chain tests
+
+Each tool's own tests run that tool alone, on inputs with attributes and with
+its settings given. `tests/integration/tools/chains/` runs whole workflows
+instead: the real `tools/workflow_runner.py`, each step through the script
+sync writes to Windmill for it (`windmill_script` in `tools/sync_windmill.py`,
+for a tool its generated wrapper), and the real tools on Postgres and
+DuckLake, with only the settings the assistant sets. That is where a step
+meets what the step before it wrote, such as the geometry-only layer of a
+dissolve without group fields.
+
+Windmill is stood in (`tests/integration/tools/chains/windmill_stand_in.py`):
+a job runs at once in the test process, its arguments and result pass
+through JSON, and a script whose `main` takes no `**kwargs` gets only the
+arguments it names, as Windmill calls it. The layers
+(`tests/integration/tools/chains/world.py`) are the assistant eval's
+workflow project: its layer ids, names and fields, on a grid in Leipzig.
+
+The tests also run the assistant's regression workflows that do not route
+(`apps/assistant/evals/workflow_runs.json`) as the assistant built them,
+since their configs name these layers.
+
+CI runs them in the `workflow chains` job, which installs neither the routing
+package nor GDAL, so tools that route are not part of these chains. Locally,
+on a throwaway database of the Postgres in the root .env file (the chain tests
+refuse the goat and goat_slot_ databases), with DuckLake's files in a scratch
+directory:
+
+    createdb goat_chains_test && psql -d goat_chains_test -c "CREATE EXTENSION postgis"
+    POSTGRES_DB=goat_chains_test DUCKLAKE_DATA_DIR="$(mktemp -d)" uv run --no-sync --env-file ../../../.env pytest tests/integration/tools/chains -v
 
 ## Development
 

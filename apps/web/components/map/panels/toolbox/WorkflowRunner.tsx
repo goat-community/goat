@@ -33,6 +33,7 @@ import {
 import { setRunningJobIds } from "@/lib/store/jobs/slice";
 import { claimJobAnnouncement } from "@/lib/utils/jobAnnouncement";
 import { refusalSummary } from "@/lib/utils/workflowIssueText";
+import { workflowRunsSomething } from "@/lib/utils/workflowRuns";
 
 import type { NodeExecutionInfo, NodeExecutionStatus } from "@/components/workflows/context/WorkflowExecutionContext";
 
@@ -117,8 +118,8 @@ export default function WorkflowRunner({ workflowId, onBack, onClose }: Workflow
   const canExecute = useMemo(() => {
     if (!projectId || !workflowId || !project?.folder_id) return false;
     if (execState.isExecuting) return false;
-    return executableNodes.some((n) => n.data.type === "tool");
-  }, [projectId, workflowId, project?.folder_id, execState.isExecuting, executableNodes]);
+    return workflowRunsSomething(workflow?.config?.nodes ?? [], workflow?.config?.edges ?? []);
+  }, [projectId, workflowId, project?.folder_id, execState.isExecuting, workflow]);
 
   // Execute workflow
   const handleRun = useCallback(async () => {

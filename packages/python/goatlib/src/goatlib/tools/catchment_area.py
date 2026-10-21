@@ -42,12 +42,18 @@ from goatlib.analysis.schemas.ui import (
     ui_field,
     ui_sections,
 )
+from goatlib.io.config import parquet_copy_options
 from goatlib.models.io import DatasetMetadata
+from goatlib.tools._routing_limits import speed_default_by_field
 from goatlib.tools.base import BaseToolRunner, drops_unrecorded_tables
 from goatlib.tools.schemas import ToolInputBase, get_default_layer_name
 from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
+
+#: The geometry of a catchment result by its kind (`catchment_area_type`);
+#: polygons for the others (polygon, hexagonal grid).
+_CATCHMENT_GEOMETRY = {"network": "line", "point_grid": "point"}
 
 # Custom sections for catchment area UI
 # Order: routing (1), configuration (2), starting_points (3), result (7)
@@ -273,14 +279,7 @@ class CatchmentAreaWindmillParams(ToolInputBase):
                 "measure_type": CatchmentAreaMeasureType.time,
             },
             widget_options={
-                "default_by_field": {
-                    "field": "routing_mode",
-                    "values": {
-                        "walking": 5,
-                        "bicycle": 15,
-                        "pedelec": 23,
-                    },
-                }
+                "default_by_field": speed_default_by_field("routing_mode"),
             },
         ),
     )
@@ -933,7 +932,7 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
                     id,
                     geom
                 FROM (VALUES {values}) AS t(id, geom)
-            ) TO '{output_path}' (FORMAT PARQUET, COMPRESSION ZSTD)
+            ) TO '{output_path}' {parquet_copy_options('COMPRESSION ZSTD')}
         """)
 
         con.close()
@@ -951,6 +950,11 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
 
         # Check if we're in temp mode (for workflow preview)
         temp_mode = getattr(params, "temp_mode", False)
+
+        # The result's geometry follows the kind of catchment, also for a
+        # result without rows (`result_geometry_type`).
+        kind = getattr(getattr(params, "catchment_area_type", None), "value", None)
+        self.output_geometry_type = _CATCHMENT_GEOMETRY.get(str(kind), "polygon")
 
         # Main polygon layer - use result_layer_name, then output_name, then default
         output_layer_id = str(uuid_module.uuid4())
@@ -1021,6 +1025,10 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
                 if pmtiles_path:
                     table_info["pmtiles_path"] = str(pmtiles_path)
 
+            # Not the analysis's metadata: it reports "Polygon" for every
+            # kind of catchment; the kind decides (`output_geometry_type`).
+            self._fill_result_geometry_type(table_info, params.user_id, None)
+
             # Step 2c: Ingest starting points layer to DuckLake (if available)
             starting_points_table_info = None
             if self._starting_points_parquet and self._starting_points_parquet.exists():
@@ -1072,6 +1080,9 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
                     source_type="vector",
                     geometry_type="Point",
                     crs="EPSG:4326",
+                )
+                self._fill_second_layer_geometry_type(
+                    starting_points_table_info, starting_points_metadata
                 )
                 starting_points_result_info = (
                     asyncio.get_event_loop().run_until_complete(

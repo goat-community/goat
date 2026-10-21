@@ -63,9 +63,7 @@ class DissolveTool(AnalysisTool):
         input_geom = input_meta.geometry_column
 
         if not input_geom:
-            raise ValueError(
-                f"Could not detect geometry column for input: {params.input_path}"
-            )
+            raise ValueError("The input layer has no geometry column.")
 
         # Validate geometry types
         self.validate_geometry_types(
@@ -164,7 +162,9 @@ class DissolveTool(AnalysisTool):
             stats_select = ", " + stats_select
 
         # Build the dissolve query
-        # Use ST_Union_Agg to merge geometries
+        # Use ST_Union_Agg to merge geometries. Without group fields the
+        # aggregate gives one row even for an input without rows; HAVING
+        # leaves that row out, so an empty input gives an empty result.
         sql = f"""
             CREATE OR REPLACE TABLE dissolve_result AS
             SELECT
@@ -173,6 +173,7 @@ class DissolveTool(AnalysisTool):
                 {stats_select}
             FROM {input_table}
             {group_by_clause}
+            HAVING COUNT(*) > 0
         """
 
         self.con.execute(sql)

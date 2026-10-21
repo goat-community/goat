@@ -68,9 +68,7 @@ class ClusteringZones(AnalysisTool):
         input_geom = input_meta.geometry_column
 
         if not input_geom:
-            raise ValueError(
-                f"Could not detect geometry column for input: {params.input_path}"
-            )
+            raise ValueError("The input layer has no geometry column.")
 
         # Validate that input contains point geometries
         self.validate_geometry_types(

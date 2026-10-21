@@ -24,6 +24,7 @@ from goatlib.bundles.importers.base import (
     bound_duckdb,
     register_importer,
 )
+from goatlib.io.config import parquet_copy_options
 from goatlib.models.bundle import BundleTypeName
 
 logger = logging.getLogger(__name__)
@@ -513,7 +514,7 @@ class GtfsImporter(BundleImporter):
         try:
             select = f"SELECT * FROM {read}"
             if not point:
-                con.execute(f"COPY ({select}) TO '{dst}' (FORMAT parquet)")
+                con.execute(f"COPY ({select}) TO '{dst}' {parquet_copy_options()}")
                 return out_path
             from goatlib.io.geoparquet import write_optimized_parquet
 

@@ -42,6 +42,7 @@ const SAMPLE_PARAMS: Record<string, Record<string, unknown>> = {
   destination_not_writable: {},
   step_not_connected: { step: "Buffer" },
   field_maybe_missing: { step: "Join", label: "Join field", field_name: "school_id" },
+  too_many_destinations: { step: "Heatmap Closest Average", features: 934847, limit: 50000 },
   run_failed: { step: "Buffer", error: "Column population not found" },
 };
 
@@ -107,6 +108,15 @@ describe("workflow issue texts", () => {
   it("fills in the params", () => {
     expect(issueText(commonT("en"), issue("field_not_in_layer"))).toBe(
       "Join field uses the field school_id, which the input dataset does not have."
+    );
+  });
+
+  it("formats the destination counts of a heatmap", () => {
+    expect(issueText(commonT("en"), issue("too_many_destinations"))).toBe(
+      "The opportunity layers without a filter have 934,847 features together, more than the 50,000 this heatmap takes. Limit them to an area or with a filter in their dataset steps."
+    );
+    expect(issueText(commonT("de"), issue("too_many_destinations"))).toBe(
+      "Die Ziel-Layer ohne Filter haben zusammen 934.847 Objekte, mehr als die 50.000, die diese Heatmap verarbeitet. Beschränken Sie sie in ihren Datensatz-Schritten auf ein Gebiet oder mit einem Filter."
     );
   });
 

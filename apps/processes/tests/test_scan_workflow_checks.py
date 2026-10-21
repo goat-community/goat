@@ -128,6 +128,10 @@ async def test_only_blocking_issues_make_a_run_refused(
     assert all(call["unreadable_layer_ids"] == frozenset() for call in calls)
     assert all(call["language"] == "en" for call in calls)
     assert all(call["layer_fields"] is _no_fields for call in calls)
+    # The feature counts the route judges the heatmap's destination limit on.
+    assert all(
+        call["layer_feature_count"] is scan.recorded_feature_count for call in calls
+    )
 
 
 def test_windmill_is_asked_for_the_latest_successful_run_only(

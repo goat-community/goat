@@ -40,14 +40,10 @@ class ClipTool(AnalysisTool):
         overlay_geom = overlay_meta.geometry_column
 
         if not input_geom:
-            raise ValueError(
-                f"Could not detect geometry column for input: {params.input_path}"
-            )
+            raise ValueError("The input layer has no geometry column.")
 
         if not overlay_geom:
-            raise ValueError(
-                f"Could not detect geometry column for overlay: {params.overlay_path}"
-            )
+            raise ValueError("The overlay layer has no geometry column.")
 
         # Validate geometry types
         self.validate_geometry_types(
@@ -84,29 +80,9 @@ class ClipTool(AnalysisTool):
         # Both views now have bbox columns (either pre-existing or created by import_input)
         logger.info("Performing view-based clipping with bbox spatial filtering")
 
-        # Detect input geometry type to filter output appropriately
-        input_geom_type = self.con.execute(f"""
-            SELECT ST_GeometryType({input_geom})
-            FROM {input_view}
-            LIMIT 1
-        """).fetchone()[0]
-
-        # Determine allowed output geometry types based on input type
-        # Accept both single and multi versions of the same geometry family
-        input_geom_upper = input_geom_type.upper()
-        if "POLYGON" in input_geom_upper:  # Matches POLYGON or MULTIPOLYGON
-            allowed_types = "('POLYGON', 'MULTIPOLYGON')"
-        elif "LINESTRING" in input_geom_upper:  # Matches LINESTRING or MULTILINESTRING
-            allowed_types = "('LINESTRING', 'MULTILINESTRING')"
-        elif "POINT" in input_geom_upper:  # Matches POINT or MULTIPOINT
-            allowed_types = "('POINT', 'MULTIPOINT')"
-        else:
-            # Fallback: allow any geometry type
-            allowed_types = None
-
-        logger.info(
-            f"Input geometry type: {input_geom_type}, filtering output to: {allowed_types}"
-        )
+        # Keep the input's geometry family (degenerate pieces are dropped)
+        allowed_types = self.get_allowed_output_geometry_types(input_view, input_geom)
+        logger.info(f"Filtering output to geometry types: {allowed_types or 'all'}")
 
         # First, create a unified overlay geometry from all overlay features
         logger.info("Creating unified overlay geometry from all overlay features")

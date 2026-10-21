@@ -1,7 +1,9 @@
-"""`ducklake_layer_fields` gives the workflow check a layer's fields.
+"""`ducklake_layer_fields` gives the workflow check a layer's fields, and
+`recorded_feature_count` its feature count.
 
 What it reads is cached per layer and last change, read off the event loop,
-and left unknown (None) whenever it cannot be read.
+and left unknown (None) whenever it cannot be read. A feature count is the one
+a catalog dataset's copy recorded, never counted.
 """
 
 import threading
@@ -12,7 +14,10 @@ import pytest
 from fastapi import HTTPException
 
 from processes.services import workflow_checks
-from processes.services.workflow_checks import ducklake_layer_fields
+from processes.services.workflow_checks import (
+    ducklake_layer_fields,
+    recorded_feature_count,
+)
 
 LAYER = "11111111-1111-1111-1111-111111111111"
 LONG_AGO = datetime(2026, 1, 1, tzinfo=timezone.utc)
@@ -86,3 +91,62 @@ async def test_what_cannot_be_read_is_unknown(lake: dict[str, Any]) -> None:
     assert await ducklake_layer_fields(no_table) is None
     assert await ducklake_layer_fields("not-a-layer") is None
     assert [layer_id for layer_id, _ in lake["reads"]] == [no_table]
+
+
+# -- feature counts -------------------------------------------------------------
+
+
+class FakePool:
+    """The query pool, answering every lookup with `value` (raising it when it
+    is an exception) and remembering each query."""
+
+    def __init__(self, value: Any) -> None:
+        self.value = value
+        self.queries: list[tuple[str, tuple[Any, ...]]] = []
+
+    async def fetchval(self, sql: str, *args: Any) -> Any:
+        self.queries.append((sql, args))
+        if isinstance(self.value, Exception):
+            raise self.value
+        return self.value
+
+
+def use_pool(monkeypatch: pytest.MonkeyPatch, value: Any) -> FakePool:
+    pool = FakePool(value)
+
+    async def get_pool() -> FakePool:
+        return pool
+
+    monkeypatch.setattr(workflow_checks, "_get_pool", get_pool)
+    return pool
+
+
+async def test_the_count_a_catalog_copy_recorded(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pool = use_pool(monkeypatch, "934847")
+
+    assert await recorded_feature_count(LAYER.replace("-", "")) == 934847
+    [(sql, args)] = pool.queries
+    assert "catalog_materialize,feature_count" in sql
+    assert "customer.layer" in sql
+    assert args == (LAYER,)
+
+
+@pytest.mark.parametrize("stored", [None, "", "many", "12.5", "-3"])
+async def test_a_layer_without_a_recorded_count_has_none(
+    monkeypatch: pytest.MonkeyPatch, stored: str | None
+) -> None:
+    use_pool(monkeypatch, stored)
+
+    assert await recorded_feature_count(LAYER) is None
+
+
+async def test_a_count_that_cannot_be_read_is_unknown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pool = use_pool(monkeypatch, OSError("connection refused"))
+
+    assert await recorded_feature_count(LAYER) is None
+    assert await recorded_feature_count("not-a-layer") is None
+    assert len(pool.queries) == 1

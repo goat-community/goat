@@ -34,6 +34,7 @@ from processes.services.windmill_client import WindmillClient, WindmillError
 from processes.services.workflow_checks import (
     check_workflow,
     ducklake_layer_fields,
+    recorded_feature_count,
     step_name,
 )
 
@@ -208,6 +209,7 @@ async def _workflow_issues(
         language=language,
         unreadable_layer_ids=unreadable,
         layer_fields=ducklake_layer_fields,
+        layer_feature_count=recorded_feature_count,
     )
     issues = [*checked, *_access_issues(steps, edges, denied, checked, language)]
     if (

@@ -257,6 +257,34 @@ class AnalysisTool:
             f"{', '.join(t[0] for t in actual_types)}"
         )
 
+    def get_allowed_output_geometry_types(
+        self: Self,
+        view_name: str,
+        geom_column: str,
+    ) -> str | None:
+        """The geometry types an overlay keeps, as a SQL list: the single and
+        multi type of the family of the input's first geometry.
+
+        An overlay can leave degenerate pieces of a lower dimension (the line
+        where two polygons touch); keeping the input's family drops them.
+        None keeps every type, also for an input without geometries, which
+        gives no pieces to drop.
+        """
+        row = self.con.execute(f"""
+            SELECT ST_GeometryType({geom_column})
+            FROM {view_name}
+            WHERE {geom_column} IS NOT NULL
+            LIMIT 1
+        """).fetchone()
+        input_geom_upper = str(row[0]).upper() if row else ""
+        if "POLYGON" in input_geom_upper:  # Matches POLYGON or MULTIPOLYGON
+            return "('POLYGON', 'MULTIPOLYGON')"
+        if "LINESTRING" in input_geom_upper:  # Matches LINESTRING or MULTILINESTRING
+            return "('LINESTRING', 'MULTILINESTRING')"
+        if "POINT" in input_geom_upper:  # Matches POINT or MULTIPOINT
+            return "('POINT', 'MULTIPOINT')"
+        return None
+
     def get_statistics_sql(
         self: Self,
         field_expr: str,

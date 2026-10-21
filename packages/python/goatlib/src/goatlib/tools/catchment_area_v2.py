@@ -5,6 +5,7 @@ structure but builds CatchmentAreaV2Params with cost_type/max_cost.
 """
 
 import logging
+import math
 import tempfile
 from enum import StrEnum
 from pathlib import Path
@@ -47,6 +48,7 @@ from goatlib.bundles.artifacts.street_network import (
     fetch_linked_routing_network,
     fetch_routing_network,
 )
+from goatlib.io.config import parquet_copy_options
 from goatlib.models.io import DatasetMetadata
 from goatlib.tools.catchment_area import CatchmentAreaToolRunner
 from goatlib.tools.pt_network import ensure_pt_date, pt_date_field
@@ -58,6 +60,24 @@ logger = logging.getLogger(__name__)
 class StepsStyle(StrEnum):
     separate = "separate"
     cumulative = "cumulative"
+
+
+# The form computes step sizes (`compute_from`) for these output types only.
+_STEP_SIZE_TYPES = ("polygon", "network")
+_MAX_STEPS = 9
+
+
+def step_sizes_from(steps: int, limit: float) -> list[int] | None:
+    """The step sizes the form's chips compute from `steps` and the budget: the
+    budget split into equal steps, each rounded to a whole number with halves
+    rounded up, as the form's Math.round does. None where the form computes
+    none: no steps, more than nine, no budget, or more steps than budget units.
+    The engine's own split of `steps` keeps the fractions, so a run without
+    these sizes would draw its rings at other costs than the form shows."""
+    if steps <= 0 or steps > _MAX_STEPS or limit <= 0 or steps > limit:
+        return None
+    interval = limit / steps
+    return [math.floor(interval * (i + 1) + 0.5) for i in range(steps)]
 
 
 # Per-mode budget defaults + hard caps come from a shared module so the
@@ -72,6 +92,7 @@ from goatlib.tools._routing_limits import (  # noqa: E402
     leg_budget_widget_options,
     resolve_budget_input,
     resolve_leg_budget_input,
+    speed_default_by_field,
     validate_budget,
     validate_cost_type,
     validate_leg_budget,
@@ -454,10 +475,7 @@ class CatchmentAreaV2WindmillParams(ToolInputBase):
             },
             widget_options={
                 # Default speed switches with the mode (kicks in on first show).
-                "default_by_field": {
-                    "field": "routing_mode",
-                    "values": {"walking": 5, "bicycle": 15, "pedelec": 23},
-                },
+                "default_by_field": speed_default_by_field("routing_mode"),
                 # Per-mode caps using conditional literal entries — first
                 # matching `when` clause wins, with its own translation key.
                 "max_value_from": {
@@ -650,10 +668,7 @@ class CatchmentAreaV2WindmillParams(ToolInputBase):
             field_order=23,
             label_key="speed_kmh",
             widget_options={
-                "default_by_field": {
-                    "field": "access_mode",
-                    "values": {"walk": 5, "bicycle": 15, "pedelec": 23},
-                },
+                "default_by_field": speed_default_by_field("access_mode", leg=True),
                 "max_value_from": {
                     "fields": [
                         {
@@ -759,10 +774,7 @@ class CatchmentAreaV2WindmillParams(ToolInputBase):
             field_order=27,
             label_key="speed_kmh",
             widget_options={
-                "default_by_field": {
-                    "field": "egress_mode",
-                    "values": {"walk": 5, "bicycle": 15, "pedelec": 23},
-                },
+                "default_by_field": speed_default_by_field("egress_mode", leg=True),
                 "max_value_from": {
                     "fields": [
                         {
@@ -908,6 +920,23 @@ class CatchmentAreaV2WindmillParams(ToolInputBase):
         return self
 
     @model_validator(mode="after")
+    def _apply_form_rules(self: Self) -> Self:
+        """What the form does before a run, for a run built without it: it
+        computes the step sizes from `steps` and the budget, and it does not
+        run a point grid without its layer."""
+        if (
+            self.catchment_area_type == CatchmentType.point_grid
+            and not self.point_grid_layer_id
+        ):
+            raise ValueError(
+                "point_grid_layer_id is required when catchment_area_type is "
+                "'point_grid'."
+            )
+        if self.step_sizes is None and self.catchment_area_type in _STEP_SIZE_TYPES:
+            self.step_sizes = step_sizes_from(self.steps, self.max_cost)
+        return self
+
+    @model_validator(mode="after")
     def validate_shape_style(self: Self) -> Self:
         if self.shape_style != ShapeStyle.separated:
             return self
@@ -1013,7 +1042,7 @@ class CatchmentAreaV2ToolRunner(CatchmentAreaToolRunner):
                         LN(TAN(PI() / 4.0 + ST_Y("{geom_col}") * PI() / 360.0)) * {earth_radius_m} AS y_3857
                     FROM read_parquet('{raw_layer_path}')
                     WHERE "{geom_col}" IS NOT NULL
-                ) TO '{grid_parquet}' (FORMAT PARQUET)
+                ) TO '{grid_parquet}' {parquet_copy_options()}
             """)
             con.close()
             grid_points_path = grid_parquet
@@ -1157,7 +1186,7 @@ class CatchmentAreaV2ToolRunner(CatchmentAreaToolRunner):
             stripped = temp_dir / "output_without_idx.parquet"
             self.duckdb_con.execute(
                 f"COPY (SELECT * EXCLUDE (origin_idx) "
-                f"FROM '{result_path}') TO '{stripped}' (FORMAT PARQUET)"
+                f"FROM '{result_path}') TO '{stripped}' {parquet_copy_options()}"
             )
             return stripped
 
@@ -1186,7 +1215,9 @@ class CatchmentAreaV2ToolRunner(CatchmentAreaToolRunner):
                 FROM '{result_path}'
             """
 
-        self.duckdb_con.execute(f"COPY ({query}) TO '{rewritten}' (FORMAT PARQUET)")
+        self.duckdb_con.execute(
+            f"COPY ({query}) TO '{rewritten}' {parquet_copy_options()}"
+        )
         return rewritten
 
     @staticmethod

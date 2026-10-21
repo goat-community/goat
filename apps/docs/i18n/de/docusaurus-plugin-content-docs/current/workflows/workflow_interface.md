@@ -103,7 +103,7 @@ Dieser Tab enthält kategorisierte Werkzeuge, die für die Workflow-Konstruktion
 
 - **Daten I/O**
   - <code>+ Datensatz hinzufügen</code>: Erstellt Datensatz-Knoten
-  - <code>Als Datensatz speichern</code>: Speichert Workflow-Ergebnisse als permanente Datensätze. Konfigurieren Sie den **Datensatznamen** (Feld <code>Datensatzname</code>), aktivieren Sie **Zum Projekt hinzufügen**, um das Ergebnis automatisch zur Projektlayerliste hinzuzufügen, und aktivieren Sie **Bei erneutem Ausführen überschreiben**, um das zuvor exportierte Dataset bei jeder Ausführung des Workflows zu ersetzen, anstatt einen neuen Datensatz zu erstellen.
+  - <code>Als Datensatz speichern</code>: Speichert Workflow-Ergebnisse als permanente Datensätze. Konfigurieren Sie den **Datensatznamen** (Feld <code>Datensatzname</code>), aktivieren Sie **Zum Projekt hinzufügen**, um das Ergebnis automatisch zur Projektlayerliste hinzuzufügen, und aktivieren Sie **Bei erneutem Ausführen überschreiben**, um das zuvor exportierte Dataset bei jeder Ausführung des Workflows zu ersetzen, anstatt einen neuen Datensatz zu erstellen. Direkt mit einem Datensatz-Knoten verbunden, speichert der Knoten die Features, die dem Filter des Datensatz-Knotens entsprechen, im Stil des Datensatzes.
 
 :::tip Gute Praxis
 Vergeben Sie für jeden **Als Datensatz speichern**-Knoten einen aussagekräftigen Namen und aktivieren Sie **Bei erneutem Ausführen überschreiben**, wenn Sie denselben Workflow mehrfach ausführen. So bleibt Ihr Projekt übersichtlich und es entstehen keine doppelten Layer nach jeder Ausführung.
@@ -261,6 +261,17 @@ Kann die gespeicherte Fassung eines Workflows nicht gelesen werden, etwa weil si
   <div class="step-number">3</div>
   <div class="content">Der Workflow wird zu Ihrem Projekt hinzugefügt. Wo die Vorlage eine Eingabe offen gelassen hat, wählen Sie einen Layer, sobald er im Projekt vorhanden ist.</div>
 </div>
+
+### Einen Workflow mit dem KI-Assistenten erstellen
+
+Sie können eine Analyse auch dem KI-Assistenten beschreiben und ihn den Workflow erstellen lassen. Öffnen Sie den Assistenten in einem Projekt, das Sie bearbeiten dürfen, über <code>KI fragen</code> in der oberen Leiste, in der Ansicht <code>Karte</code> oder <code>Workflows</code>, und beschreiben Sie, was Sie brauchen, zum Beispiel <em>Erstelle einen Workflow, der die Gebiete in 15 Minuten Fußweg um die Schulen ermittelt und die Einwohner darin zählt</em>.
+
+- Passt eine Workflow-Vorlage, verwendet der Assistent sie. Andernfalls baut er den Workflow aus den Werkzeugen Ihres Werkzeugkastens, prüft ihn mit derselben Prüfung wie der Editor (siehe <a href="#workflows-prüfen-und-ausführen">Workflows prüfen und ausführen</a>) und behebt, was er kann. Er erstellt den Workflow erst, wenn nur noch offen ist, was Sie wählen: die Layer der offen gelassenen Schritte und die Einstellungen, die diese lesen, etwa ein Feld.
+- Müssen Sie wählen, zum Beispiel welcher Datensatz verwendet werden soll, stellt Ihnen der Assistent eine oder mehrere Fragen unten im Assistenten, an der Stelle des Nachrichtenfelds. Mehrere Fragen erscheinen nacheinander: Wählen Sie eine Option (oder mehrere, wo die Frage es zulässt) oder wählen Sie <code>Eigene Antwort eingeben</code> und geben Sie Ihre Antwort ein; klicken Sie dann auf <code>Weiter</code>. <code>Überprüfen</code> zeigt danach Ihre Antworten, und <code>Antwort senden</code> sendet sie. Bei einer einzelnen Frage steht <code>Antwort senden</code> direkt darunter. Die Option, die der Assistent vorschlägt, ist mit <code>Empfohlen</code> markiert und steht an erster Stelle. Um stattdessen im Nachrichtenfeld zu antworten, klicken Sie auf <code>Stattdessen als Text antworten</code>.
+- Der Assistent fügt Ihrem Projekt einen Datensatz aus dem Katalog nur dann hinzu, wenn Sie ihn bei einer solchen Frage als Option wählen, nicht aber, wenn Sie ihn in einer getippten Antwort nennen. Eine Ausnahme ist eine Vorlage: Die Datensätze, die sie mitliefert, kommen mit ihr in Ihr Projekt (siehe <a href="../getting_started/start_from_a_template#datensätze-in-einer-vorlage">Datensätze in einer Vorlage</a>).
+- Wenn Sie einen Datensatz offen lassen oder es keine passenden Daten gibt, lässt der Assistent den Datensatz-Knoten leer und benennt den Schritt nach dem, was fehlt. Der Knoten zeigt dann <code>Kein Datensatz</code> und <code>Layer auswählen</code>, und die Problemliste zeigt unter dem Namen des Schritts <code>Für diesen Schritt ist kein Datensatz gewählt.</code> an. <code>Ausführen</code> bleibt ausgegraut, bis Sie einen Layer gewählt und ausgefüllt haben, was die Problemliste danach in den Schritten verlangt, die ihn verwenden.
+- Der Assistent erstellt einen neuen Workflow und ändert oder löscht nie einen vorhandenen. Sind Sie noch in diesem Projekt und hat der geöffnete Workflow keine ungespeicherten Änderungen, öffnet sich der neue Workflow sofort im Editor; andernfalls klicken Sie in der Antwort beim Workflow auf <code>Öffnen</code>.
+- Der Assistent führt nie einen Workflow aus: Prüfen Sie ihn und klicken Sie selbst auf <code>Ausführen</code>.
 
 ### Einen Workflow als Vorlage speichern
 

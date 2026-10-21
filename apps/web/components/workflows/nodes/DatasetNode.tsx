@@ -4,7 +4,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DuplicateIcon from "@mui/icons-material/ContentCopy";
 import FilterIcon from "@mui/icons-material/FilterAlt";
-import { Box, Button, IconButton, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, Link, Stack, Tooltip, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Handle, type NodeProps, NodeToolbar, Position } from "@xyflow/react";
 import { useParams } from "next/navigation";
@@ -21,6 +21,7 @@ import type { AppDispatch } from "@/lib/store";
 import { selectNodes } from "@/lib/store/workflow/selectors";
 import { addNode, removeNodes, selectNode } from "@/lib/store/workflow/slice";
 import { createTheCQLBasedOnExpression } from "@/lib/transformers/filter";
+import { currentDatasetType } from "@/lib/utils/workflowDatasets";
 import type { Expression } from "@/lib/validations/filter";
 import type { DatasetNodeData } from "@/lib/validations/workflow";
 
@@ -192,9 +193,9 @@ const DatasetNode: React.FC<DatasetNodeProps> = ({ id, data, selected }) => {
     return count.toLocaleString();
   };
 
-  // Get geometry icon based on layer type
+  // Get geometry icon based on the layer's current type
   const getGeometryIcon = () => {
-    switch (data.geometryType) {
+    switch (currentDatasetType(data, projectLayers).geometryType) {
       case "point":
         return ICON_NAME.POINT_FEATURE;
       case "line":
@@ -316,16 +317,21 @@ const DatasetNode: React.FC<DatasetNodeProps> = ({ id, data, selected }) => {
             dataset normally (the sidebar's Dataset settings) */}
         {needsLayer && (
           <NodeParamsSection>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              fullWidth
-              startIcon={<Icon iconName={ICON_NAME.LAYERS} style={{ fontSize: 13 }} />}
-              onClick={handlePickLayer}
-              sx={{ textTransform: "none", fontSize: 11 }}>
-              {t("pick_a_layer")}
-            </Button>
+            <InfoRow>
+              <Typography variant="caption" color="text.secondary" fontWeight="bold" sx={{ fontSize: 11 }}>
+                {t("layer")}:
+              </Typography>
+              <Link
+                component="button"
+                type="button"
+                variant="caption"
+                color="warning.main"
+                underline="hover"
+                onClick={handlePickLayer}
+                sx={{ fontSize: 11, fontWeight: 600 }}>
+                {t("pick_a_layer")}
+              </Link>
+            </InfoRow>
           </NodeParamsSection>
         )}
       </NodeContainer>

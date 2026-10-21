@@ -883,6 +883,16 @@
             }
           }
         },
+        "layersDir": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "Absolute path of the materialized catalog layers (CATALOG_LAYERS_DIR) on the data volume"
+        },
+        "tilesDir": {
+          "type": "string",
+          "pattern": "^/",
+          "description": "Absolute path of their PMTiles (CATALOG_TILES_DIR) on the data volume"
+        },
         "extraEnv": {
           "type": "array"
         },

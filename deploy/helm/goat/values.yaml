@@ -500,9 +500,9 @@ geoapi:
     # service has its own host.
     # ROOT_PATH: "/geoapi"
     MAPBOX_TOKEN: "placeholder"
-    # Materialized catalog layers and their PMTiles, on the shared data volume.
-    CATALOG_LAYERS_DIR: "/app/data/catalog/layers"
-    CATALOG_TILES_DIR: "/app/data/catalog/tiles"
+    # CATALOG_LAYERS_DIR / CATALOG_TILES_DIR (materialized catalog layers and
+    # their PMTiles) come from catalog.layersDir / catalog.tilesDir, shared
+    # with the workers that write them. A value set here wins for geoapi alone.
     # Read-authorization gate for tile/feature/metadata endpoints. Shadow mode
     # (false) only logs would-be denials; turn on once that log is quiet.
     ENFORCE_READ_AUTHZ: "false"
@@ -737,6 +737,20 @@ catalog:
     existingSecret: ""             # K8s Secret holding the two keys below
     accessKeyIdKey: access_key
     secretAccessKeyKey: secret_key
+  # Where promoted catalog layers live on the shared `data` volume. The tools
+  # worker's catalog_materialize job writes a layer's parquet copy to
+  # `layersDir` and its PMTiles to `tilesDir`; geoapi serves both, processes
+  # analyses the copy, and core checks that the copy exists when a dataset is
+  # added again. Rendered as CATALOG_LAYERS_DIR and CATALOG_TILES_DIR into
+  # geoapi, the print, tools and workflows workers (and their WHITELIST_ENVS),
+  # and, `layersDir` only, processes and core, also with the catalog service
+  # off. A key of the same name in a component's `config` (or a worker's
+  # `extraEnv`) wins for that component.
+  # Both stay under /app/data, where geoapi, processes and the tools and
+  # workflows workers mount the volume; `layersDir` under /app/data/catalog,
+  # the only part of the volume core mounts.
+  layersDir: "/app/data/catalog/layers"
+  tilesDir: "/app/data/catalog/tiles"
   extraEnv: []
   extraVolumes: []
   extraVolumeMounts: []
@@ -836,7 +850,8 @@ assistant:
     # true lets organizations' connections reach private and cluster-internal
     # addresses and plain http (a model server in your own network).
     ASSISTANT_ALLOW_PRIVATE_ENDPOINTS: "false"
-    # Limits per answer and per user.
+    # Limits per answer and per user. Tokens read from the model provider's
+    # cache count at a tenth toward ASSISTANT_RUN_MAX_TOKENS.
     ASSISTANT_RUN_MAX_TOOL_CALLS: "30"
     ASSISTANT_RUN_MAX_TOKENS: "200000"
     ASSISTANT_RUN_MAX_SECONDS: "900"

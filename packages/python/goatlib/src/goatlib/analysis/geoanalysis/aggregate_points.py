@@ -72,9 +72,7 @@ class AggregatePointsTool(AnalysisTool):
         source_geom = source_meta.geometry_column
 
         if not source_geom:
-            raise ValueError(
-                f"Could not detect geometry column for source: {params.source_path}"
-            )
+            raise ValueError("The source layer has no geometry column.")
 
         # Validate source geometry types
         self.validate_geometry_types(
@@ -148,9 +146,7 @@ class AggregatePointsTool(AnalysisTool):
         area_geom = area_meta.geometry_column
 
         if not area_geom:
-            raise ValueError(
-                f"Could not detect geometry column for area layer: {params.area_layer_path}"
-            )
+            raise ValueError("The area layer has no geometry column.")
 
         # Validate area geometry types
         self.validate_geometry_types(

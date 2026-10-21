@@ -32,7 +32,7 @@ import {
   useReactFlow,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
@@ -58,6 +58,7 @@ import type { WorkflowNode } from "@/lib/validations/workflow";
 import { createTextAnnotationNode } from "@/lib/validations/workflow";
 
 import { useConnectionValidator, useWorkflowProcessDescriptions } from "@/hooks/map/useConnectionValidation";
+import { useCurrentDatasetTypes } from "@/hooks/workflows/useCurrentDatasetTypes";
 import { useWorkflowHistory } from "@/hooks/workflows/useWorkflowHistory";
 
 import WorkflowVariablesDialog from "../dialogs/WorkflowVariablesDialog";
@@ -301,8 +302,9 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   const selectedNodeId = useSelector(selectSelectedNodeId);
   const reduxViewport = useSelector(selectViewport);
 
-  // Get process descriptions for connection validation
-  const workflowNodes = useMemo(() => reduxNodes as WorkflowNode[], [reduxNodes]);
+  // Get process descriptions for connection validation. Dataset steps are
+  // checked with their layer's current type; the store keeps what was stored.
+  const workflowNodes = useCurrentDatasetTypes(reduxNodes) as WorkflowNode[];
   const processMap = useWorkflowProcessDescriptions(workflowNodes);
   const validateConnection = useConnectionValidator(workflowNodes, processMap);
 
