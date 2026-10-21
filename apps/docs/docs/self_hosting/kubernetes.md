@@ -63,6 +63,8 @@ Describe your S3 store once in `global.s3`: the bucket for uploads, the provider
 
 Uploaded images, such as project and dataset thumbnails, avatars and dashboard images, go to a second bucket in the same store (`global.s3.assets.bucket`). Browsers load them straight from that bucket, so make it publicly readable and set its public URL in `global.s3.assets.publicUrl`. Outside AWS the URL is required. GOAT's own artwork ships in the web app and needs neither.
 
+If your store allows no publicly readable bucket, set `global.s3.assets.servedByCore: true` instead (`ASSETS_SERVED_BY_CORE`). GOAT then keeps the images in the uploads bucket under `assets/`, and core serves them through its API, so you need no assets bucket and no public URL. Core must run GOAT v3.0.9 or later, newer than the chart's default: set `core.image.tag`. The image links point to core's API on the web app's host; if core has a host of its own, set `global.s3.assets.publicUrl` to `<core's public URL>/api/v2/asset/file`.
+
 Without a store of your own, set `garage.enabled: true`: the chart runs a single-node Garage, as the Docker Compose bundle does, creates both buckets and a key pair, and fills `global.s3` for it. Browsers reach it on the web app's host, uploads at `/<bucket>` and images at `/<assets bucket>`; `garage.ingress.enabled: true` sets up both routes for ingress-nginx. With another ingress controller, route them yourself (see the chart's README). It is one node without replication: back up its data volume.
 
 ### Login {#auth}
