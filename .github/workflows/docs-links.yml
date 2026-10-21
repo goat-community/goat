@@ -36,9 +36,15 @@ jobs:
         uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
           workingDirectory: apps/docs
+          # Pinned, so that a lychee upgrade is a change in this file and not
+          # a silent change in what the weekly check looks at.
+          lycheeVersion: v0.24.2
           # Only http(s) links: root-relative links resolve to static/ and
           # are left out with the other file links. Many publishers answer
           # link checkers with 403, 406 or 429 although the page exists.
+          # Loopback addresses (localhost, 127.0.0.0/8) are unreachable from
+          # the runner, so checking them can only fail: test fixtures and
+          # self-hosting instructions point at local addresses on purpose.
           args: >-
             --no-progress
             --exclude-loopback
