@@ -91,8 +91,11 @@ jobs:
         id: changes
         with:
           filters: |
+            # The editor draws the configs the assistant builds, read from the
+            # assistant's shared fixture (lib/validations/__tests__/workflowDrafts.test.ts).
             web:
                 - 'apps/web/**'
+                - 'apps/assistant/tests/fixtures/workflow_drafts.json'
                 - 'packages/js/**'
                 - '.prettier*'
                 - 'pnpm-lock.yaml'

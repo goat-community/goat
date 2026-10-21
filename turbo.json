@@ -58,6 +58,8 @@
     "AUTH",
     "E2E_AUTH",
     "E2E_PASSWORD",
+    "E2E_BASE_DATA",
+    "E2E_PUBLIC_TRANSPORT",
     "API_URL",
     "NEXT_RUNTIME",
     "NEXTAUTH_SECRET",
