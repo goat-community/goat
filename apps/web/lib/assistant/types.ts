@@ -151,14 +151,48 @@ export interface UsageMetadata {
   cache_read_tokens?: number;
   cache_write_tokens?: number;
 }
+/** One choice of an ask card question. Its `value` stays on the server and never reaches the page. */
+export interface AskOption {
+  label: string;
+  description: string;
+  recommended: boolean;
+}
+export interface AskQuestion {
+  question: string;
+  /** The chip above the question. */
+  header: string;
+  multi_select: boolean;
+  options: AskOption[];
+}
+/** The `data-ask` part (contract "The ask card"): questions answered together with one Send. */
+export interface AskCardData {
+  card_id: string;
+  questions: AskQuestion[];
+}
+/** The answer to one question: indexes into the question's `options`, and the free text. */
+export interface AskAnswerItem {
+  question: number;
+  options: number[];
+  other: string | null;
+}
+/** What the next message carries as `message.answer`; a stored user message returns it as `metadata.answer`. */
+export interface AskAnswer {
+  card_id: string;
+  answers: AskAnswerItem[];
+}
 export interface AssistantMetadata {
   usage?: UsageMetadata;
+  /** On a user message: the ask card it answers. */
+  answer?: AskAnswer;
+  /** When the message was stored (ISO 8601, UTC); only a reloaded message has it. */
+  created_at?: string;
 }
 export type AssistantDataParts = {
   proposal: Proposal;
   caveat: CaveatData;
   "run-status": RunStatusData;
   context: PageContext;
+  ask: AskCardData;
 };
 export type AssistantMessage = UIMessage<AssistantMetadata, AssistantDataParts>;
 

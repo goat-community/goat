@@ -15,6 +15,8 @@ from assistant.tools.catalog import (
     DESCRIBE,
     FIND_REGION,
     GET_RECORD,
+    NO_SUCH_WORD,
+    NOTHING_FOUND,
     PROPOSE_FILTERS,
     SEARCH,
     SHOW_RECORDS,
@@ -34,6 +36,31 @@ async def test_search_returns_datasets(env: ToolEnv) -> None:
     assert 0 < result["numberReturned"] <= 5
     assert all("id" in item for item in result["results"])
     assert "facets" in result
+    assert "note" not in result
+
+
+async def test_a_search_that_finds_nothing_says_what_that_means(env: ToolEnv) -> None:
+    """Its facet lists would all be empty; given only those, a model searched
+    on with other words until the answer's budget was gone (wf-05)."""
+    result = await execute(SEARCH, env, {"q": "toilette,wc,toilet"})
+    assert result == {
+        "numberMatched": 0,
+        "numberReturned": 0,
+        "truncated": False,
+        "results": [],
+        "note": NOTHING_FOUND,
+    }
+    flat = " ".join(NOTHING_FOUND.split())
+    assert "Search once more only if" in flat
+    assert "the catalog has no such dataset for these filters: say so" in flat
+    assert "leave that dataset step open" in flat
+
+
+def test_the_search_text_asks_for_the_topics_words_in_one_search() -> None:
+    described = SEARCH.input_model.model_fields["q"].description or ""
+    assert "one search with a topic's German and English words" in described
+    # The open-ended "Nothing found: try other words" is left to the result's note.
+    assert "Nothing found" not in described
 
 
 async def test_search_limit_is_clamped(env: ToolEnv) -> None:
@@ -111,7 +138,28 @@ async def test_suggest_terms_blank_prefix_is_empty_not_everything(
     assert await execute(SUGGEST_TERMS, env, {"prefix": "   "}) == {
         "prefix": "   ",
         "matches": [],
+        "note": NO_SUCH_WORD,
     }
+
+
+async def test_suggest_terms_says_when_no_word_starts_so(env: ToolEnv) -> None:
+    found = await execute(SUGGEST_TERMS, env, {"prefix": "radver"})
+    assert found["matches"] and "note" not in found
+    assert (await execute(SUGGEST_TERMS, env, {"prefix": "toilet"}))[
+        "note"
+    ] == NO_SUCH_WORD
+
+
+def test_the_catalog_searches_count_what_found_nothing() -> None:
+    """The tools whose empty results end the answer's searching after
+    ``FRUITLESS_SEARCHES`` in a row (assistant.tools.toolset)."""
+    searching = {spec.wire_name for spec in CATALOG_TOOLS if spec.found_nothing}
+    assert searching == {"catalog_search", "catalog_suggest_terms"}
+    assert SEARCH.found_nothing is not None and SUGGEST_TERMS.found_nothing is not None
+    assert SEARCH.found_nothing({"numberMatched": 0, "results": []})
+    assert not SEARCH.found_nothing({"numberMatched": 3, "results": []})
+    assert SUGGEST_TERMS.found_nothing({"prefix": "x", "matches": []})
+    assert not SUGGEST_TERMS.found_nothing({"prefix": "x", "matches": [{"id": "a"}]})
 
 
 async def test_catalog_calls_carry_the_users_token(

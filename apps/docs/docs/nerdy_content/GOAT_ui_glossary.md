@@ -675,6 +675,9 @@ This glossary lists the English and German labels of the main tools, features an
 | Open in project to review | Im Projekt öffnen und prüfen | Opens the project a suggestion applies to |
 | Answer details | Details zur Antwort | Model, provider and token counts of an answer |
 | Steps | Schritte | The tools the assistant used for an answer |
+| Recommended | Empfohlen | The option the assistant suggests in a card with questions |
+| Type your own answer | Eigene Antwort eingeben | Your own answer to a question of the assistant, in a field that opens when you pick it |
+| Send answer | Antwort senden | Sends your choices in the assistant's card with questions |
 
 ## Data Formats
 

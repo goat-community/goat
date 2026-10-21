@@ -13,6 +13,12 @@ export interface DockActions {
   openProject: (projectId: string) => void;
   /** A project's workflow or print layout in its editor (a new tab inside another project). */
   openInProjectMode: (projectId: string, mode: "workflows" | "reports", itemId: string) => void;
+  /**
+   * A workflow the running answer created: opened in the Workflows editor when
+   * it belongs to the open project and the editor holds no unsaved changes,
+   * after the project's workflow list was read again. Resolves whether it opened.
+   */
+  openCreatedWorkflow: (projectId: string, workflowId: string) => Promise<boolean>;
   /** The existing dataset window (summary, data, map): a dataset's "All details". */
   previewDataset: (layerId: string) => void;
   /** The existing bundle window: a bundle's "All details". */

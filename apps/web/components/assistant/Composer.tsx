@@ -2,7 +2,18 @@
 
 import ArrowUpwardRounded from "@mui/icons-material/ArrowUpwardRounded";
 import StopRounded from "@mui/icons-material/StopRounded";
-import { Box, Chip, IconButton, InputBase, Stack, Tooltip, Typography, alpha, useTheme } from "@mui/material";
+import {
+  Box,
+  Chip,
+  IconButton,
+  InputBase,
+  Stack,
+  type Theme,
+  Tooltip,
+  Typography,
+  alpha,
+  useTheme,
+} from "@mui/material";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,6 +44,8 @@ export interface ComposerProps {
   sourcesFull?: boolean;
   excludeProjectId?: string;
   big?: boolean;
+  /** The text takes the focus when the composer mounts (it takes an ask card's place again). */
+  autoFocus?: boolean;
 }
 
 /** The longest message the assistant service accepts (its MAX_MESSAGE_CHARS). */
@@ -40,6 +53,44 @@ export const MAX_MESSAGE_CHARS = 32768;
 
 /** A trailing "@word" at the end of the draft opens the source picker. */
 const MENTION = /(^|\s)@([^\s@]*)$/;
+
+/** The round buttons at the composer's foot: Send, and Stop. */
+const roundButtonSx = (theme: Theme) => ({
+  width: 32,
+  height: 32,
+  p: 0,
+  flexShrink: 0,
+  bgcolor: "primary.main",
+  color: "primary.contrastText",
+  "&:hover": { bgcolor: "primary.dark" },
+  "&.Mui-disabled": { bgcolor: "action.disabledBackground", color: "action.disabled" },
+  ...focusRing(theme),
+});
+
+/**
+ * Stops the running answer, in the composer and in the ask panel that takes
+ * its place. Next to Send it steps back to a neutral outline (`neutral`):
+ * Send keeps its place and its accent.
+ */
+export function StopButton({ onStop, neutral = false }: { onStop: () => void; neutral?: boolean }) {
+  const { t } = useTranslation("common");
+  const theme = useTheme();
+  const sx = neutral
+    ? {
+        ...roundButtonSx(theme),
+        bgcolor: "background.paper",
+        color: "text.primary",
+        border: 1,
+        borderColor: "divider",
+        "&:hover": { bgcolor: "action.hover", borderColor: alpha(theme.palette.text.primary, 0.24) },
+      }
+    : roundButtonSx(theme);
+  return (
+    <IconButton aria-label={t("stop")} onClick={onStop} sx={sx}>
+      <StopRounded sx={{ fontSize: 18 }} />
+    </IconButton>
+  );
+}
 
 export default function Composer(props: ComposerProps) {
   const { t } = useTranslation("common");
@@ -59,36 +110,16 @@ export default function Composer(props: ComposerProps) {
     setChipAnchor(null);
     if (mention) props.onDraftChange(withoutMention());
   };
-  const sendButtonSx = {
-    width: 32,
-    height: 32,
-    p: 0,
-    flexShrink: 0,
-    bgcolor: "primary.main",
-    color: "primary.contrastText",
-    "&:hover": { bgcolor: "primary.dark" },
-    "&.Mui-disabled": { bgcolor: "action.disabledBackground", color: "action.disabled" },
-    ...focusRing(theme),
-  };
   const canStop = props.busy && !!props.onStop;
-  // Next to Send, Stop steps back to a neutral outline: Send keeps its place and its accent.
-  const stopButtonSx = props.queueWhileBusy
-    ? {
-        ...sendButtonSx,
-        bgcolor: "background.paper",
-        color: "text.primary",
-        border: 1,
-        borderColor: "divider",
-        "&:hover": { bgcolor: "action.hover", borderColor: alpha(theme.palette.text.primary, 0.24) },
-      }
-    : sendButtonSx;
-  const stopButton = canStop && (
-    <IconButton aria-label={t("stop")} onClick={props.onStop} sx={stopButtonSx}>
-      <StopRounded sx={{ fontSize: 18 }} />
-    </IconButton>
+  const stopButton = canStop && props.onStop && (
+    <StopButton onStop={props.onStop} neutral={props.queueWhileBusy} />
   );
   const sendButton = (!canStop || props.queueWhileBusy) && (
-    <IconButton aria-label={t("assistant_send")} disabled={!canSend} onClick={props.onSend} sx={sendButtonSx}>
+    <IconButton
+      aria-label={t("assistant_send")}
+      disabled={!canSend}
+      onClick={props.onSend}
+      sx={roundButtonSx(theme)}>
       <ArrowUpwardRounded sx={{ fontSize: 18 }} />
     </IconButton>
   );
@@ -129,6 +160,7 @@ export default function Composer(props: ComposerProps) {
           maxRows={8}
           fullWidth
           inputRef={input}
+          autoFocus={props.autoFocus}
           value={props.draft}
           disabled={props.disabled}
           placeholder={t(

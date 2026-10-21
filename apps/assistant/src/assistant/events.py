@@ -6,9 +6,12 @@ these into the AI SDK stream when sending, so a protocol switch only changes
 the encoder and old conversations stay replayable (spec §6.2).
 """
 
+from datetime import datetime, timezone
 from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, TypeAdapter
+
+from assistant.asks import public_args
 
 
 class RunStarted(BaseModel):
@@ -214,12 +217,17 @@ _TOOL_STATES = {
 
 
 def to_ui_message(
-    message_id: str, role: str, parts: list[dict[str, Any]]
+    message_id: str,
+    role: str,
+    parts: list[dict[str, Any]],
+    created_at: datetime | None = None,
 ) -> dict[str, Any]:
     """Render stored neutral parts as an AI SDK ``UIMessage`` for ``useChat``.
 
     Tools render as ``dynamic-tool`` parts: the web app does not declare tool
     types statically, so every GOAT tool is dynamic from its point of view.
+    ``created_at`` (the message's time) goes into the metadata as ISO 8601 in
+    UTC to the millisecond, for the time the dock shows under the message.
     """
     ui_parts: list[dict[str, Any]] = []
     metadata: dict[str, Any] | None = None
@@ -232,7 +240,7 @@ def to_ui_message(
                 "toolName": part["tool_name"],
                 "toolCallId": part["tool_call_id"],
                 "state": _TOOL_STATES[part["state"]],
-                "input": part["args"],
+                "input": public_args(part["tool_name"], part["args"]),
             }
             if part["state"] == "output":
                 ui_part["output"] = part["output"]
@@ -261,7 +269,8 @@ def to_ui_message(
             # The live stream carries usage as message metadata; a reloaded
             # message carries it the same way (keys as in UsageReported).
             metadata = {
-                "usage": {key: value for key, value in part.items() if key != "type"}
+                **(metadata or {}),
+                "usage": {key: value for key, value in part.items() if key != "type"},
             }
         elif part["type"] == "user_text":
             ui_parts.append({"type": "text", "text": part["text"]})
@@ -269,6 +278,17 @@ def to_ui_message(
             # The page context the message was sent with (spec §6.3); the dock
             # renders it as context chips when a conversation is reopened.
             ui_parts.append({"type": "data-context", "data": part["context"]})
+        elif part["type"] == "answer":
+            # The user's answer to a card (assistant.asks): the dock shows the
+            # card answered from it.
+            metadata = {**(metadata or {}), "answer": part["answer"]}
+    if created_at is not None:
+        metadata = {
+            **(metadata or {}),
+            "created_at": created_at.astimezone(timezone.utc).isoformat(
+                timespec="milliseconds"
+            ),
+        }
     message: dict[str, Any] = {"id": message_id, "role": role, "parts": ui_parts}
     if metadata is not None:
         message["metadata"] = metadata

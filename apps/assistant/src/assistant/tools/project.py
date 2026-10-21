@@ -15,6 +15,7 @@ ENFORCE_READ_AUTHZ is set. So the model never passes a layer UUID, only
 
 import asyncio
 import json
+import re
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -318,6 +319,12 @@ class LayerInfo(BaseModel):
     group: str | None = None
     #: The user has no access to this dataset: listed, but its data cannot be read.
     locked: bool = False
+    #: How many features the dataset has, when core knows it without counting
+    #: (a catalog dataset's copy records it).
+    feature_count: int | None = None
+    #: The dataset's bounding box [west, south, east, north] in degrees,
+    #: rounded to EXTENT_DECIMALS, when core has one.
+    extent: list[float] | None = None
     #: The layer's filter in this project (CQL2-JSON), when it has one.
     filter: dict[str, Any] | None = None
     #: Under Restricted, the filter's text is replaced by this: its literals are
@@ -353,6 +360,42 @@ class ProjectLayers(BaseModel):
         )
 
 
+#: Decimals a layer's extent keeps: a hundredth of a degree (about a kilometre)
+#: tells a city's data from a country's, and keeps the layer list short.
+EXTENT_DECIMALS = 2
+_WKT_NUMBER = re.compile(r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+
+
+def _recorded_feature_count(row: Mapping[str, Any]) -> int | None:
+    """The feature count core sends without counting: the one a catalog
+    dataset's copy records (``other_properties.catalog_materialize``, which
+    core serves from the dataset). Core keeps none for other layers, and
+    counting each layer on every call would read whole tables."""
+    other = row.get("other_properties")
+    status = other.get("catalog_materialize") if isinstance(other, dict) else None
+    count = status.get("feature_count") if isinstance(status, dict) else None
+    if isinstance(count, int) and not isinstance(count, bool) and count >= 0:
+        return count
+    return None
+
+
+def _extent(row: Mapping[str, Any]) -> list[float] | None:
+    """The bounding box of the extent core sends as WKT (a multipolygon in
+    WGS84), rounded to EXTENT_DECIMALS; None without one, or for anything
+    that is not a box in degrees."""
+    wkt = row.get("extent")
+    if not isinstance(wkt, str):
+        return None
+    numbers = [float(n) for n in _WKT_NUMBER.findall(wkt.split(";")[-1])]
+    if not numbers or len(numbers) % 2:
+        return None
+    xs, ys = numbers[0::2], numbers[1::2]
+    west, south, east, north = min(xs), min(ys), max(xs), max(ys)
+    if not (-180 <= west <= east <= 180 and -90 <= south <= north <= 90):
+        return None
+    return [round(value, EXTENT_DECIMALS) for value in (west, south, east, north)]
+
+
 async def _get_layers(env: ToolEnv, args: ProjectInput) -> ProjectLayers:
     project_id = _project_id(env, args.project_id)
     project, rows, groups = await asyncio.gather(
@@ -367,20 +410,28 @@ async def _get_layers(env: ToolEnv, args: ProjectInput) -> ProjectLayers:
         if isinstance(env.page, ProjectMapContext) and env.page.project_id == project_id
         else None
     )
-    layers = [
-        LayerInfo(
-            layer_project_id=row["id"],
-            name=row.get("name") or f"layer {row['id']}",
-            type=row.get("type") or "unknown",
-            geometry_type=row.get("feature_layer_geometry_type"),
-            group=group_names.get(row.get("layer_project_group_id")),
-            locked=bool(row.get("locked")),
-            filter=(row.get("query") or {}).get("cql"),
-            selected=True if selected is not None and row["id"] == selected else None,
+    layers: list[LayerInfo] = []
+    # In the project's layer order already (core sorts by layer_order).
+    for row in rows:
+        locked = bool(row.get("locked"))
+        layers.append(
+            LayerInfo(
+                layer_project_id=row["id"],
+                name=row.get("name") or f"layer {row['id']}",
+                type=row.get("type") or "unknown",
+                geometry_type=row.get("feature_layer_geometry_type"),
+                group=group_names.get(row.get("layer_project_group_id")),
+                locked=locked,
+                # Withheld for a locked layer, as core withholds its other
+                # details.
+                feature_count=None if locked else _recorded_feature_count(row),
+                extent=None if locked else _extent(row),
+                filter=(row.get("query") or {}).get("cql"),
+                selected=True
+                if selected is not None and row["id"] == selected
+                else None,
+            )
         )
-        # In the project's layer order already (core sorts by layer_order).
-        for row in rows
-    ]
     return ProjectLayers(
         project_id=project_id,
         name=project.get("name") or str(project_id),
@@ -396,9 +447,10 @@ GET_LAYERS: ToolSpec[ProjectInput, ProjectLayers] = ToolSpec(
     name="project.get_layers",
     description=(
         "List a project's layers and groups: names, types, geometry types, each "
-        "layer's filter, which layers the user cannot read (locked) and which one is "
-        "selected on the map. Call this first; other project tools take the "
-        "layer_project_id it returns."
+        "layer's filter, its extent (bounding box) and feature count when known, "
+        "which layers the user cannot read (locked) and which one is selected on "
+        "the map. Call this first; other project tools take the layer_project_id "
+        "it returns."
     ),
     input_model=ProjectInput,
     output_model=ProjectLayers,

@@ -20,7 +20,8 @@ LOW_CARDINALITY_LIMIT = 50
 
 RESTRICTED_REASON = (
     "Withheld: the organization's data policy (Restricted) does not allow sending "
-    "this to the AI."
+    "this to the AI. Tell the user that the data policy keeps this from you, and "
+    "what you can do instead."
 )
 
 

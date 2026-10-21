@@ -9,6 +9,7 @@ export function dockActions() {
     openRecord: vi.fn(),
     openProject: vi.fn(),
     openInProjectMode: vi.fn(),
+    openCreatedWorkflow: vi.fn(async (_projectId: string, _workflowId: string) => true),
     previewDataset: vi.fn(),
     previewBundle: vi.fn(),
     zoomToLayer: vi.fn(),

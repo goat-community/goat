@@ -13,6 +13,7 @@ from pydantic_ai.messages import (
     ToolReturnPart,
 )
 from pydantic_ai.models.test import TestModel
+from pydantic_core import ValidationError
 
 from assistant.agent import INSTRUCTIONS, PartIds, RunDeps, build_agent
 from assistant.events import (
@@ -27,6 +28,7 @@ from assistant.events import (
     ToolReturned,
 )
 from assistant.runs.translate import EventTranslator
+from assistant.tools.toolset import _ARGUMENTS_VALIDATOR
 
 
 async def _run(prompt: str, agent: Agent[RunDeps, str] | None = None) -> list[RunEvent]:
@@ -173,6 +175,35 @@ def test_retry_prompt_result_becomes_tool_failed() -> None:
     assert isinstance(events[0], ToolFailed)
     assert events[0].tool_call_id == "c1"
     assert "bad arguments" in events[0].error
+
+
+def _json_invalid(tool_name: str) -> RetryPromptPart:
+    """The retry pydantic-ai builds for arguments that are not JSON (a call cut
+    off mid-card): each error's ``input`` is the raw text."""
+    raw = '{"questions":[{"options":[{"label":"A","value":"31"'
+    try:
+        _ARGUMENTS_VALIDATOR.validate_json(raw)
+    except ValidationError as exc:
+        return RetryPromptPart.from_error(exc, tool_name=tool_name, tool_call_id="c1")
+    raise AssertionError("the arguments parsed")
+
+
+def test_an_ask_card_that_is_not_json_fails_without_its_values() -> None:
+    """The web shows the error text; the model keeps pydantic-ai's full retry."""
+    events = _feed(
+        EventTranslator(PartIds("m")),
+        FunctionToolResultEvent(part=_json_invalid("ask_user")),
+    )
+    [failed] = events
+    assert isinstance(failed, ToolFailed)
+    assert "json_invalid" in failed.error and "31" not in failed.error
+
+
+def test_other_tools_keep_their_whole_retry_text() -> None:
+    retry = _json_invalid("catalog_search")
+    [failed] = _feed(EventTranslator(PartIds("m")), FunctionToolResultEvent(part=retry))
+    assert isinstance(failed, ToolFailed)
+    assert failed.error == retry.model_response() and "31" in failed.error
 
 
 def test_denied_tool_return_becomes_tool_failed() -> None:

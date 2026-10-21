@@ -17,13 +17,22 @@ import json
 import logging
 import time
 from collections.abc import Awaitable, Callable, Mapping, Sequence
-from dataclasses import dataclass, field
-from typing import Any, Generic, Literal, TypeVar
+from dataclasses import dataclass, field, replace
+from typing import (
+    Any,
+    Generic,
+    Literal,
+    NoReturn,
+    Protocol,
+    TypeVar,
+    runtime_checkable,
+)
 from uuid import UUID
 
 from pydantic import BaseModel, ValidationError
 from pydantic_ai.exceptions import ToolFailed
 
+from assistant.asks import AskHistory
 from assistant.config import AssistantSettings
 from assistant.context import PageContext
 from assistant.llm import failures
@@ -36,8 +45,26 @@ from assistant.tools.policy import Withheld, apply_policy
 
 logger = logging.getLogger(__name__)
 
-Risk = Literal["read", "propose"]
-EmitData = Callable[[str, dict[str, Any]], Awaitable[str]]
+Risk = Literal["read", "propose", "write"]
+
+
+@runtime_checkable
+class Creates(Protocol):
+    """The result of a write tool: what it created, for its audit row
+    (``{"kind": ..., "ids": [...], "project_id": ...}``)."""
+
+    def created(self) -> dict[str, Any]: ...
+
+
+class EmitData(Protocol):
+    """Emits a data part into the run and returns its part id. ``part_id``
+    names the part (an ask card is named by its card id); without it the part
+    gets the run's next ``{message_id}:{n}``."""
+
+    def __call__(
+        self, name: str, data: dict[str, Any], *, part_id: str | None = None
+    ) -> Awaitable[str]: ...
+
 
 #: Mirrors the catalog MCP's cap: stays under the MCP transport's tool-result
 #: limit even when a client counts the structured result and its text twice.
@@ -78,6 +105,12 @@ class ToolEnv:
     #: Secrets beyond the login's tokens that must never reach a log or an
     #: audit row (``client_secrets(settings)``).
     extra_secrets: Sequence[str] = field(default=(), repr=False)
+    #: The model's id of the call being executed; ``execute`` sets it on the
+    #: copy of the environment each call gets. None outside a call.
+    tool_call_id: str | None = None
+    #: The conversation's cards and their answers, for tools that act only on
+    #: what the user picked in a card (``assistant.asks.user_chose``).
+    asks: AskHistory = field(default_factory=AskHistory)
 
     def secrets(self) -> list[str]:
         """Everything to mask in this run's errors, logs and audit rows."""
@@ -100,6 +133,7 @@ class ToolEnv:
         *,
         params: Mapping[str, object] | None = None,
         json_body: object | None = None,
+        headers: Mapping[str, str] | None = None,
     ) -> Any:
         return await call_service(
             self.services,
@@ -109,6 +143,7 @@ class ToolEnv:
             bearer=await self.bearer(),
             params=params,
             json_body=json_body,
+            headers=headers,
         )
 
 
@@ -129,12 +164,23 @@ class ToolSpec(Generic[In, Out]):
     #: The data policy applies (spec §4.7). Required: every tool says whether
     #: it returns data values, so none is exempt by omission.
     returns_data: bool
-    #: Spec §8.1. Run and destructive classes do not exist in v1.
+    #: Spec §8.1: read, propose (a card the user applies) or write (creates
+    #: something new; nothing changes or deletes).
     risk: Risk = "read"
     #: Published over MCP (spec §9.1).
     mcp: bool = False
     #: Login scope an external MCP client will need (spec §9.2).
     scope: str = "goat:read"
+    #: Set on a read tool, it runs once per answer: a later call in the same
+    #: answer, whatever its arguments, gets the first call's result with this
+    #: note instead of running (``assistant.tools.toolset``). Over MCP every
+    #: call runs.
+    once_per_answer: str | None = None
+    #: Set on a tool that searches the catalog's text: whether its result (as
+    #: ``execute`` returns it) found nothing. After ``FRUITLESS_SEARCHES`` such
+    #: results in a row of these tools, later calls of them in the same answer
+    #: do not run (``assistant.tools.toolset``). Over MCP every call runs.
+    found_nothing: Callable[[dict[str, Any]], bool] | None = None
 
     @property
     def wire_name(self) -> str:
@@ -168,6 +214,19 @@ def _without_titles(schema: Any) -> Any:
         for key, value in schema.items()
         if not (key == "title" and isinstance(value, str))
     }
+
+
+class ResultOverCap(ToolFailed):  # noqa: N818
+    """A result larger than ``MAX_RESULT_BYTES``: not sent. ``size`` is its
+    size in bytes, so a run can refuse the same call again without running it
+    (``assistant.tools.toolset``)."""
+
+    def __init__(self, size: int) -> None:
+        super().__init__(
+            "The result is too large to send. Narrow the request: fewer results, "
+            "fewer fields or a filter."
+        )
+        self.size = size
 
 
 class InputInvalid(Exception):  # noqa: N818
@@ -221,19 +280,34 @@ async def execute(
     raw_args: Mapping[str, Any],
     *,
     tool_call_id: str | None = None,
+    check_result: Callable[[int], str | None] | None = None,
 ) -> dict[str, Any]:
+    """``check_result``: called with the size of the result in bytes; a text
+    it returns refuses the result with that text (a run's limits,
+    ``assistant.tools.toolset``)."""
     started = time.monotonic()
     # Pessimistic until the success return: anything that escapes unclassified
     # (a BaseException, a failure inside a handler) is audited as an error.
     status = "error"
     error: str | None = "internal error"
     size = 0
+    created: dict[str, Any] | None = None
     try:
         try:
             args = spec.input_model.model_validate(dict(raw_args))
         except ValidationError as exc:
             raise InputInvalid(_describe(exc)) from exc
-        result = await spec.run(env, args)
+        # Each call its own copy: calls of one answer run concurrently.
+        result = await spec.run(replace(env, tool_call_id=tool_call_id), args)
+        # Recorded whatever happens next: what a write created exists even
+        # when its result is then too large to send.
+        if isinstance(result, Creates):
+            try:
+                created = result.created()
+            except Exception:
+                # What was created exists either way and the model must see
+                # it: only the audit row goes without it.
+                logger.exception("Reading what %s created failed", spec.wire_name)
         if spec.returns_data:
             result = apply_policy(env.data_policy, result)
         # exclude_none leaves out the typed models' fields that are None; null
@@ -246,10 +320,9 @@ async def execute(
             json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode()
         )
         if size > MAX_RESULT_BYTES:
-            raise ToolFailed(
-                "The result is too large to send. Narrow the request: fewer results, "
-                "fewer fields or a filter."
-            )
+            raise ResultOverCap(size)
+        if check_result is not None and (reason := check_result(size)) is not None:
+            raise ToolFailed(reason)
         status, error = ("withheld" if isinstance(result, Withheld) else "ok"), None
         return payload
     except InputInvalid as exc:
@@ -283,7 +356,36 @@ async def execute(
             "The tool failed unexpectedly. Try again or answer without it."
         ) from exc
     finally:
-        await _audit(env, spec, raw_args, tool_call_id, size, started, status, error)
+        await _audit(
+            env, spec, raw_args, tool_call_id, size, started, status, error, created
+        )
+
+
+async def refuse(
+    spec: ToolSpec[Any, Any],
+    env: ToolEnv,
+    raw_args: Mapping[str, Any],
+    reason: str,
+    *,
+    tool_call_id: str | None = None,
+    result_bytes: int = 0,
+) -> NoReturn:
+    """Refuses a call without running it (a run's limits,
+    ``assistant.tools.toolset``): audited as a failed call whose error is
+    ``reason``, which is also what the model reads. ``result_bytes``: the size
+    of the result that was refused, when one was measured."""
+    await _audit(
+        env,
+        spec,
+        raw_args,
+        tool_call_id,
+        result_bytes,
+        time.monotonic(),
+        "error",
+        reason,
+        None,
+    )
+    raise ToolFailed(reason)
 
 
 async def _audit(
@@ -295,13 +397,16 @@ async def _audit(
     started: float,
     status: str,
     error: str | None,
+    created: dict[str, Any] | None,
 ) -> None:
     if env.repo is None:
         return
     try:
         # Shielded: a cancelled run still gets its audit row.
         await asyncio.shield(
-            _insert(env, spec, raw_args, tool_call_id, size, started, status, error)
+            _insert(
+                env, spec, raw_args, tool_call_id, size, started, status, error, created
+            )
         )
     except asyncio.CancelledError:
         raise
@@ -324,6 +429,7 @@ async def _insert(
     started: float,
     status: str,
     error: str | None,
+    created: dict[str, Any] | None,
 ) -> None:
     assert env.repo is not None
     # Masked before the cut, so no prefix of a token is left at the end.
@@ -338,4 +444,5 @@ async def _insert(
         duration_ms=int((time.monotonic() - started) * 1000),
         status=status,
         error=text[:_ERROR_CHARS] if text else None,
+        created=created,
     )

@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from assistant.events import (
     EVENT_ADAPTER,
     DataPart,
@@ -196,3 +198,33 @@ def test_to_ui_message_keeps_the_user_text_and_page_context() -> None:
         {"type": "text", "text": "find bike data"},
         {"type": "data-context", "data": {"surface": "catalog", "search": "Berlin"}},
     ]
+
+
+def test_to_ui_message_carries_the_stored_time_in_utc() -> None:
+    usage = {
+        "type": "usage",
+        "model": "m",
+        "provider": None,
+        "input_tokens": 1,
+        "output_tokens": 1,
+        "cache_read_tokens": 0,
+        "cache_write_tokens": 0,
+    }
+    # An aware time in another zone (asyncpg itself returns UTC), with the
+    # microseconds a row has: the dock gets UTC to the millisecond, the precision
+    # every browser parses.
+    created = datetime(
+        2026, 10, 19, 10, 8, 30, 123456, tzinfo=timezone(timedelta(hours=2))
+    )
+    answer = to_ui_message("m1", "assistant", [usage], created_at=created)
+    assert answer["metadata"]["created_at"] == "2026-10-19T08:08:30.123+00:00"
+    # The other metadata stays.
+    assert answer["metadata"]["usage"]["model"] == "m"
+    user = to_ui_message(
+        "u1", "user", [{"type": "user_text", "text": "hi"}], created_at=created
+    )
+    assert user["metadata"] == {"created_at": "2026-10-19T08:08:30.123+00:00"}
+    # Without a time the message has no metadata at all.
+    assert "metadata" not in to_ui_message(
+        "u2", "user", [{"type": "user_text", "text": "hi"}]
+    )

@@ -149,9 +149,28 @@ describe("StepList", () => {
     expect(withheld).toContain("· withheld");
   });
 
-  it("never folds a long list", () => {
+  it("lists every row it is given: the group around it does the folding", () => {
     const find = (query: string) => call("core_find", { query }, "output-available", { projects: [] });
     render(<StepList steps={["a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8"].map(find)} />);
     expect(rowTexts()).toHaveLength(8);
+  });
+
+  it("says what a running step is doing while the answer runs, and marks it stopped after", () => {
+    const running = call("catalog_search", { q: "Schule" }, "input-available");
+    const { rerender } = render(<StepList steps={[running]} running />);
+    expect(rowTexts()).toEqual(["Searching the catalog for “Schule”…"]);
+    expect(document.querySelector("[data-status]")?.getAttribute("data-status")).toBe("running");
+    // A step the run left without a result (stopped, failed) is no longer under way, and not done.
+    rerender(<StepList steps={[running]} />);
+    expect(rowTexts()).toEqual(["Searching the catalog for “Schule”… · Stopped"]);
+    expect(document.querySelector("[data-status]")?.getAttribute("data-status")).toBe("stopped");
+    expect(getComputedStyle(screen.getByText("Searching the catalog for “Schule”…")).animation).not.toMatch(
+      /1\.8s/
+    );
+  });
+
+  it("never claims a write the run left unreturned was made", () => {
+    render(<StepList steps={[call("workflow_create", { draft: {} }, "input-available")]} />);
+    expect(rowTexts()).toEqual(["Creating a workflow… · Stopped"]);
   });
 });

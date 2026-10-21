@@ -1,28 +1,32 @@
 "use client";
 
 import { Box, Stack, Typography } from "@mui/material";
-import { alpha, keyframes } from "@mui/material/styles";
 import type { DynamicToolUIPart, TextUIPart } from "ai";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { GOATLogoIconOnlyGreen } from "@p4b/ui/assets/svg/GOATLogoIconOnlyGreen";
 
+import { type AskCardState, askCardOf, askCardState, askStepReturned } from "@/lib/assistant/ask";
 import { contextChips, plainTranslate } from "@/lib/assistant/chips";
-import { SHOW_TOOLS, shownGroups } from "@/lib/assistant/items";
+import { CREATE_WORKFLOW_TOOLS, SHOW_TOOLS, shownGroups, uniqueGroups } from "@/lib/assistant/items";
+import { messageTime } from "@/lib/assistant/messageTimes";
+import { stepRunning } from "@/lib/assistant/stepLabels";
 import type { AnswerFeedback, AssistantMessage, PageContext } from "@/lib/assistant/types";
 
 import AnswerDetails from "@/components/assistant/messages/AnswerDetails";
+import AskCard from "@/components/assistant/messages/AskCard";
 import CaveatNote from "@/components/assistant/messages/CaveatNote";
 import ContextChips from "@/components/assistant/messages/ContextChips";
 import CopyAnswer from "@/components/assistant/messages/CopyAnswer";
 import FeedbackButtons from "@/components/assistant/messages/FeedbackButtons";
+import MessageTime from "@/components/assistant/messages/MessageTime";
 import ProposalCard from "@/components/assistant/messages/ProposalCard";
 import ResultCards from "@/components/assistant/messages/ResultCards";
 import RunStatusNote from "@/components/assistant/messages/RunStatusNote";
 import SafeMarkdown from "@/components/assistant/messages/SafeMarkdown";
-import StepList from "@/components/assistant/messages/StepList";
-import { accentSoft, accentText, mutedText } from "@/components/assistant/styles";
+import StepGroup from "@/components/assistant/messages/StepGroup";
+import { accentSoft, accentText, shimmerSx } from "@/components/assistant/styles";
 
 export interface MessageListProps {
   messages: AssistantMessage[];
@@ -33,6 +37,15 @@ export interface MessageListProps {
   readOnly: boolean;
   /** The user's ratings, by answer id (from the loaded conversation). */
   feedback?: Record<string, AnswerFeedback>;
+  /**
+   * The ask card the panel at the dock's foot asks: its place here shows a
+   * line. Null or absent: no panel (an open card the composer holds shows its questions here).
+   */
+  panelAskId?: string | null;
+  /** The open ask card the composer holds: its questions show here, with the line that opens the panel. */
+  heldAskId?: string | null;
+  /** The waiting line of the open card: shows its panel (focus into it, or open it in the composer's place). */
+  onShowAsk?: (cardId: string) => void;
 }
 
 const lastProposalId = (messages: AssistantMessage[]): string | null => {
@@ -46,7 +59,33 @@ const lastProposalId = (messages: AssistantMessage[]): string | null => {
   return null;
 };
 
-function UserMessage({ message, projectName }: { message: AssistantMessage; projectName: string | null }) {
+/** The space between messages; a question's time sits in the space below it. */
+const MESSAGE_GAP = "20px";
+
+/** The tools that create a workflow: each one an answer created gets its card, not only the last. */
+const CREATES: ReadonlySet<string> = new Set<string>(CREATE_WORKFLOW_TOOLS);
+
+/**
+ * The project the answer at `index` read when a call named none: the one of
+ * the page its question was sent from (the question's context).
+ */
+const openProjectOf = (messages: AssistantMessage[], index: number): string | null => {
+  const question = messages.findLast((message, at) => at < index && message.role === "user");
+  const context = question?.parts.find((part) => part.type === "data-context")?.data as
+    | PageContext
+    | undefined;
+  return context && "project_id" in context ? context.project_id : null;
+};
+
+function UserMessage({
+  message,
+  projectName,
+  time,
+}: {
+  message: AssistantMessage;
+  projectName: string | null;
+  time: number | null;
+}) {
   const { t } = useTranslation("common");
   const text = message.parts
     .filter((part): part is TextUIPart => part.type === "text")
@@ -55,7 +94,17 @@ function UserMessage({ message, projectName }: { message: AssistantMessage; proj
   const context = message.parts.find((part) => part.type === "data-context")?.data as PageContext | undefined;
   const chips = contextChips(context ?? null, projectName ?? undefined, plainTranslate(t));
   return (
-    <Stack gap="6px" alignItems="flex-end">
+    <Stack
+      gap="6px"
+      alignItems="flex-end"
+      sx={{
+        position: "relative",
+        // The time shows on hover or keyboard focus of the message, and always without a
+        // hover (touch), as the answers' actions do.
+        "& .message-time": { opacity: 0, transition: "opacity 120ms" },
+        "&:hover .message-time, &:focus-within .message-time": { opacity: 1 },
+        "@media (hover: none)": { "& .message-time": { opacity: 1 } },
+      }}>
       <Box
         sx={(theme) => ({
           maxWidth: "85%",
@@ -73,44 +122,33 @@ function UserMessage({ message, projectName }: { message: AssistantMessage; proj
         </Typography>
       </Box>
       <ContextChips chips={chips} />
+      {/* Out of the flow, in the gap below the message: it reserves no space. */}
+      {time !== null && (
+        <Box className="message-time" sx={{ position: "absolute", top: "100%", right: 0, mt: "2px" }}>
+          <MessageTime time={time} />
+        </Box>
+      )}
     </Stack>
   );
 }
 
-/** A band of light moving across the text, left to right. */
-const shimmer = keyframes`
-  from { background-position: 100% 0; }
-  to { background-position: 0 0; }
-`;
-
-/** The answer is still coming, while nothing else on screen shows it. */
-function AnsweringLine() {
+/**
+ * The answer is still coming. `quiet` while a step runs, whose line shimmers
+ * instead: the line keeps its place and stays mounted, so the transcript does
+ * not jump at every step and a screen reader does not announce it again.
+ */
+function AnsweringLine({ quiet = false }: { quiet?: boolean }) {
   const { t } = useTranslation("common");
   return (
-    <Stack direction="row" gap="8px" alignItems="center" role="status">
+    <Stack
+      direction="row"
+      gap="8px"
+      alignItems="center"
+      role="status"
+      data-quiet={quiet || undefined}
+      sx={{ opacity: quiet ? 0 : 1 }}>
       <GOATLogoIconOnlyGreen style={{ width: 14, height: 14 }} />
-      <Typography
-        sx={(theme) => {
-          const dim = alpha(theme.palette.text.primary, 0.45);
-          const bright = theme.palette.text.primary;
-          return {
-            fontSize: 12.5,
-            color: mutedText(theme),
-            // Dim text with a bright band in the middle, three times as wide as the text,
-            // so the band enters, crosses and leaves within one cycle.
-            backgroundImage: `linear-gradient(90deg, ${dim} 0%, ${dim} 38%, ${bright} 50%, ${dim} 62%, ${dim} 100%)`,
-            backgroundSize: "300% 100%",
-            backgroundClip: "text",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            animation: `${shimmer} 1.8s ease-in-out infinite`,
-            "@media (prefers-reduced-motion: reduce)": {
-              animation: "none",
-              backgroundImage: "none",
-              WebkitTextFillColor: "currentColor",
-            },
-          };
-        }}>
+      <Typography sx={(theme) => ({ fontSize: 12.5, ...(quiet ? {} : shimmerSx(theme)) })}>
         {t("assistant_running")}
       </Typography>
     </Stack>
@@ -119,16 +157,26 @@ function AnsweringLine() {
 
 function Answer({
   message,
+  time,
   running,
+  openProject,
   latest,
   newestProposal,
   conversationId,
   conversationProjectId,
   readOnly,
   feedback,
+  askState,
+  panelAskId,
+  heldAskId,
+  onShowAsk,
 }: {
   message: AssistantMessage;
+  /** When the answer was given, if known. */
+  time: number | null;
   running: boolean;
+  /** The project the answer's tools read when a call names none. */
+  openProject: string | null;
   /** The newest answer of the conversation. */
   latest: boolean;
   newestProposal: string | null;
@@ -136,28 +184,50 @@ function Answer({
   conversationProjectId: string | null;
   readOnly: boolean;
   feedback?: AnswerFeedback;
+  /** How an ask card of this answer stands, from the user messages after it. */
+  askState: (cardId: string) => AskCardState;
+  panelAskId: string | null;
+  heldAskId: string | null;
+  onShowAsk?: (cardId: string) => void;
 }) {
   const blocks: ReactNode[] = [];
   let tools: DynamicToolUIPart[] = [];
-  // Only the answer's last list of each card tool becomes cards: a model that
-  // names them more than once has refined what it points to.
-  const lastShown = SHOW_TOOLS.map((name) =>
-    message.parts.findLast(
-      (part): part is DynamicToolUIPart =>
-        part.type === "dynamic-tool" && part.toolName === name && shownGroups(part).length > 0
+  // Only the answer's last list of each show tool becomes cards: a model that
+  // names them more than once has refined what it points to. Every workflow
+  // the answer created gets its card.
+  const lastShown = SHOW_TOOLS.filter((name) => !CREATES.has(name))
+    .map((name) =>
+      message.parts.findLast(
+        (part): part is DynamicToolUIPart =>
+          part.type === "dynamic-tool" && part.toolName === name && shownGroups(part).length > 0
+      )
     )
-  ).filter((part): part is DynamicToolUIPart => part !== undefined);
+    .filter((part): part is DynamicToolUIPart => part !== undefined);
+  const showsCards = (part: DynamicToolUIPart) => lastShown.includes(part) || CREATES.has(part.toolName);
+  // Each item once in the answer: a repeated create, or a workflow that
+  // core_show_items names again, draws no second card.
+  const seen = new Set<string>();
   const flush = (key: string) => {
     if (!tools.length) return;
     const group = tools;
     tools = [];
-    blocks.push(<StepList key={`steps-${key}`} steps={group} />);
-    // In the answer's order, when it shows both kinds of cards.
-    group
-      .filter((part) => lastShown.includes(part))
-      .forEach((part) =>
-        blocks.push(<ResultCards key={`results-${key}-${part.toolCallId}`} groups={shownGroups(part)} />)
-      );
+    // The answer's last group is still receiving steps while the answer runs; any other part closed it.
+    blocks.push(
+      <StepGroup
+        key={`steps-${key}`}
+        steps={group}
+        open={running && key === "end"}
+        running={running}
+        openProject={openProject}
+      />
+    );
+    // In the answer's order, when it shows several kinds of cards.
+    group.filter(showsCards).forEach((part) => {
+      const groups = uniqueGroups(shownGroups(part), seen);
+      if (groups.length) {
+        blocks.push(<ResultCards key={`results-${key}-${part.toolCallId}`} groups={groups} />);
+      }
+    });
   };
   message.parts.forEach((part, index) => {
     if (part.type === "dynamic-tool") {
@@ -181,6 +251,27 @@ function Answer({
           isLatest={partId === newestProposal}
         />
       );
+    } else if (part.type === "data-ask") {
+      // A part the dock cannot read shows nothing; the rest of the answer stays.
+      const card = askCardOf(part.data);
+      if (card) {
+        const state = askState(card.card_id);
+        // Still coming: the running answer sent the card, its ask step has not returned. The line
+        // shows at once, so the card does not change its shape when the panel takes it.
+        const coming = running && !readOnly && !askStepReturned(message, card.card_id);
+        const open = card.card_id === panelAskId || card.card_id === heldAskId;
+        blocks.push(
+          <AskCard
+            key={card.card_id}
+            card={card}
+            answer={state.answer}
+            superseded={state.superseded}
+            waiting={card.card_id === panelAskId || coming}
+            held={card.card_id === heldAskId}
+            onShow={open && onShowAsk ? () => onShowAsk(card.card_id) : undefined}
+          />
+        );
+      }
     } else if (part.type === "data-caveat") {
       blocks.push(<CaveatNote key={index} data={part.data} />);
     } else if (part.type === "data-run-status") {
@@ -194,6 +285,9 @@ function Answer({
     .join("\n\n");
   // A stopped or failed answer keeps Copy for what it said, but has no details to show.
   const ended = message.parts.some((part) => part.type === "data-run-status");
+  // A step under way shimmers in its line or its group's summary: one shimmer at a time.
+  const stepUnderWay =
+    running && message.parts.some((part) => part.type === "dynamic-tool" && stepRunning(part));
   const actions = !running && (text.trim() || !ended);
   return (
     <Stack
@@ -206,17 +300,23 @@ function Answer({
         "@media (hover: none)": { "& .answer-actions": { opacity: 1 } },
       }}>
       {blocks}
-      {/* For the whole run, below whatever came so far: between steps nothing else moves
-          (the model decides what to do next), and staying put keeps the animation smooth. */}
-      {running && <AnsweringLine />}
+      {/* Below whatever came so far, between steps (the model decides what to do next) and
+          while text streams in; a step under way says what it does instead. */}
+      {running && <AnsweringLine quiet={stepUnderWay} />}
       {actions && (
         // The 28px buttons sit 6px out, so their icons start where the answer's text does.
-        <Stack className="answer-actions" direction="row" gap="4px" sx={{ mt: "-8px", ml: "-6px" }}>
+        <Stack
+          className="answer-actions"
+          direction="row"
+          gap="4px"
+          alignItems="center"
+          sx={{ mt: "-8px", ml: "-6px" }}>
           <CopyAnswer text={text} />
           {!ended && <AnswerDetails usage={message.metadata?.usage} />}
           {!ended && (
             <FeedbackButtons conversationId={conversationId} messageId={message.id} initial={feedback} />
           )}
+          {time !== null && <MessageTime time={time} />}
         </Stack>
       )}
     </Stack>
@@ -225,24 +325,46 @@ function Answer({
 
 /** The transcript: user messages with their context chips, answers part by part (spec §10). */
 export default function MessageList(props: MessageListProps) {
+  // The messages shown at mount: one of them without a stored time is not dated
+  // (see `messageTime`); a later one arrived through the live stream.
+  const [atMount] = useState(() => new Set(props.messages.map((message) => message.id)));
+  const timeOf = (message: AssistantMessage, running: boolean): number | null =>
+    messageTime(message, { mounted: atMount.has(message.id), running });
+  /** The newest answer while the chat is busy: it is still being written. */
+  const runs = (index: number) => props.busy && index === props.messages.length - 1;
   const newestProposal = lastProposalId(props.messages);
   const latestAnswer = props.messages.findLast((message) => message.role === "assistant")?.id;
+  // A question's time reserves no space in the flow. Last in the list, with no
+  // Answering line after it, the question keeps that space below it in the
+  // list, so what follows the list (an alert) does not cover its time.
+  const lastQuestion = !props.busy && props.messages.at(-1)?.role === "user";
   return (
-    <Stack gap="20px">
+    <Stack gap={MESSAGE_GAP} sx={lastQuestion ? { pb: MESSAGE_GAP } : undefined}>
       {props.messages.map((message, index) =>
         message.role === "user" ? (
-          <UserMessage key={message.id} message={message} projectName={props.projectName} />
+          <UserMessage
+            key={message.id}
+            message={message}
+            projectName={props.projectName}
+            time={timeOf(message, false)}
+          />
         ) : message.role === "assistant" ? (
           <Answer
             key={message.id}
             message={message}
-            running={props.busy && index === props.messages.length - 1}
+            time={timeOf(message, runs(index))}
+            running={runs(index)}
+            openProject={openProjectOf(props.messages, index)}
             latest={message.id === latestAnswer}
             newestProposal={newestProposal}
             conversationId={props.conversationId}
             conversationProjectId={props.conversationProjectId}
             readOnly={props.readOnly}
             feedback={props.feedback?.[message.id]}
+            askState={(cardId) => askCardState(props.messages, index, cardId)}
+            panelAskId={props.panelAskId ?? null}
+            heldAskId={props.heldAskId ?? null}
+            onShowAsk={props.onShowAsk}
           />
         ) : null
       )}

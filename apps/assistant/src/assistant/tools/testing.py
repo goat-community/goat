@@ -12,6 +12,7 @@ from uuid import UUID
 import httpx
 from pydantic_ai.messages import (
     ModelMessage,
+    ModelRequest,
     ModelResponse,
     TextPart,
     ToolCallPart,
@@ -203,3 +204,68 @@ class ScriptedModel:
             }
             return
         yield self.answer
+
+
+class TurnModel:
+    """A model scripted per user turn of a conversation: in turn ``n`` it
+    makes ``turns[n]``'s tool calls in order, one per response, then gives
+    that turn's answer. It finds its place from the history it is sent, so
+    one instance serves every run of a conversation. Tool call ids are
+    ``call-<turn>-<step>``."""
+
+    def __init__(
+        self, turns: Sequence[tuple[Sequence[tuple[str, dict[str, Any]]], str]]
+    ) -> None:
+        self.turns = [(list(calls), answer) for calls, answer in turns]
+        self.infos: list[AgentInfo] = []
+        self.requests: list[list[ModelMessage]] = []
+
+    @property
+    def model(self) -> FunctionModel:
+        return FunctionModel(self._respond, stream_function=self._stream)
+
+    def _place(
+        self, messages: list[ModelMessage], info: AgentInfo
+    ) -> tuple[list[tuple[str, dict[str, Any]]], str, int, int]:
+        self.infos.append(info)
+        self.requests.append(list(messages))
+        starts = [
+            index
+            for index, message in enumerate(messages)
+            if isinstance(message, ModelRequest)
+            and any(isinstance(part, UserPromptPart) for part in message.parts)
+        ]
+        turn = max(len(starts) - 1, 0)
+        latest = starts[-1] if starts else 0
+        step = sum(isinstance(message, ModelResponse) for message in messages[latest:])
+        calls, answer = self.turns[min(turn, len(self.turns) - 1)]
+        return calls, answer, turn, step
+
+    def _respond(self, messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        calls, answer, turn, step = self._place(messages, info)
+        if step < len(calls):
+            name, args = calls[step]
+            return ModelResponse(
+                parts=[
+                    ToolCallPart(
+                        tool_name=name, args=args, tool_call_id=f"call-{turn}-{step}"
+                    )
+                ]
+            )
+        return ModelResponse(parts=[TextPart(content=answer)])
+
+    async def _stream(
+        self, messages: list[ModelMessage], info: AgentInfo
+    ) -> AsyncIterator[str | DeltaToolCalls]:
+        calls, answer, turn, step = self._place(messages, info)
+        if step < len(calls):
+            name, args = calls[step]
+            yield {
+                0: DeltaToolCall(
+                    name=name,
+                    json_args=json.dumps(args),
+                    tool_call_id=f"call-{turn}-{step}",
+                )
+            }
+            return
+        yield answer

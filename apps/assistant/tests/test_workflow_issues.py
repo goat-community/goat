@@ -1,0 +1,382 @@
+"""The check's issues in the draft's terms, the assistant's own filter check,
+and which issues may stay open when the workflow is created (spec §4.3, §4.4)."""
+
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from assistant.workflows.draft import Draft, ProjectLayer, open_steps, to_config
+from assistant.workflows.issues import (
+    FILTER_FIELD_CODE,
+    DraftIssue,
+    draft_issues,
+    filter_field_issues,
+    split_issues,
+)
+
+DRAFT = Draft.model_validate(
+    {
+        "name": "Toilets and shops",
+        "steps": [
+            {"id": "toilets", "kind": "dataset", "label": "Toilets", "layer": None},
+            {
+                "id": "shops",
+                "kind": "dataset",
+                "layer": 34,
+                "filter": {
+                    "where": [
+                        {"field": "kette", "op": "=", "value": "Edeka"},
+                        {"field": "brand", "op": "=", "value": "x"},
+                    ]
+                },
+            },
+            {
+                "id": "walk",
+                "kind": "tool",
+                "tool": "catchment_area_v2",
+                "label": "Walk",
+            },
+            {"id": "ring", "kind": "tool", "tool": "buffer"},
+            {"id": "save", "kind": "export", "name": "Result"},
+        ],
+        "connections": [
+            {"from": "toilets", "to": "walk", "input": "starting_points"},
+            {"from": "walk", "to": "save"},
+            {"from": "shops", "to": "ring", "input": "input_layer_id"},
+        ],
+    }
+)
+CONVERTED = to_config(
+    DRAFT,
+    layers={
+        34: ProjectLayer(
+            34,
+            "e2000000-0000-0000-0000-000000000034",
+            "Supermärkte",
+            "feature",
+            "point",
+        )
+    },
+    regions={},
+    titles={"buffer": "Buffer"},
+)
+NODE = CONVERTED.node_ids
+OPEN = open_steps(DRAFT)
+
+
+def _raw(
+    code: str, level: str, steps: list[str], message: str, field: str | None = None
+) -> dict[str, Any]:
+    return {
+        "code": code,
+        "level": level,
+        "node_ids": [NODE.get(step, step) for step in steps],
+        "field": field,
+        "message": message,
+        "params": {},
+        "source": "check",
+    }
+
+
+def _issue(code: str, level: str, *steps: str, field: str | None = None) -> DraftIssue:
+    return DraftIssue(
+        code=code, level=level, steps=list(steps), field=field, message=code
+    )
+
+
+def test_node_ids_are_mapped_to_draft_ids() -> None:
+    raw = _raw(
+        "setting_required",
+        "error",
+        ["ring"],
+        "Buffer: Distances is required.",
+        "distances",
+    )
+    assert draft_issues([raw], CONVERTED) == [
+        DraftIssue(
+            code="setting_required",
+            level="error",
+            steps=["ring"],
+            field="distances",
+            message="Buffer: Distances is required.",
+        )
+    ]
+
+
+def test_a_message_starts_with_the_step_name_once() -> None:
+    [named, bare] = draft_issues(
+        [
+            _raw(
+                "layer_not_chosen", "error", ["toilets"], "Toilets: no layer is chosen."
+            ),
+            _raw("setting_invalid", "error", ["walk"], "the travel time is too long."),
+        ],
+        CONVERTED,
+    )
+    assert named.message == "Toilets: no layer is chosen."
+    assert bare.message == "Walk: the travel time is too long."
+
+
+def test_an_issue_of_the_workflow_or_of_several_steps_keeps_its_message() -> None:
+    whole, loop, unknown = draft_issues(
+        [
+            _raw(
+                "connection_to_removed_step",
+                "error",
+                [],
+                "A connection points to a step that does not exist.",
+            ),
+            _raw(
+                "loop",
+                "error",
+                ["walk", "ring"],
+                "These steps form a loop: Walk, Buffer.",
+            ),
+            _raw("tool_removed", "error", ["tool-gone"], "gone: the tool was removed."),
+        ],
+        CONVERTED,
+    )
+    assert (whole.steps, whole.message) == (
+        [],
+        "A connection points to a step that does not exist.",
+    )
+    assert (loop.steps, loop.message) == (
+        ["walk", "ring"],
+        "These steps form a loop: Walk, Buffer.",
+    )
+    assert (unknown.steps, unknown.message) == ([], "gone: the tool was removed.")
+
+
+def test_filter_fields_the_layer_lacks_are_reported() -> None:
+    issues = filter_field_issues(DRAFT, {"shops": ["name", "kette"]}, CONVERTED.labels)
+    assert issues == [
+        DraftIssue(
+            code=FILTER_FIELD_CODE,
+            level="error",
+            steps=["shops"],
+            field="brand",
+            message="Supermärkte: the filter's field 'brand' is not in the layer. Its fields: name, kette.",
+        )
+    ]
+
+
+def test_a_long_field_list_says_how_many_fields_it_leaves_out() -> None:
+    fields = ["kette", *(f"f{index}" for index in range(34))]
+    [issue] = filter_field_issues(DRAFT, {"shops": fields}, CONVERTED.labels)
+    listed = ", ".join(fields[:30])
+    assert issue.message == (
+        "Supermärkte: the filter's field 'brand' is not in the layer. "
+        f"Its fields: {listed} (and 5 more)."
+    )
+
+
+def test_a_layer_without_fields_says_so() -> None:
+    issues = filter_field_issues(DRAFT, {"shops": []}, CONVERTED.labels)
+    assert [issue.message for issue in issues] == [
+        f"Supermärkte: the filter's field {field!r} is not in the layer. "
+        "The layer has no fields that can be filtered."
+        for field in ("kette", "brand")
+    ]
+
+
+def test_a_layer_whose_fields_cannot_be_read_yet_is_not_judged() -> None:
+    """Review Focus 4: a catalog layer whose data is still being copied."""
+    assert filter_field_issues(DRAFT, {"shops": None}, CONVERTED.labels) == []
+    assert filter_field_issues(DRAFT, {}, CONVERTED.labels) == []
+
+
+def test_layer_not_chosen_on_an_open_step_stays_open() -> None:
+    issue = _issue("layer_not_chosen", "error", "toilets")
+    assert split_issues([issue], OPEN) == ([], [issue])
+
+
+def test_issues_the_unknown_layer_causes_downstream_stay_open() -> None:
+    invalid = _issue("setting_invalid", "error", "walk")
+    assert OPEN == {"toilets", "walk", "save"}
+    assert split_issues([invalid], OPEN) == ([], [invalid])
+
+
+def test_a_rejected_setting_stays_open_only_where_the_open_layer_reaches() -> None:
+    """A setting the tool rejects stays open on a step reading from an open
+    step only when the layer still to be chosen can be its cause: a layer
+    input or setting that reads it (``layer_settings``), or the whole step's
+    validation (no field). A choice no layer changes blocks."""
+    settings = {"walk": frozenset({"starting_points", "reference_field"})}
+    reach = _issue("setting_invalid", "error", "walk", field="reference_field")
+    choice = _issue("setting_invalid", "error", "walk", field="routing_mode")
+    whole = _issue("setting_invalid", "error", "walk")
+    assert split_issues([reach, choice, whole], OPEN, layer_settings=settings) == (
+        [choice],
+        [reach, whole],
+    )
+    assert split_issues([reach, choice], OPEN) == ([reach, choice], [])
+
+
+def test_the_gate_is_described_as_it_judges() -> None:
+    """A rejection of the whole step (no field) stays open on a step reading
+    from an open step whatever its cause, so no text says that every value no
+    layer choice fixes blocks."""
+    readme = (Path(__file__).parents[1] / "README.md").read_text(encoding="utf-8")
+    for name, text in (
+        ("split_issues", split_issues.__doc__ or ""),
+        ("README", readme),
+    ):
+        flat = " ".join(text.split())
+        assert "a value wrong for any layer" not in flat, name
+        assert "a value no layer choice makes right" not in flat, name
+        assert "whatever its cause" in flat, name
+
+
+def test_too_many_destinations_blocks_also_beside_an_open_layer() -> None:
+    """The heatmap's destination limit counts the layers already chosen, so
+    no choice left open fixes it: the assistant limits them (filter.area) and
+    checks again before it creates the workflow."""
+    draft = Draft.model_validate(
+        {
+            "name": "Shops nearby",
+            "steps": [
+                {"id": "toilets", "kind": "dataset", "label": "Toilets", "layer": None},
+                {"id": "shops", "kind": "dataset", "layer": 34},
+                {"id": "heat", "kind": "tool", "tool": "heatmap_closest_average"},
+            ],
+            "connections": [
+                {"from": "shops", "to": "heat", "input": "opportunity_layer_1_id"},
+                {"from": "toilets", "to": "heat", "input": "opportunity_layer_2_id"},
+            ],
+        }
+    )
+    opened = open_steps(draft)
+    assert "heat" in opened
+    limit = _issue("too_many_destinations", "error", "heat")
+    reach = {"heat": frozenset({"opportunity_layer_2_id", "opportunities"})}
+    assert split_issues([limit], opened, layer_settings=reach) == ([limit], [])
+
+
+def test_a_filter_field_issue_blocks_wherever_it_is_reported() -> None:
+    """A filter belongs to a dataset step with a layer, which the user has
+    chosen already, so no choice left open can fix it."""
+    issue = _issue(FILTER_FIELD_CODE, "error", "walk", field="kette")
+    assert split_issues([issue], OPEN) == ([issue], [])
+
+
+def test_a_field_not_in_layer_downstream_blocks() -> None:
+    """Processes judges a field setting only against a layer it can read, so
+    on a step reading from an open step the field is missing from another
+    input's layer, which no layer choice changes."""
+    field = _issue("field_not_in_layer", "error", "walk", field="weight_field")
+    assert split_issues([field], OPEN) == ([field], [])
+
+
+def test_a_field_missing_from_the_layered_input_of_a_join_blocks() -> None:
+    """join reads its target from the open step and its join layer from a
+    layered step; the join layer lacks the field."""
+    draft = Draft.model_validate(
+        {
+            "name": "Join",
+            "steps": [
+                {"id": "toilets", "kind": "dataset", "label": "Toilets", "layer": None},
+                {"id": "shops", "kind": "dataset", "layer": 34},
+                {"id": "join", "kind": "tool", "tool": "join"},
+            ],
+            "connections": [
+                {"from": "toilets", "to": "join", "input": "target_layer_id"},
+                {"from": "shops", "to": "join", "input": "join_layer_id"},
+            ],
+        }
+    )
+    field = _issue("field_not_in_layer", "error", "join", field="join_fields")
+    assert open_steps(draft) == {"toilets", "join"}
+    settings = {"join": frozenset({"join_fields"})}
+    assert split_issues([field], open_steps(draft), field_settings=settings) == (
+        [field],
+        [],
+    )
+
+
+def test_a_required_field_setting_downstream_stays_open() -> None:
+    issue = _issue("setting_required", "error", "walk", field="weight_field")
+    settings = {"walk": frozenset({"weight_field"})}
+    assert split_issues([issue], OPEN, field_settings=settings) == ([], [issue])
+
+
+def test_a_required_other_setting_downstream_blocks() -> None:
+    issue = _issue("setting_required", "error", "walk", field="travel_time")
+    settings = {"walk": frozenset({"weight_field"})}
+    assert split_issues([issue], OPEN, field_settings=settings) == ([issue], [])
+    assert split_issues([issue], OPEN) == ([issue], [])
+
+
+@pytest.mark.parametrize(
+    ("code", "step"),
+    [
+        ("connection_to_unknown_input", "walk"),
+        ("tool_removed", "walk"),
+        ("tool_missing", "walk"),
+        ("input_not_connected", "walk"),
+        ("opportunity_not_connected", "walk"),
+        ("variable_undefined", "walk"),
+        ("export_name_missing", "save"),
+    ],
+)
+def test_an_issue_no_layer_choice_fixes_blocks_downstream(code: str, step: str) -> None:
+    issue = _issue(code, "error", step)
+    assert split_issues([issue], OPEN) == ([issue], [])
+
+
+def test_a_loop_downstream_of_an_open_step_blocks() -> None:
+    """toilets (open) -> walk -> ring -> walk: every step of the loop reads
+    from the open step, and still no layer choice breaks the loop."""
+    draft = Draft.model_validate(
+        {
+            "name": "Loop",
+            "steps": [
+                {"id": "toilets", "kind": "dataset", "label": "Toilets", "layer": None},
+                {"id": "walk", "kind": "tool", "tool": "catchment_area_v2"},
+                {"id": "ring", "kind": "tool", "tool": "buffer"},
+            ],
+            "connections": [
+                {"from": "toilets", "to": "walk", "input": "starting_points"},
+                {"from": "walk", "to": "ring", "input": "input_layer_id"},
+                {"from": "ring", "to": "walk", "input": "reference_layer_id"},
+            ],
+        }
+    )
+    loop = _issue("loop", "error", "walk", "ring")
+    unknown_input = _issue("connection_to_unknown_input", "error", "walk")
+    assert open_steps(draft) == {"toilets", "walk", "ring"}
+    assert split_issues([loop, unknown_input], open_steps(draft)) == (
+        [loop, unknown_input],
+        [],
+    )
+
+
+def test_an_error_of_a_step_with_a_layer_blocks() -> None:
+    issue = _issue("setting_required", "error", "ring")
+    assert split_issues([issue], OPEN) == ([issue], [])
+
+
+def test_a_filter_field_the_chosen_layer_lacks_blocks() -> None:
+    issues = filter_field_issues(DRAFT, {"shops": ["name", "kette"]}, CONVERTED.labels)
+    assert split_issues(issues, OPEN) == (issues, [])
+
+
+def test_a_damaged_issue_always_blocks() -> None:
+    issue = _issue("node_unknown_type", "damaged", "toilets")
+    assert split_issues([issue], OPEN) == ([issue], [])
+
+
+def test_warnings_neither_block_nor_stay_open() -> None:
+    ring = _issue("step_not_connected", "warning", "ring")
+    walk = _issue("step_not_connected", "warning", "walk")
+    assert split_issues([ring, walk], OPEN) == ([], [])
+
+
+def test_an_error_of_the_whole_workflow_blocks() -> None:
+    issue = _issue("destination_not_writable", "error")
+    assert split_issues([issue], OPEN) == ([issue], [])
+
+
+def test_an_issue_naming_an_open_and_another_step_blocks() -> None:
+    issue = _issue("loop", "error", "walk", "ring")
+    assert split_issues([issue], OPEN) == ([issue], [])

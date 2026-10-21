@@ -212,6 +212,7 @@ async def test_lost_access_hides_answers_and_refuses_runs(
             "id": after["messages"][0]["id"],
             "role": "user",
             "parts": [{"type": "text", "text": "Welche Layer gibt es?"}],
+            "metadata": {"created_at": after["messages"][0]["metadata"]["created_at"]},
         }
     ]
     assert (refused.status_code, refused.json()["detail"]["code"]) == (

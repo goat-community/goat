@@ -34,10 +34,22 @@ export interface CardGroup {
   items: ResultItem[];
 }
 
-/** The tools whose result the dock shows as cards; each answer shows the last list of each. */
-export const SHOW_TOOLS = ["catalog_show_records", "core_show_items"] as const;
+/** The tools that create a workflow; their result names it in `groups`, as `core_show_items` does. */
+export const CREATE_WORKFLOW_TOOLS = ["workflow_create", "workflow_create_from_template"] as const;
 
-/** As many as either tool accepts. */
+/** The tools that change the user's content (risk "write" in the assistant's tool registry). */
+export const WRITE_TOOLS = [...CREATE_WORKFLOW_TOOLS, "project_add_catalog_layer"] as const;
+
+/**
+ * The tools whose result the dock shows as cards: an answer shows the last list
+ * of each show tool, and every workflow it created.
+ */
+export const SHOW_TOOLS = ["catalog_show_records", "core_show_items", ...CREATE_WORKFLOW_TOOLS] as const;
+
+/** The tools whose `groups` list the user's own items: what `core_show_items` names, and a created workflow. */
+const OWN_ITEM_TOOLS: ReadonlySet<string> = new Set<string>(["core_show_items", ...CREATE_WORKFLOW_TOOLS]);
+
+/** The most cards one tool result shows: the show tools show the first this many items the model names. */
 export const MAX_CARDS = 10;
 
 const OWN_KINDS: ReadonlySet<string> = new Set([
@@ -109,7 +121,8 @@ const toGroups = (raw: unknown, key: "records" | "items", item: (row: Row) => Re
 export function shownGroups(part: DynamicToolUIPart): CardGroup[] {
   if (part.state !== "output-available") return [];
   const output = isRow(part.output) ? part.output : {};
-  if (part.toolName === "core_show_items") return toGroups(output.groups, "items", ownItem);
+  // A created workflow is such an item: its card opens it in its project's editor.
+  if (OWN_ITEM_TOOLS.has(part.toolName)) return toGroups(output.groups, "items", ownItem);
   if (part.toolName !== "catalog_show_records") return [];
   if (Array.isArray(output.groups)) return toGroups(output.groups, "records", catalogItem);
   return toGroups([{ records: output.shown }], "records", catalogItem);
@@ -118,16 +131,21 @@ export function shownGroups(part: DynamicToolUIPart): CardGroup[] {
 /** One item's identity: a layer's id is only unique within its project. */
 export const itemKey = (item: ResultItem): string => [item.kind, item.projectId ?? "", item.id].join(":");
 
-/** Each item once, in its first group, and at most `MAX_CARDS` in all. */
-export const uniqueGroups = (groups: CardGroup[]): CardGroup[] => {
-  const seen = new Set<string>();
+/**
+ * Each item once, in its first group, and at most `MAX_CARDS` of one tool
+ * result. `seen` holds what the answer's earlier results showed: those items
+ * are left out, and the ones kept here are added to it.
+ */
+export const uniqueGroups = (groups: CardGroup[], seen: Set<string> = new Set()): CardGroup[] => {
+  let kept = 0;
   return groups
     .map((group) => ({
       ...group,
       items: group.items.filter((item) => {
         const key = itemKey(item);
-        if (seen.size >= MAX_CARDS || seen.has(key)) return false;
+        if (kept >= MAX_CARDS || seen.has(key)) return false;
         seen.add(key);
+        kept += 1;
         return true;
       }),
     }))

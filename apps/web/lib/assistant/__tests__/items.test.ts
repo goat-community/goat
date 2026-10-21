@@ -2,7 +2,7 @@ import type { DynamicToolUIPart } from "ai";
 import { describe, expect, it } from "vitest";
 
 import { type ItemActionContext, cardBehaviour } from "@/lib/assistant/itemActions";
-import { type ResultItem, shownGroups, uniqueGroups } from "@/lib/assistant/items";
+import { MAX_CARDS, type ResultItem, SHOW_TOOLS, shownGroups, uniqueGroups } from "@/lib/assistant/items";
 
 const part = (toolName: string, output: unknown): DynamicToolUIPart => ({
   type: "dynamic-tool",
@@ -78,6 +78,16 @@ describe("result items", () => {
     ]);
     expect(groups.map((group) => group.items.length)).toEqual([2, 1]);
   });
+
+  it("leaves out what an earlier list of the answer showed, and caps each list on its own", () => {
+    const projects = (prefix: string): ResultItem[] =>
+      Array.from({ length: MAX_CARDS }, (_, n) => ({ kind: "project", id: `${prefix}${n}`, title: "P" }));
+    const seen = new Set<string>();
+    expect(uniqueGroups([{ items: projects("a") }], seen)[0].items).toHaveLength(MAX_CARDS);
+    // a0 is shown already; the second list still shows as many cards of its own.
+    const second = uniqueGroups([{ items: [projects("a")[0], ...projects("b")] }], seen);
+    expect(second[0].items.map((item) => item.id)).toEqual(projects("b").map((item) => item.id));
+  });
 });
 
 describe("card behaviour", () => {
@@ -142,5 +152,42 @@ describe("card behaviour", () => {
     }
     expect(of(dataset, { ...IN_P1, canAddToProject: false }).action).toBe("add_to_other_project");
     expect(of(locked, IN_P1)).toEqual({ action: null, preview: false, layer: undefined });
+  });
+});
+
+describe("created workflows", () => {
+  const output = {
+    workflow: { id: "w-new", name: "Schools: 15-minute walk", project_id: "p1" },
+    open_issues: [{ step: "Schools", code: "layer_not_chosen", message: "Schools: no layer chosen." }],
+    groups: [
+      {
+        title: null,
+        items: [{ kind: "workflow", id: "w-new", project_id: "p1", name: "Schools: 15-minute walk", detail: null }],
+      },
+    ],
+  };
+
+  it("become a workflow card, read like the items core_show_items names", () => {
+    for (const tool of ["workflow_create", "workflow_create_from_template"]) {
+      expect(SHOW_TOOLS).toContain(tool);
+      expect(shownGroups(part(tool, output))).toEqual([
+        {
+          title: null,
+          items: [
+            expect.objectContaining({
+              kind: "workflow",
+              id: "w-new",
+              projectId: "p1",
+              title: "Schools: 15-minute walk",
+            }),
+          ],
+        },
+      ]);
+    }
+  });
+
+  it("open in their project's workflow editor", () => {
+    const [item] = shownGroups(part("workflow_create", output))[0].items;
+    expect(cardBehaviour(item, IN_P1).action?.id).toBe("open_workflow");
   });
 });

@@ -10,6 +10,7 @@ from typing import Any
 
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.capabilities import ProcessHistory
+from pydantic_ai.exceptions import ModelRetry
 from pydantic_ai.messages import ModelMessage, RetryPromptPart, ToolReturnPart
 from pydantic_ai.models import Model
 from pydantic_ai.models.function import (
@@ -21,13 +22,26 @@ from pydantic_ai.models.function import (
 from pydantic_ai.models.instrumented import InstrumentationSettings
 from pydantic_ai.models.test import TestModel
 
-from assistant.budget import RunBudget
+from assistant.budget import RunBudget, StepGuard
 from assistant.events import DataPart, RunEvent
 from assistant.history import shorten_earlier_results
 from assistant.llm.types import DataPolicy
-from assistant.prompt import ANSWER_NOW, INSTRUCTIONS, static_instructions
+from assistant.prompt import (
+    ANSWER_IN_TEXT,
+    ANSWER_NOW,
+    ANSWER_NOW_CARD,
+    INSTRUCTIONS,
+    NO_ANSWER_TEXT,
+    static_instructions,
+)
 from assistant.tools.runtime import ToolEnv
-from assistant.tools.toolset import TOOL_RETRIES, goat_toolset
+from assistant.tools.toolset import (
+    SILENT_RESPONSES,
+    TOOL_RETRIES,
+    answer_step,
+    goat_toolset,
+    silent_responses,
+)
 
 __all__ = ["INSTRUCTIONS", "PartIds", "RunDeps", "build_agent", "dev_model"]
 
@@ -59,21 +73,55 @@ class RunDeps:
     #: It goes into the user message (assistant.prompt.with_note), not the
     #: instructions, so the cached prefix stays the same between messages.
     prompt_note: str = ""
-    #: The run's limits; near them the model answers without tools
-    #: (assistant.budget). None: no early answer (the hard limits still apply).
+    #: The user's answer to a card, as the model reads it (assistant.asks);
+    #: it follows the text of the user message (assistant.prompt.with_note).
+    prompt_answer: str = ""
+    #: The run's limits; near them the model answers, or asks with a card, and
+    #: is offered no other tool (assistant.budget). None: no early answer (the
+    #: hard limits still apply).
     budget: RunBudget | None = None
-    #: Read tools' results of this answer by call (assistant.tools.toolset): a
-    #: repeated call gets the earlier result instead of a second request. The
-    #: fallback model never inherits any: it only takes over before a tool ran.
+    #: Results by call (assistant.tools.toolset): a repeated call gets the
+    #: earlier result instead of a second request. Read tools' results of this
+    #: answer, and write tools' of the whole conversation (the run manager adds
+    #: those of earlier answers). The fallback model takes over before a tool
+    #: ran, so it finds only those of earlier answers.
     earlier_results: dict[str, dict[str, Any]] = field(default_factory=dict)
+    #: The model showed the user a card (``ask_user``): the run offers no more
+    #: tools (``assistant.tools.toolset``), so the answer ends and waits for theirs.
+    asked: bool = False
+    #: What the current step's tool calls may still add to the run
+    #: (``assistant.budget.StepGuard``); a new one at each step's first call.
+    step: StepGuard | None = None
+    #: The run (its id) in which a result was refused for its size: its
+    #: look-ups are over, and its next model call answers
+    #: (``assistant.tools.toolset``).
+    refused_run: str | None = None
+    #: Calls refused for good, by call (as ``earlier_results``), with the size
+    #: in bytes of the result refused (0 when none was) and the refusal: the
+    #: same call is refused again without running. A result too large, and a
+    #: call the service failed twice for (``failed_calls``).
+    refused_results: dict[str, tuple[int, str]] = field(default_factory=dict)
+    #: How often a service failed for a call, by call (as ``earlier_results``):
+    #: a 429 or 5xx answer, no answer in time, or none at all
+    #: (``assistant.tools.http.service_failed``).
+    failed_calls: dict[str, int] = field(default_factory=dict)
+    #: The calls let run, by run id, failed and invalid ones included: what
+    #: the run's tool-call limit counts (``assistant.budget.StepGuard``).
+    admitted_calls: dict[str | None, int] = field(default_factory=dict)
+    #: The catalog searches in a row that found nothing, by run id: from
+    #: ``FRUITLESS_SEARCHES`` on, the answer's catalog searches do not run
+    #: (``assistant.tools.toolset``).
+    fruitless_searches: dict[str | None, int] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.part_ids is None:
             self.part_ids = PartIds(self.message_id)
 
-    async def emit_data(self, name: str, data: dict[str, Any]) -> str:
+    async def emit_data(
+        self, name: str, data: dict[str, Any], *, part_id: str | None = None
+    ) -> str:
         assert self.part_ids is not None
-        part_id = self.part_ids.next()
+        part_id = part_id or self.part_ids.next()
         await self.emit(DataPart(name=name, part_id=part_id, data=data))
         return part_id
 
@@ -124,10 +172,29 @@ def instrumentation() -> InstrumentationSettings | None:
 
 
 def answer_now(ctx: RunContext[RunDeps]) -> str:
-    """The instruction for a run near its limits; nothing otherwise, so the
-    fixed instructions stay the cached prefix."""
-    budget = ctx.deps.budget
-    return ANSWER_NOW if budget is not None and budget.spent(ctx.usage) else ""
+    """The instruction for a run near its limits, or whose responses held
+    neither text nor a tool call; nothing otherwise, so the fixed
+    instructions stay the cached prefix."""
+    stage = answer_step(ctx)
+    if stage is None or stage == "look up":
+        return ""
+    silent = silent_responses(ctx.messages, ctx.run_id) >= SILENT_RESPONSES
+    lead = ANSWER_IN_TEXT if silent else ANSWER_NOW
+    # Named only while the card is offered (assistant.tools.toolset).
+    if stage == "answer or ask" and not ctx.deps.asked:
+        return f"{lead} {ANSWER_NOW_CARD}"
+    return lead
+
+
+def ends_with_text(ctx: RunContext[RunDeps], output: str) -> str:
+    """Asks again for an answer whose last response holds only whitespace:
+    Pydantic AI asks again only after a response without any text, and takes
+    a single space as the answer, so an answer could end after its cards
+    without a word on them. The last retry's answer is taken as it is: a run
+    that fails at that point would lose an answer the user has partly seen."""
+    if output.strip() or ctx.partial_output or ctx.retry >= ctx.max_retries:
+        return output
+    raise ModelRetry(NO_ANSWER_TEXT)
 
 
 def build_agent(model: Model | str) -> Agent[RunDeps, str]:
@@ -146,5 +213,6 @@ def build_agent(model: Model | str) -> Agent[RunDeps, str]:
         # from another page can make the model call one (spec §4.8).
         retries=TOOL_RETRIES,
     )
+    agent.output_validator(ends_with_text)
     agent.instrument = instrumentation()
     return agent

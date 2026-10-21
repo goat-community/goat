@@ -90,6 +90,32 @@ async def test_finish_run_folds_and_frees_the_conversation(repo: Repository) -> 
     assert await repo.history(conversation_id) == [{"kind": "response"}]
 
 
+async def test_an_answer_is_dated_when_its_run_ended(
+    repo: Repository, db: Database
+) -> None:
+    conversation_id = await _conversation(repo)
+    run_id, message_id = await repo.begin_run(
+        conversation_id, USER, [{"type": "user_text", "text": "hi"}], "t", "t", 3
+    )
+    asked = datetime(2026, 10, 19, 10, 0, tzinfo=timezone.utc)
+    answered = asked + timedelta(minutes=3)
+    await repo.finish_run(run_id, "succeeded", None, [], [])
+    async with db.pool.acquire() as conn:
+        await conn.execute(
+            f"UPDATE {db.t('message')} SET created_at = $2 WHERE conversation_id = $1",
+            conversation_id,
+            asked,
+        )
+        await conn.execute(
+            f"UPDATE {db.t('run')} SET finished_at = $2 WHERE id = $1",
+            run_id,
+            answered,
+        )
+    question, answer = await repo.list_messages(conversation_id, None)
+    assert question["created_at"] == asked
+    assert answer["id"] == message_id and answer["created_at"] == answered
+
+
 async def test_expired_runs_and_lease_renewal(repo: Repository) -> None:
     conversation_id = await _conversation(repo)
     run_id, _ = await repo.begin_run(conversation_id, USER, [], "test", "test", 3)

@@ -282,6 +282,9 @@ def upgrade() -> None:
             _count("duration_ms"),
             sa.Column("status", sa.Text(), nullable=False),
             sa.Column("error", sa.Text(), nullable=True),
+            sa.Column(
+                "created", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+            ),
             _timestamp("created_at"),
             sa.ForeignKeyConstraint(["run_id"], [f"{A}.run.id"], ondelete="CASCADE"),
             sa.PrimaryKeyConstraint("id"),

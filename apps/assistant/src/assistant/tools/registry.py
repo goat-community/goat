@@ -8,14 +8,27 @@ of a surface and prompt caching keeps working. New packs are added to
 from typing import Any
 
 from assistant.surfaces import Surface
+from assistant.tools.ask import ASK_USER
 from assistant.tools.catalog import CATALOG_TOOLS
 from assistant.tools.core import CORE_TOOLS
 from assistant.tools.project import PROJECT_TOOLS
 from assistant.tools.runtime import ToolSpec
+from assistant.tools.skills import SKILLS_LOAD
+from assistant.tools.workflow_tools import TOOL_CATALOG_TOOLS
+from assistant.tools.workflows import WORKFLOW_TOOLS
 
 ALL_TOOLS: tuple[ToolSpec[Any, Any], ...] = tuple(
     sorted(
-        (*CORE_TOOLS, *CATALOG_TOOLS, *PROJECT_TOOLS), key=lambda spec: spec.wire_name
+        (
+            *CORE_TOOLS,
+            ASK_USER,
+            SKILLS_LOAD,
+            *CATALOG_TOOLS,
+            *PROJECT_TOOLS,
+            *TOOL_CATALOG_TOOLS,
+            *WORKFLOW_TOOLS,
+        ),
+        key=lambda spec: spec.wire_name,
     )
 )
 BY_WIRE_NAME: dict[str, ToolSpec[Any, Any]] = {

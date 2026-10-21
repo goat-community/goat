@@ -1,4 +1,5 @@
 import { type Theme, alpha } from "@mui/material";
+import { keyframes } from "@mui/material/styles";
 
 /**
  * The dock's shared look, in theme tokens. It follows the dashboard pages (12px
@@ -20,6 +21,37 @@ export const accentText = (theme: Theme): string =>
  * is the same ink a little stronger, so small text keeps AA contrast.
  */
 export const mutedText = (theme: Theme): string => alpha(theme.palette.text.primary, 0.76);
+
+/** A band of light moving across the text, left to right. */
+const shimmer = keyframes`
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+`;
+
+/**
+ * Text for something still under way (the Answering line, a running step):
+ * dim, with a bright band in the middle, three times as wide as the text, so
+ * the band enters, crosses and leaves within one cycle. With reduced motion it
+ * is plain muted text.
+ */
+export const shimmerSx = (theme: Theme) => {
+  const dim = alpha(theme.palette.text.primary, 0.45);
+  const bright = theme.palette.text.primary;
+  return {
+    color: mutedText(theme),
+    backgroundImage: `linear-gradient(90deg, ${dim} 0%, ${dim} 38%, ${bright} 50%, ${dim} 62%, ${dim} 100%)`,
+    backgroundSize: "300% 100%",
+    backgroundClip: "text",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    animation: `${shimmer} 1.8s ease-in-out infinite`,
+    "@media (prefers-reduced-motion: reduce)": {
+      animation: "none",
+      backgroundImage: "none",
+      WebkitTextFillColor: "currentColor",
+    },
+  };
+};
 
 /** The soft primary tint behind the user's messages, selected rows and the proposal header. */
 export const accentSoft = (theme: Theme): string =>

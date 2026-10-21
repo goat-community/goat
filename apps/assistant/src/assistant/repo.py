@@ -505,9 +505,15 @@ class Repository:
     async def list_messages(
         self, conversation_id: UUID, exclude_message_id: UUID | None
     ) -> list[dict[str, Any]]:
+        # An answer's row is written when its run starts, together with the
+        # question: its time is when the run ended.
         records = await self.db.pool.fetch(
-            f"SELECT id, role, parts, seq FROM {self.db.t('message')} "
-            "WHERE conversation_id = $1 AND ($2::uuid IS NULL OR id <> $2) ORDER BY seq",
+            "SELECT m.id, m.role, m.parts, m.seq, "
+            "coalesce(r.finished_at, m.created_at) AS created_at "
+            f"FROM {self.db.t('message')} m "
+            f"LEFT JOIN {self.db.t('run')} r ON r.id = m.run_id "
+            "WHERE m.conversation_id = $1 AND ($2::uuid IS NULL OR m.id <> $2) "
+            "ORDER BY m.seq",
             conversation_id,
             exclude_message_id,
         )
@@ -636,11 +642,12 @@ class Repository:
         duration_ms: int,
         status: str,
         error: str | None,
+        created: dict[str, Any] | None = None,
     ) -> None:
         await self.db.pool.execute(
             f"INSERT INTO {self.db.t('tool_call')} (run_id, user_id, tool, tool_call_id, "
-            "args_summary, result_bytes, duration_ms, status, error) "
-            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            "args_summary, result_bytes, duration_ms, status, error, created) "
+            "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             run_id,
             user_id,
             tool,
@@ -650,6 +657,7 @@ class Repository:
             duration_ms,
             status,
             error,
+            created,
         )
 
     async def delete_mcp_tool_calls_before(

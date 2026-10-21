@@ -60,6 +60,23 @@ class ServiceError(ToolFailed):
         super().__init__(_message(service, status, detail))
 
 
+def service_failed(exc: BaseException) -> bool:
+    """Whether a call failed because a service did, not because of what it
+    asked: the service answered 429 or a 5xx, did not answer in time, or
+    could not be reached. Read from ``exc`` and what caused it (``raise ...
+    from``), since a tool may put the failure in words of its own."""
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        if isinstance(current, ServiceError):
+            return current.status == 429 or current.status >= 500
+        if isinstance(current, httpx.HTTPError):
+            return True
+        seen.add(id(current))
+        current = current.__cause__
+    return False
+
+
 def _detail(response: httpx.Response) -> str:
     try:
         body = response.json()
@@ -162,8 +179,13 @@ async def call_service(
     bearer: str | None,
     params: Mapping[str, object] | None = None,
     json_body: object | None = None,
+    headers: Mapping[str, str] | None = None,
 ) -> Any:
-    """One request to a service; the decoded JSON body, or None for an empty one."""
+    """One request to a service; the decoded JSON body, or None for an empty one.
+
+    ``headers`` are added to the request's (``Accept-Language``). An
+    ``Authorization`` among them, in any spelling, is dropped, with a bearer or
+    without one: only the run's own sign-in is sent."""
     # A path on the client's own service and nothing else: no host, no scheme,
     # no query or fragment (those go through ``params``), no control characters,
     # and no dot segments that would climb out of the intended route. Segments
@@ -183,12 +205,18 @@ async def call_service(
             f"A tool may only name a path on its service, got {path[:80]!r}"
         )
     label = SERVICE_LABELS[service]
-    headers = {"Accept": "application/json"}
+    # A caller's header never stands in for the run's sign-in, in any spelling.
+    sent = {"Accept": "application/json"}
+    sent.update(
+        (name, value)
+        for name, value in (headers or {}).items()
+        if name.lower() != "authorization"
+    )
     if bearer:
-        headers["Authorization"] = f"Bearer {bearer}"
+        sent["Authorization"] = f"Bearer {bearer}"
     try:
         response = await clients.client(service).request(
-            method, path, params=_query(params), json=json_body, headers=headers
+            method, path, params=_query(params), json=json_body, headers=sent
         )
     except httpx.InvalidURL as exc:
         raise ValueError(

@@ -4,6 +4,7 @@ import { getSession } from "next-auth/react";
 import { assistantFetch, authHeaders } from "@/lib/assistant/http";
 import type {
   AnswerFeedback,
+  AskAnswer,
   AssistantMessage,
   ConversationDetail,
   ConversationRecord,
@@ -19,8 +20,15 @@ export interface TransportOptions {
   getLocale?: () => Locale;
 }
 
-/** The newest user message: the only one the server needs (it keeps the history). */
-export function lastUserMessage(messages: AssistantMessage[]): { id: string; text: string } {
+/**
+ * The newest user message: the only one the server needs (it keeps the
+ * history), with the ask card answer it carries as `answer` (contract "The ask card").
+ */
+export function lastUserMessage(messages: AssistantMessage[]): {
+  id: string;
+  text: string;
+  answer?: AskAnswer;
+} {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index];
     if (message.role !== "user") continue;
@@ -28,7 +36,8 @@ export function lastUserMessage(messages: AssistantMessage[]): { id: string; tex
       .filter((part): part is TextUIPart => part.type === "text")
       .map((part) => part.text)
       .join("");
-    return { id: message.id, text };
+    const answer = message.metadata?.answer;
+    return answer ? { id: message.id, text, answer } : { id: message.id, text };
   }
   throw new Error("There is no message to send.");
 }

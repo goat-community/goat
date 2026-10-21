@@ -1,6 +1,7 @@
 import type { DynamicToolUIPart } from "ai";
 
-import type { Translate } from "@/lib/assistant/chips";
+import type { Translate, TranslateOptions } from "@/lib/assistant/chips";
+import { WRITE_TOOLS } from "@/lib/assistant/items";
 
 /** An argument longer than this is cut with an ellipsis, so a label stays on one line. */
 export const ARGUMENT_CHARS = 40;
@@ -92,14 +93,13 @@ function layerOf(step: DynamicToolUIPart, names: LayerNames, t: Translate): stri
   return id === undefined ? undefined : t("assistant_step_layer_id", { id });
 }
 
-/**
- * The line a step shows: what the tool does, with its main argument when the
- * call carries one (the search words, the layer, the field). A call without
- * that argument, and a tool without a main argument, shows the plain label.
- * The values are user and model text: the caller passes a translator that does
- * not escape them (`plainTranslate`), because React renders them as text.
- */
-export function stepLabel(step: DynamicToolUIPart, names: LayerNames, t: Translate): string {
+/** A label's text key and the values it interpolates. */
+interface LabelKey {
+  key: string;
+  values?: TranslateOptions;
+}
+
+function labelKey(step: DynamicToolUIPart, names: LayerNames, t: Translate): LabelKey {
   const input = fields(step.input);
   const output = outputOf(step);
   const quoted = (value: string) => t("assistant_step_quoted", { value: clip(value) });
@@ -113,75 +113,84 @@ export function stepLabel(step: DynamicToolUIPart, names: LayerNames, t: Transla
         kind && CORE_FIND_KINDS.includes(kind)
           ? `assistant_tool_core_find_${kind}_query`
           : "assistant_tool_core_find_query";
-      return t(key, { query: quoted(query) });
+      return { key, values: { query: quoted(query) } };
     }
     case "core_find_layers": {
       const query = text(input.query);
-      if (query) return t("assistant_tool_core_find_layers_query", { query: quoted(query) });
+      if (query) return { key: "assistant_tool_core_find_layers_query", values: { query: quoted(query) } };
       break;
     }
     case "catalog_search": {
       const query = text(input.q);
       const count = filterCount(input);
       if (query && count) {
-        return t("assistant_tool_catalog_search_query_filters", { query: quoted(query), count });
+        return {
+          key: "assistant_tool_catalog_search_query_filters",
+          values: { query: quoted(query), count },
+        };
       }
-      if (query) return t("assistant_tool_catalog_search_query", { query: quoted(query) });
-      if (count) return t("assistant_tool_catalog_search_filters", { count });
+      if (query) return { key: "assistant_tool_catalog_search_query", values: { query: quoted(query) } };
+      if (count) return { key: "assistant_tool_catalog_search_filters", values: { count } };
       break;
     }
     case "catalog_get_record": {
       const title = text(output.title) ?? text(fields(output.properties).title) ?? text(input.item_id);
-      if (title) return t("assistant_tool_catalog_get_record_title", { title: quoted(title) });
+      if (title) return { key: "assistant_tool_catalog_get_record_title", values: { title: quoted(title) } };
       break;
     }
     case "catalog_find_region": {
       const name = text(input.name);
-      if (name) return t("assistant_tool_catalog_find_region_name", { name: quoted(name) });
+      if (name) return { key: "assistant_tool_catalog_find_region_name", values: { name: quoted(name) } };
       break;
     }
     case "catalog_suggest_terms": {
       const prefix = text(input.prefix);
-      if (prefix) return t("assistant_tool_catalog_suggest_terms_prefix", { prefix: quoted(prefix) });
+      if (prefix) {
+        return { key: "assistant_tool_catalog_suggest_terms_prefix", values: { prefix: quoted(prefix) } };
+      }
       break;
     }
     case "project_get_layers": {
       const project = text(output.name);
-      if (project) return t("assistant_tool_project_get_layers_project", { project: quoted(project) });
+      if (project) {
+        return { key: "assistant_tool_project_get_layers_project", values: { project: quoted(project) } };
+      }
       break;
     }
     // Named by project: an answer often reads the workflows of several.
     case "project_get_workflows":
     case "project_get_layouts": {
       const project = text(output.project_name);
-      if (project) return t(`assistant_tool_${step.toolName}_project`, { project: quoted(project) });
+      if (project) {
+        return { key: `assistant_tool_${step.toolName}_project`, values: { project: quoted(project) } };
+      }
       break;
     }
     case "project_get_fields": {
       const layer = layerOf(step, names, t);
-      if (layer) return t("assistant_tool_project_get_fields_layer", { layer });
+      if (layer) return { key: "assistant_tool_project_get_fields_layer", values: { layer } };
       break;
     }
     case "project_sample_features": {
       const layer = layerOf(step, names, t);
-      if (layer) return t("assistant_tool_project_sample_features_layer", { layer });
+      if (layer) return { key: "assistant_tool_project_sample_features_layer", values: { layer } };
       break;
     }
     case "project_area_statistics": {
       const layer = layerOf(step, names, t);
-      if (layer) return t("assistant_tool_project_area_statistics_layer", { layer });
+      if (layer) return { key: "assistant_tool_project_area_statistics_layer", values: { layer } };
       break;
     }
     case "project_count_features": {
       const layer = layerOf(step, names, t);
       if (layer) {
         const filtered = input.filter !== undefined && input.filter !== null;
-        return t(
-          filtered
+        return {
+          key: filtered
             ? "assistant_tool_project_count_features_layer_filtered"
             : "assistant_tool_project_count_features_layer",
-          { layer }
-        );
+          values: { layer },
+        };
       }
       break;
     }
@@ -189,14 +198,40 @@ export function stepLabel(step: DynamicToolUIPart, names: LayerNames, t: Transla
       const layer = layerOf(step, names, t);
       const field = text(input.field) ?? text(output.field);
       if (layer && field) {
-        return t("assistant_tool_project_field_statistics_field", { field: quoted(field), layer });
+        return {
+          key: "assistant_tool_project_field_statistics_field",
+          values: { field: quoted(field), layer },
+        };
       }
+      break;
+    }
+    // The workflow the step made, by name; its card follows the step list.
+    case "workflow_create":
+    case "workflow_create_from_template": {
+      const name = text(fields(output.workflow).name);
+      if (name) return { key: "assistant_tool_workflow_create_name", values: { name: quoted(name) } };
       break;
     }
     default:
       break;
   }
-  return t(`assistant_tool_${step.toolName}`, { defaultValue: step.toolName });
+  return { key: `assistant_tool_${step.toolName}` };
+}
+
+/**
+ * The line a step shows: what the tool does, with its main argument when the
+ * call carries one (the search words, the layer, the field). A call without
+ * that argument, and a tool without a main argument, shows the plain label.
+ * A step still running says what it is doing (`running`): each label has a
+ * present-tense form under `<key>_running`, and a tool without one says
+ * "Working…". The values are user and model text: the caller passes a
+ * translator that does not escape them (`plainTranslate`), because React
+ * renders them as text.
+ */
+export function stepLabel(step: DynamicToolUIPart, names: LayerNames, t: Translate, running = false): string {
+  const { key, values } = labelKey(step, names, t);
+  if (running) return t(`${key}_running`, { ...values, defaultValue: t("assistant_step_working") });
+  return t(key, { ...values, defaultValue: step.toolName });
 }
 
 const list = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
@@ -280,6 +315,17 @@ export function stepResult(step: DynamicToolUIPart, t: Translate): string | unde
   }
 }
 
+/** The states of a call that has not returned yet. */
+const RUNNING_STATES: ReadonlySet<string> = new Set([
+  "input-streaming",
+  "input-available",
+  "approval-requested",
+  "approval-responded",
+]);
+
+/** A call that has not returned yet; under way only while its answer runs. */
+export const stepRunning = (step: DynamicToolUIPart): boolean => RUNNING_STATES.has(step.state);
+
 /** One line of the step list: a call, with the rejected attempts it replaced. */
 export interface StepRow {
   step: DynamicToolUIPart;
@@ -314,4 +360,150 @@ export function stepRows(steps: DynamicToolUIPart[]): StepRow[] {
   }
   flush();
   return rows;
+}
+
+/**
+ * The kind each tool's steps count as in a group's summary ("searched the
+ * catalog 4 times"); its text is `assistant_steps_<kind>`, with plural forms.
+ * Tools that do the same for the user share a kind. A write tool has none: its
+ * steps never fold (`staysVisible`). A tool missing here counts as a step.
+ */
+const STEP_KINDS: Record<string, string> = {
+  catalog_search: "catalog_search",
+  catalog_get_record: "catalog_record",
+  catalog_find_region: "region",
+  catalog_suggest_terms: "terms",
+  catalog_describe: "catalog_filters",
+  catalog_propose_filters: "proposed_filters",
+  map_propose_view: "map_view",
+  catalog_show_records: "shown",
+  core_show_items: "shown",
+  core_find: "content_search",
+  core_find_layers: "content_search",
+  core_whoami: "account",
+  core_page_context: "page_context",
+  project_get_layers: "layers",
+  project_get_fields: "fields",
+  project_sample_features: "samples",
+  project_count_features: "counts",
+  project_field_statistics: "statistics",
+  project_area_statistics: "statistics",
+  project_get_workflows: "workflows",
+  project_get_layouts: "layouts",
+  ask_user: "ask",
+  skills_load: "instructions",
+  workflow_tools: "tools",
+  workflow_describe_tool: "tools",
+  workflow_find_templates: "templates",
+  workflow_check_draft: "draft_check",
+};
+
+/** Every kind a summary may name, with the one for tools the dock does not know. */
+export const STEP_KIND_NAMES: readonly string[] = [...new Set([...Object.values(STEP_KINDS), "other"])];
+
+/** The most kinds a summary names; the steps of the others are counted together. */
+const SUMMARY_KINDS = 3;
+
+const WRITES: ReadonlySet<string> = new Set<string>(WRITE_TOOLS);
+
+/**
+ * The project a project tool reads, as a summary counts it: a call without
+ * `project_id`, or with the open project's ID (in any case), reads the open
+ * project ("").
+ */
+const projectOf = (step: DynamicToolUIPart, openProject: string | null): string => {
+  const project = text(fields(step.input).project_id)?.toLowerCase();
+  return !project || project === openProject?.toLowerCase() ? "" : project;
+};
+
+/** The layer a layer tool reads, by project and layer ID. */
+const layerOfInput = (step: DynamicToolUIPart, openProject: string | null): string | undefined => {
+  const id = fields(step.input).layer_project_id;
+  return typeof id === "number" ? `${projectOf(step, openProject)}:${id}` : undefined;
+};
+
+/** The inputs that name a statistic's layer; the others shape what it computes. */
+const LAYER_INPUTS: ReadonlySet<string> = new Set(["project_id", "layer_project_id"]);
+
+/**
+ * `value` as JSON that is the same for equal inputs: object keys in sorted
+ * order, null values left out as absent ones are. Arrays keep their order.
+ */
+const canonical = (value: unknown): string =>
+  JSON.stringify(value, (_key, inner: unknown) =>
+    inner && typeof inner === "object" && !Array.isArray(inner)
+      ? Object.fromEntries(
+          Object.entries(inner as Fields)
+            .filter(([, entry]) => entry !== null)
+            .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        )
+      : inner
+  ) ?? "";
+
+/**
+ * What the kinds whose text names a number of things count ("read 6 catalog
+ * records", "the fields of 2 layers"): the input that names the thing, so two
+ * calls about the same thing count once. A statistic is named by its layer and
+ * every other input (field, filter, breaks, method): the same layer with
+ * another filter is another result. A call that names nothing counts on its
+ * own. Every other kind counts calls, and its text says "N times".
+ */
+const COUNTED_BY: Record<
+  string,
+  (step: DynamicToolUIPart, openProject: string | null) => string | undefined
+> = {
+  catalog_record: (step) => text(fields(step.input).item_id),
+  region: (step) => text(fields(step.input).name)?.toLocaleLowerCase(),
+  layers: projectOf,
+  workflows: projectOf,
+  layouts: projectOf,
+  fields: layerOfInput,
+  statistics: (step, openProject) => {
+    const layer = layerOfInput(step, openProject);
+    if (layer === undefined) return undefined;
+    const shape = Object.entries(fields(step.input)).filter(([name]) => !LAYER_INPUTS.has(name));
+    return `${step.toolName}:${layer}:${canonical(Object.fromEntries(shape))}`;
+  },
+  instructions: (step) => text(fields(step.input).name),
+};
+
+/**
+ * A line of its own next to a group's summary, never folded away: a write, a
+ * failure, and once the answer no longer runs, a step the run left without a
+ * result (stopped).
+ */
+export const staysVisible = (row: StepRow, running: boolean): boolean =>
+  WRITES.has(row.step.toolName) || row.step.state === "output-error" || (!running && stepRunning(row.step));
+
+/**
+ * The summary line of a group of steps: the steps that fold away counted by
+ * kind, in the order the kinds first appear ("Searched the catalog 4 times,
+ * read 6 catalog records, looked up a region"), at most three kinds and then
+ * "and N more steps". The kinds' texts start in lower case; the line starts
+ * with a capital. `running`: the answer still runs. `openProject`: the
+ * project the answer's tools read when a call names none.
+ */
+export function groupSummary(
+  rows: StepRow[],
+  t: Translate,
+  running: boolean,
+  openProject: string | null = null
+): string {
+  const counts = new Map<string, { things: Set<string>; steps: number }>();
+  for (const row of rows) {
+    if (staysVisible(row, running)) continue;
+    const kind = STEP_KINDS[row.step.toolName] ?? "other";
+    const entry = counts.get(kind) ?? { things: new Set<string>(), steps: 0 };
+    entry.things.add(COUNTED_BY[kind]?.(row.step, openProject) ?? row.step.toolCallId);
+    entry.steps += 1;
+    counts.set(kind, entry);
+  }
+  const kinds = [...counts];
+  const named = kinds
+    .slice(0, SUMMARY_KINDS)
+    .map(([kind, { things }]) => t(`assistant_steps_${kind}`, { count: things.size }));
+  const rest = kinds.slice(SUMMARY_KINDS).reduce((sum, [, { steps }]) => sum + steps, 0);
+  const more = rest ? ` ${t("assistant_steps_more", { count: rest })}` : "";
+  const line = `${named.join(", ")}${more}`;
+  return line.charAt(0).toUpperCase() + line.slice(1);
 }

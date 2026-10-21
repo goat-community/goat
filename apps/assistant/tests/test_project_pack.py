@@ -26,7 +26,7 @@ from assistant.tools.project import (
     SAMPLE_FEATURES,
 )
 from assistant.tools.proposals import MapCamera, MapViewPayload
-from assistant.tools.runtime import InputInvalid, ToolEnv, execute
+from assistant.tools.runtime import MAX_RESULT_BYTES, InputInvalid, ToolEnv, execute
 from assistant.tools.testing import Recorder, fake_clients, tool_env
 
 PROJECT = UUID(int=500)
@@ -1386,6 +1386,123 @@ async def test_only_the_open_projects_selection_is_marked() -> None:
         env = _env(_core(), _geoapi(), _processes(), page=parse_context(raw))
         layers = (await execute(GET_LAYERS, env, {}))["layers"]
         assert all("selected" not in layer for layer in layers)
+
+
+#: How core sends a layer's extent (``GeospatialAttributes``): WKT of a
+#: multipolygon, coordinates at full precision.
+EUROPE_WKT = (
+    "MULTIPOLYGON (((-31.2626562 32.6346233, -31.2626562 71.099735, "
+    "34.384889562985784 71.099735, 34.384889562985784 32.6346233, "
+    "-31.2626562 32.6346233)))"
+)
+MUNICH_WKT = (
+    "MULTIPOLYGON(((11.360777 48.061624,11.360777 48.248116,"
+    "11.722908 48.248116,11.722908 48.061624,11.360777 48.061624)))"
+)
+
+
+def _sized_row(layer_project_id: int, **extra: Any) -> dict[str, Any]:
+    return {
+        "id": layer_project_id,
+        "layer_id": f"00000000-0000-0000-0000-{layer_project_id:012d}",
+        "name": f"Layer {layer_project_id}",
+        "type": "feature",
+        "feature_layer_geometry_type": "point",
+        "layer_project_group_id": None,
+        "order": layer_project_id,
+        "locked": False,
+        **extra,
+    }
+
+
+def _catalog_copy(layer_project_id: int, **extra: Any) -> dict[str, Any]:
+    """A catalog layer's row: core serves its copy status from the layer."""
+    return _sized_row(
+        layer_project_id,
+        extent=EUROPE_WKT,
+        other_properties={
+            "catalog_item": {"id": "osm-poi-shopping", "title": "POI Einkaufen"},
+            "catalog_materialize": {"status": "ready", "feature_count": 934847},
+        },
+        **extra,
+    )
+
+
+def _core_with(rows: list[dict[str, Any]]) -> Recorder:
+    base = f"/api/v2/project/{PROJECT}"
+    return Recorder(
+        {
+            ("GET", base): {"id": str(PROJECT), "name": "Munich"},
+            ("GET", f"{base}/layer"): rows,
+            ("GET", f"{base}/group"): [],
+        }
+    )
+
+
+async def test_get_layers_gives_the_size_and_extent_core_knows() -> None:
+    """A catalog copy has both, another layer its extent only (core keeps no
+    count for it), a table neither; the extent is a rounded bounding box."""
+    rows = [
+        _catalog_copy(21),
+        _sized_row(22, extent=MUNICH_WKT, other_properties={"table_config": {}}),
+        _sized_row(23, type="table", feature_layer_geometry_type=None),
+        _sized_row(24, extent="MULTIPOLYGON EMPTY"),
+        _sized_row(
+            25,
+            other_properties={"catalog_materialize": {"status": "pending"}},
+        ),
+    ]
+    env = _env(_core_with(rows), _geoapi(), _processes())
+    layers = {
+        layer["layer_project_id"]: layer
+        for layer in (await execute(GET_LAYERS, env, {}))["layers"]
+    }
+    assert layers[21]["feature_count"] == 934847
+    assert layers[21]["extent"] == [-31.26, 32.63, 34.38, 71.1]
+    assert layers[22]["extent"] == [11.36, 48.06, 11.72, 48.25]
+    assert "feature_count" not in layers[22]
+    for layer_project_id in (23, 24, 25):
+        assert "extent" not in layers[layer_project_id]
+        assert "feature_count" not in layers[layer_project_id]
+
+
+async def test_a_locked_layer_shows_neither_size_nor_extent() -> None:
+    """Core drops both from a locked row; the tool does not rely on it."""
+    env = _env(_core_with([_catalog_copy(31, locked=True)]), _geoapi(), _processes())
+    [layer] = (await execute(GET_LAYERS, env, {}))["layers"]
+    assert layer["locked"] is True
+    assert "feature_count" not in layer and "extent" not in layer
+
+
+async def test_size_and_extent_stay_under_restricted() -> None:
+    """A count and a whole layer's bounding box are the aggregates Restricted
+    sends (counts, minimum and maximum), not features or their geometries."""
+    env = _env(
+        _core_with([_catalog_copy(21)]),
+        _geoapi(),
+        _processes(),
+        data_policy="restricted",
+    )
+    [layer] = (await execute(GET_LAYERS, env, {}))["layers"]
+    assert layer["feature_count"] == 934847
+    assert layer["extent"] == [-31.26, 32.63, 34.38, 71.1]
+
+
+async def test_size_and_extent_keep_a_long_layer_list_small() -> None:
+    """Both cost a few bytes per layer, so a project with many layers still
+    fits a tool result."""
+    many = 1000
+
+    async def payload(rows: list[dict[str, Any]]) -> int:
+        env = _env(_core_with(rows), _geoapi(), _processes())
+        result = await execute(GET_LAYERS, env, {})
+        assert len(result["layers"]) == many
+        return len(json.dumps(result, separators=(",", ":")).encode())
+
+    plain = await payload([_sized_row(i) for i in range(1, many + 1)])
+    sized = await payload([_catalog_copy(i) for i in range(1, many + 1)])
+    assert sized < MAX_RESULT_BYTES
+    assert (sized - plain) / many <= 64
 
 
 # -- Restricted: filters pick categories, small filtered counts are withheld -----

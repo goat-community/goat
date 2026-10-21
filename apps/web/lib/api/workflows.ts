@@ -66,6 +66,19 @@ const workflowKey = (projectId: string, workflowId: string) => [
 export const refreshWorkflow = (projectId: string, workflowId: string) =>
   mutate(workflowKey(projectId, workflowId));
 
+/**
+ * Reads a project's workflow list again and writes it into the cache every
+ * reader of the list shares, so the page that selects a workflow next (the map
+ * page's `useMapUrlIntent`) finds one created since. A bare `mutate(key)` only
+ * revalidates lists a mounted hook shows; there may be none on screen, and the
+ * page would then read the old list from the cache. Rejects when the list cannot
+ * be read.
+ */
+export const refreshWorkflowList = (projectId: string): Promise<Workflow[] | undefined> =>
+  mutate<Workflow[]>(workflowListKey(projectId), fetcher(workflowListKey(projectId)) as Promise<Workflow[]>, {
+    revalidate: false,
+  });
+
 // ============================================================================
 // Hooks
 // ============================================================================

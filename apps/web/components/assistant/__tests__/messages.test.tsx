@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { DynamicToolUIPart } from "ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { fullTime, resetArrivals } from "@/lib/assistant/messageTimes";
 import { registerSurface, resetAssistantStore } from "@/lib/assistant/store";
 import type { AssistantMessage } from "@/lib/assistant/types";
 
@@ -51,6 +52,7 @@ const renderRunning = (parts: AssistantMessage["parts"]) =>
 beforeEach(() => {
   window.sessionStorage.clear();
   resetAssistantStore();
+  resetArrivals();
 });
 
 const search: DynamicToolUIPart = {
@@ -184,9 +186,13 @@ describe("assistant messages", () => {
 
   it("marks a running step with GOAT's mark and no result yet", () => {
     render(
-      <StepList steps={[{ ...search, state: "input-available", output: undefined } as DynamicToolUIPart]} />
+      <StepList
+        steps={[{ ...search, state: "input-available", output: undefined } as DynamicToolUIPart]}
+        running
+      />
     );
     const row = screen.getByRole("button", { name: /assistant_tool_catalog_search/ });
+    expect(row.querySelector("[data-status]")?.getAttribute("data-status")).toBe("running");
     expect(row.querySelector("svg")).toBeTruthy();
     expect(row.textContent).not.toContain("assistant_result_datasets");
     expect(screen.queryByRole("progressbar")).toBeNull();
@@ -506,7 +512,7 @@ describe("the Answering line", () => {
     expect(screen.getByText("assistant_running")).toBeTruthy();
   });
 
-  it("stays while a step runs and while text streams in, so it never flickers", () => {
+  it("steps aside while a step runs, whose line shimmers instead, and shows while text streams in", async () => {
     const runningStep: DynamicToolUIPart = {
       type: "dynamic-tool",
       toolName: "catalog_search",
@@ -515,10 +521,39 @@ describe("the Answering line", () => {
       input: { q: "bus" },
     };
     renderRunning([search, runningStep]);
-    expect(screen.getByText("assistant_running")).toBeTruthy();
+    await expect(screen.getByRole("status")).toHaveAttribute("data-quiet", "true");
+    expect(screen.getByText("assistant_tool_catalog_search_query_running")).toBeTruthy();
     cleanup();
     renderRunning([search, { type: "text", text: "Ich habe", state: "streaming" }]);
-    expect(screen.getByText("assistant_running")).toBeTruthy();
+    await expect(screen.getByRole("status")).not.toHaveAttribute("data-quiet");
+  });
+
+  it("stays mounted from step to step, so the transcript does not jump and it is not announced again", () => {
+    const runningStep: DynamicToolUIPart = {
+      type: "dynamic-tool",
+      toolName: "catalog_search",
+      toolCallId: "c2",
+      state: "input-available",
+      input: { q: "bus" },
+    };
+    const list = (parts: AssistantMessage["parts"]) => (
+      <DockActionsContext.Provider value={actions}>
+        <MessageList
+          messages={[{ id: "r", role: "assistant", parts }]}
+          busy
+          conversationId="c1"
+          conversationProjectId={null}
+          projectName={null}
+          readOnly={false}
+        />
+      </DockActionsContext.Provider>
+    );
+    const { rerender } = render(list([search]));
+    const line = screen.getByRole("status");
+    rerender(list([search, runningStep]));
+    expect(screen.getByRole("status")).toBe(line);
+    rerender(list([search, { ...runningStep, state: "output-available", output: { total: 1 } }]));
+    expect(screen.getByRole("status")).toBe(line);
   });
 
   it("shows right after sending, before the answer has started", () => {
@@ -604,5 +639,686 @@ describe("card tooltips", () => {
     renderCard();
     hover(screen.getByText("Berlin"));
     expect((await screen.findByRole("tooltip")).textContent).toBe("assistant_item_publisher: Berlin");
+  });
+});
+
+describe("ask cards in the transcript", () => {
+  const card = {
+    card_id: "ask-call-3",
+    questions: [
+      {
+        question: "Which layer holds the schools?",
+        header: "Schools",
+        multi_select: false,
+        options: [
+          { label: "Schools (catalog)", description: "Adds it to the project", recommended: true },
+          { label: "Leave it open", description: "", recommended: false },
+        ],
+      },
+    ],
+  };
+  /** The ask step as the server streams and stores it: the card goes out while it runs, its id comes back. */
+  const askStep = (
+    state: "input-available" | "output-available" = "output-available",
+    cardId = "ask-call-3"
+  ): DynamicToolUIPart =>
+    state === "output-available"
+      ? {
+          type: "dynamic-tool",
+          toolName: "ask_user",
+          toolCallId: "t-ask",
+          state,
+          input: { questions: [] },
+          output: { card_id: cardId, status: "asked" },
+        }
+      : { type: "dynamic-tool", toolName: "ask_user", toolCallId: "t-ask", state, input: { questions: [] } };
+  const asked: AssistantMessage = {
+    id: "a1",
+    role: "assistant",
+    parts: [
+      askStep(),
+      { type: "data-ask", id: "ask-call-3", data: card },
+      { type: "text", text: "Please choose." },
+    ],
+  };
+  const answered: AssistantMessage = {
+    id: "u2",
+    role: "user",
+    metadata: { answer: { card_id: "ask-call-3", answers: [{ question: 0, options: [0], other: null }] } },
+    parts: [{ type: "text", text: "Schools: Schools (catalog)" }],
+  };
+  const list = (
+    messages: AssistantMessage[],
+    {
+      panelAskId = null,
+      heldAskId = null,
+      onShowAsk,
+      readOnly = false,
+      busy = false,
+    }: {
+      panelAskId?: string | null;
+      heldAskId?: string | null;
+      onShowAsk?: (cardId: string) => void;
+      readOnly?: boolean;
+      busy?: boolean;
+    } = {}
+  ) =>
+    render(
+      <DockActionsContext.Provider value={actions}>
+        <MessageList
+          messages={messages}
+          busy={busy}
+          conversationId="c1"
+          conversationProjectId={null}
+          projectName={null}
+          readOnly={readOnly}
+          panelAskId={panelAskId}
+          heldAskId={heldAskId}
+          onShowAsk={onShowAsk}
+        />
+      </DockActionsContext.Provider>
+    );
+
+  it("shows the stored answer of a reloaded conversation, without fields or Send", () => {
+    list([{ id: "u1", role: "user", parts: [{ type: "text", text: "Build it" }] }, asked, answered]);
+    expect(screen.getByText("assistant_ask_answered")).toBeTruthy();
+    expect(screen.getByText("Schools (catalog)")).toBeTruthy();
+    expect(screen.queryByRole("radio")).toBeNull();
+    expect(screen.queryByRole("button", { name: "assistant_ask_send" })).toBeNull();
+  });
+
+  it("holds the open card's place with a line: the panel at the dock's foot asks its questions", () => {
+    list([asked], { panelAskId: "ask-call-3" });
+    expect(screen.getByText("assistant_ask_waiting")).toBeTruthy();
+    expect(screen.queryByRole("radio")).toBeNull();
+    expect(screen.queryByRole("button", { name: "assistant_ask_send" })).toBeNull();
+    // The rest of the answer stays.
+    expect(screen.getByText("Please choose.")).toBeTruthy();
+  });
+
+  it("is no longer sent once a typed reply followed it", () => {
+    list([asked, { id: "u2", role: "user", parts: [{ type: "text", text: "Use the layer I uploaded" }] }]);
+    expect(screen.getByText("assistant_ask_not_answered")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "assistant_ask_send" })).toBeNull();
+  });
+
+  it("offers no Send in a read-only conversation", () => {
+    list([asked], { readOnly: true });
+    expect(screen.getByRole("form", { name: "assistant_ask_label" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "assistant_ask_send" })).toBeNull();
+  });
+
+  it("shows a card that is not open with its questions, disabled and without Send", async () => {
+    const withStep = (step: DynamicToolUIPart | null): AssistantMessage => ({
+      ...asked,
+      parts: [...asked.parts.filter((part) => part.type !== "dynamic-tool"), ...(step ? [step] : [])],
+    });
+    // The run stopped while the step ran, before it returned; no step at all; another card's
+    // step: the server knows no such card (the open card is ChatView's, see `openAskCard`).
+    for (const message of [
+      withStep(askStep("input-available")),
+      withStep(null),
+      withStep(askStep("output-available", "ask-other")),
+    ]) {
+      list([message]);
+      expect(screen.getByRole("form", { name: "assistant_ask_label" })).toBeTruthy();
+      await expect(screen.getByRole("radio", { name: /Schools \(catalog\)/ })).toBeDisabled();
+      expect(screen.queryByRole("button", { name: "assistant_ask_send" })).toBeNull();
+      expect(screen.queryByText("assistant_ask_waiting")).toBeNull();
+      cleanup();
+    }
+    // The panel asks another card, or none: the composer holds this one, whose questions are read here.
+    for (const panelAskId of ["ask-other", null]) {
+      list([withStep(askStep())], { panelAskId });
+      await expect(screen.getByRole("radio", { name: /Schools \(catalog\)/ })).toBeDisabled();
+      expect(screen.queryByText("assistant_ask_waiting")).toBeNull();
+      cleanup();
+    }
+  });
+
+  it("hands the waiting line of the open card the way to the panel, also under a card the composer holds", async () => {
+    const onShowAsk = vi.fn();
+    list([asked], { panelAskId: "ask-call-3", onShowAsk });
+    fireEvent.click(screen.getByRole("button", { name: "assistant_ask_waiting · Schools" }));
+    expect(onShowAsk).toHaveBeenCalledWith("ask-call-3");
+    cleanup();
+    list([asked], { heldAskId: "ask-call-3", onShowAsk });
+    await expect(screen.getByRole("radio", { name: /Schools \(catalog\)/ })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "assistant_ask_waiting · Schools" }));
+    expect(onShowAsk).toHaveBeenCalledTimes(2);
+  });
+
+  it("holds the place of a card still coming in the running answer with the line", () => {
+    const coming: AssistantMessage = {
+      ...asked,
+      parts: [askStep("input-available"), { type: "data-ask", id: "ask-call-3", data: card }],
+    };
+    list([coming], { busy: true });
+    expect(screen.getByText("assistant_ask_waiting")).toBeTruthy();
+    expect(screen.queryByRole("radio")).toBeNull();
+  });
+
+  it("shows nothing for a card it cannot read, and the rest of the answer", () => {
+    const broken = {
+      id: "a9",
+      role: "assistant",
+      parts: [
+        { type: "data-ask", id: "ask-x", data: { card_id: "ask-x", questions: "broken" } },
+        { type: "text", text: "Weiter." },
+      ],
+    } as unknown as AssistantMessage;
+    list([broken]);
+    expect(screen.queryByRole("form")).toBeNull();
+    expect(screen.getByText("Weiter.")).toBeTruthy();
+  });
+});
+
+describe("created workflows in the transcript", () => {
+  it("show the workflow a create step made with Open, after its step", () => {
+    const created = {
+      type: "dynamic-tool",
+      toolName: "workflow_create",
+      toolCallId: "wc1",
+      state: "output-available",
+      input: { draft: {} },
+      output: {
+        workflow: { id: "w-new", name: "Schulen: 15 Minuten", project_id: "p1" },
+        open_issues: [],
+        groups: [
+          {
+            title: null,
+            items: [
+              { kind: "workflow", id: "w-new", project_id: "p1", name: "Schulen: 15 Minuten", detail: null },
+            ],
+          },
+        ],
+      },
+    } as DynamicToolUIPart;
+    render(
+      <DockActionsContext.Provider value={actions}>
+        <MessageList
+          messages={[{ id: "w", role: "assistant", parts: [created, { type: "text", text: "Fertig." }] }]}
+          busy={false}
+          conversationId="c1"
+          conversationProjectId="p1"
+          projectName="Eins"
+          readOnly={false}
+        />
+      </DockActionsContext.Provider>
+    );
+    const step = screen.getByText("assistant_tool_workflow_create_name");
+    const card = screen.getByText("Schulen: 15 Minuten");
+    expect(step.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+    fireEvent.click(screen.getByRole("button", { name: "assistant_item_open_workflow" }));
+    expect(actions.openInProjectMode).toHaveBeenCalledWith("p1", "workflows", "w-new");
+  });
+
+  /** A finished create step that made workflow `id` in project p1. */
+  const create = (toolCallId: string, id: string, name: string, extra: Record<string, unknown> = {}) =>
+    ({
+      type: "dynamic-tool",
+      toolName: "workflow_create",
+      toolCallId,
+      state: "output-available",
+      input: { draft: { name } },
+      output: {
+        workflow: { id, name, project_id: "p1" },
+        open_issues: [],
+        groups: [{ title: null, items: [{ kind: "workflow", id, project_id: "p1", name, detail: null }] }],
+        ...extra,
+      },
+    }) as DynamicToolUIPart;
+  const answer = (parts: AssistantMessage["parts"]) =>
+    render(
+      <DockActionsContext.Provider value={actions}>
+        <MessageList
+          messages={[{ id: "w", role: "assistant", parts }]}
+          busy={false}
+          conversationId="c1"
+          conversationProjectId="p1"
+          projectName="Eins"
+          readOnly={false}
+        />
+      </DockActionsContext.Provider>
+    );
+
+  it("give each workflow the answer created its own card, in order", () => {
+    answer([
+      create("wc1", "w-a", "Schulen: 15 Minuten"),
+      create("wc2", "w-b", "Kitas: 10 Minuten"),
+      { type: "text", text: "Fertig." },
+    ]);
+    const first = screen.getByText("Schulen: 15 Minuten");
+    const second = screen.getByText("Kitas: 10 Minuten");
+    expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+    expect(screen.getAllByRole("button", { name: "assistant_item_open_workflow" })).toHaveLength(2);
+  });
+
+  it("draw a workflow once when a repeated create returns it again", () => {
+    answer([
+      create("wc1", "w-a", "Schulen: 15 Minuten"),
+      { type: "text", text: "Noch einmal." },
+      create("wc2", "w-a", "Schulen: 15 Minuten", { repeated_call: "Nothing was created again." }),
+      { type: "text", text: "Fertig." },
+    ]);
+    expect(screen.getAllByText("Schulen: 15 Minuten")).toHaveLength(1);
+  });
+
+  it("draw a workflow once when core_show_items names it again, with the list's other items", () => {
+    const shownAgain = {
+      type: "dynamic-tool",
+      toolName: "core_show_items",
+      toolCallId: "o2",
+      state: "output-available",
+      input: {},
+      output: {
+        groups: [
+          {
+            title: null,
+            items: [
+              { kind: "workflow", id: "w-a", project_id: "p1", name: "Schulen: 15 Minuten" },
+              { kind: "project", id: "p2", name: "Radnetz Nord" },
+            ],
+          },
+        ],
+        not_found: [],
+        left_out: [],
+      },
+    } as DynamicToolUIPart;
+    answer([create("wc1", "w-a", "Schulen: 15 Minuten"), shownAgain, { type: "text", text: "Fertig." }]);
+    expect(screen.getAllByText("Schulen: 15 Minuten")).toHaveLength(1);
+    expect(screen.getByText("Radnetz Nord")).toBeTruthy();
+  });
+});
+
+describe("step groups in the transcript", () => {
+  const other: DynamicToolUIPart = { ...search, toolCallId: "c9", input: { q: "bus" } } as DynamicToolUIPart;
+  const runningStep: DynamicToolUIPart = {
+    type: "dynamic-tool",
+    toolName: "catalog_search",
+    toolCallId: "c3",
+    state: "input-available",
+    input: { q: "tram" },
+  };
+  const list = (parts: AssistantMessage["parts"], busy: boolean) => (
+    <DockActionsContext.Provider value={actions}>
+      <MessageList
+        messages={[{ id: "r", role: "assistant", parts }]}
+        busy={busy}
+        conversationId="c1"
+        conversationProjectId={null}
+        projectName={null}
+        readOnly={false}
+      />
+    </DockActionsContext.Provider>
+  );
+  const summary = () => screen.queryByRole("button", { name: /assistant_steps_catalog_search/i });
+  const stepRow = () => screen.queryAllByRole("button", { name: /assistant_tool_catalog_search/ });
+
+  it("shows every group of a stored answer closed into its summary", () => {
+    render(list([search, other, { type: "text", text: "Zwei Treffer." }], false));
+    expect(summary()?.getAttribute("aria-expanded")).toBe("false");
+    expect(stepRow()).toHaveLength(0);
+  });
+
+  it("keeps the group still receiving steps open, and closes it when text follows", () => {
+    const { rerender } = render(list([search, runningStep], true));
+    expect(summary()).toBeNull();
+    expect(stepRow()).toHaveLength(2);
+    // The running step says what it does.
+    expect(screen.getByText("assistant_tool_catalog_search_query_running")).toBeTruthy();
+    const done = {
+      ...runningStep,
+      state: "output-available",
+      output: { numberMatched: 0 },
+    } as DynamicToolUIPart;
+    rerender(list([search, done, { type: "text", text: "Ich habe", state: "streaming" }], true));
+    expect(summary()?.getAttribute("aria-expanded")).toBe("false");
+    expect(stepRow()).toHaveLength(0);
+  });
+
+  it("closes the last group when the answer ends", () => {
+    const { rerender } = render(list([search, other], true));
+    expect(stepRow()).toHaveLength(2);
+    rerender(list([search, other], false));
+    expect(summary()?.getAttribute("aria-expanded")).toBe("false");
+    expect(stepRow()).toHaveLength(0);
+  });
+});
+
+describe("message times", () => {
+  const MINUTE = 60_000;
+  const view = (messages: AssistantMessage[], busy = false) => (
+    <DockActionsContext.Provider value={actions}>
+      <MessageList
+        messages={messages}
+        busy={busy}
+        conversationId="c1"
+        conversationProjectId={null}
+        projectName={null}
+        readOnly={false}
+      />
+    </DockActionsContext.Provider>
+  );
+  const text = (value: string) => [{ type: "text" as const, text: value }];
+  const times = () => [...document.querySelectorAll("time")];
+
+  it("shows how long ago an answer was given in its actions, with the full date on hover", async () => {
+    const created = new Date(Date.now() - 2 * MINUTE - 5_000);
+    render(
+      view([
+        { id: "a", role: "assistant", parts: text("Hier."), metadata: { created_at: created.toISOString() } },
+      ])
+    );
+    const [time] = times();
+    expect(time.textContent).toBe("2 minutes ago");
+    expect(time.getAttribute("dateTime")).toBe(created.toISOString());
+    expect(time.closest(".answer-actions")).not.toBeNull();
+    // The visible words stay its name; the full date describes it.
+    expect(time.getAttribute("aria-label")).toBeNull();
+    expect(time.getAttribute("title")).toBe(fullTime(created.getTime(), "en"));
+    fireEvent.mouseEnter(time);
+    fireEvent.mouseOver(time);
+    const tooltip = await screen.findByRole("tooltip");
+    expect(tooltip.textContent).toBe(fullTime(created.getTime(), "en"));
+    await expect(time).toHaveAttribute("aria-describedby", tooltip.id);
+    expect(time.getAttribute("aria-label")).toBeNull();
+  });
+
+  it("shows the time of the user's own message, reachable by keyboard", () => {
+    const created = new Date(Date.now() - 3 * MINUTE);
+    render(
+      view([
+        { id: "u", role: "user", parts: text("Radwege?"), metadata: { created_at: created.toISOString() } },
+      ])
+    );
+    const [time] = times();
+    expect(time.textContent).toBe("3 minutes ago");
+    expect(time.getAttribute("tabindex")).toBe("0");
+    // Out of the flow: the question stays as close to its answer as without a time.
+    expect(getComputedStyle(time.closest(".message-time")!).position).toBe("absolute");
+  });
+
+  it("keeps room in the list for the time of a last question, so what follows the list does not cover it", () => {
+    const created = new Date(Date.now() - 3 * MINUTE).toISOString();
+    const question: AssistantMessage = {
+      id: "u",
+      role: "user",
+      parts: text("Radwege?"),
+      metadata: { created_at: created },
+    };
+    const answer: AssistantMessage = {
+      id: "a",
+      role: "assistant",
+      parts: text("Hier."),
+      metadata: { created_at: created },
+    };
+    const { container, rerender } = render(view([question]));
+    const room = () => getComputedStyle(container.firstElementChild!).paddingBottom;
+    // The request dropped before an answer: an alert follows the list.
+    expect(room()).toBe("20px");
+    // The Answering line follows the question inside the list, and so does an answer.
+    rerender(view([question], true));
+    expect(room()).not.toBe("20px");
+    rerender(view([question, answer]));
+    expect(room()).not.toBe("20px");
+  });
+
+  it("gives a message of the live stream the time it arrived, and none to one it cannot date", () => {
+    // Shown at mount without a stored time: when it was written is not known.
+    const old: AssistantMessage = { id: "old", role: "assistant", parts: text("Früher.") };
+    const { rerender } = render(view([old]));
+    expect(times()).toHaveLength(0);
+    rerender(
+      view([
+        old,
+        { id: "u-live", role: "user", parts: text("Und jetzt?") },
+        { id: "a-live", role: "assistant", parts: text("Jetzt.") },
+      ])
+    );
+    expect(times().map((time) => time.textContent)).toEqual([
+      "assistant_time_just_now",
+      "assistant_time_just_now",
+    ]);
+  });
+
+  it("dates a live answer when it stops running, also when the dock mounted again during the run", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      const start = new Date(2026, 9, 19, 10, 0).getTime();
+      const iso = (time: number) => new Date(time).toISOString();
+      const dated = () => times().map((time) => time.getAttribute("dateTime"));
+      vi.setSystemTime(start);
+      const question: AssistantMessage = {
+        id: "u-run",
+        role: "user",
+        parts: text("Bauen Sie den Workflow."),
+      };
+      const answer = (value: string): AssistantMessage => ({
+        id: "a-run",
+        role: "assistant",
+        parts: text(value),
+      });
+      const { rerender } = render(view([], false));
+      rerender(view([question, answer("Ich baue")], true));
+      expect(dated()).toEqual([iso(start)]);
+      vi.setSystemTime(start + 3 * MINUTE);
+      rerender(view([question, answer("Fertig.")], false));
+      expect(dated()).toEqual([iso(start), iso(start + 3 * MINUTE)]);
+      cleanup();
+      // Mounted again while the run went on: the question is not dated, the answer is, when it ends.
+      const again: AssistantMessage = { id: "u-again", role: "user", parts: text("Noch einer?") };
+      const later = (value: string): AssistantMessage => ({
+        id: "a-again",
+        role: "assistant",
+        parts: text(value),
+      });
+      const remounted = render(view([again, later("Ich")], true));
+      vi.setSystemTime(start + 5 * MINUTE);
+      remounted.rerender(view([again, later("Fertig.")], false));
+      expect(dated()).toEqual([iso(start + 5 * MINUTE)]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("whole answers in the transcript", () => {
+  let id = 0;
+  const step = (
+    toolName: string,
+    input: unknown,
+    output?: unknown,
+    state: "output-available" | "output-error" | "input-available" = output === undefined
+      ? "input-available"
+      : "output-available"
+  ): DynamicToolUIPart =>
+    ({
+      type: "dynamic-tool",
+      toolName,
+      toolCallId: `w${(id += 1)}`,
+      state,
+      input,
+      ...(state === "output-available" ? { output } : {}),
+      ...(state === "output-error" ? { errorText: "Internal English detail" } : {}),
+    }) as DynamicToolUIPart;
+  const say = (value: string) => ({ type: "text" as const, text: value });
+  const searchFor = (q: string) => step("catalog_search", { q }, { numberMatched: 2 });
+  const record = () => step("catalog_get_record", { item_id: "ds-1" }, { title: "Radverkehrsnetz" });
+  const region = () => step("catalog_find_region", { name: "Bonn" }, { regions: [] });
+  const count = () => step("project_count_features", { layer_project_id: 1 }, { layer: "A", count: 3 });
+  const create = () =>
+    step(
+      "workflow_create",
+      { draft: {} },
+      {
+        workflow: { id: "w-new", name: "Schulen: 15 Minuten", project_id: "p1" },
+        open_issues: [],
+        groups: [
+          {
+            title: null,
+            items: [
+              { kind: "workflow", id: "w-new", project_id: "p1", name: "Schulen: 15 Minuten", detail: null },
+            ],
+          },
+        ],
+      }
+    );
+  const answer = (parts: AssistantMessage["parts"], busy: boolean) => (
+    <DockActionsContext.Provider value={actions}>
+      <MessageList
+        messages={[{ id: "whole", role: "assistant", parts }]}
+        busy={busy}
+        conversationId="c1"
+        conversationProjectId="p1"
+        projectName="Eins"
+        readOnly={false}
+      />
+    </DockActionsContext.Provider>
+  );
+  const summaries = () => screen.queryAllByRole("button", { name: /^Assistant_steps_/ });
+  const before = (first: Node, second: Node) =>
+    expect(first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    );
+
+  it("folds each run of steps between texts on its own, and keeps the last one open while it runs", () => {
+    const parts = [
+      say("Ich suche."),
+      searchFor("rad"),
+      record(),
+      say("Jetzt die Region."),
+      region(),
+      count(),
+    ];
+    render(answer(parts, false));
+    const [first, second] = summaries();
+    expect(summaries()).toHaveLength(2);
+    expect(first.textContent).toBe("Assistant_steps_catalog_search, assistant_steps_catalog_record");
+    expect(second.textContent).toBe("Assistant_steps_region, assistant_steps_counts");
+    before(screen.getByText("Ich suche."), first);
+    before(first, screen.getByText("Jetzt die Region."));
+    before(screen.getByText("Jetzt die Region."), second);
+    cleanup();
+    render(answer(parts, true));
+    expect(summaries().map((button) => button.textContent)).toEqual([
+      "Assistant_steps_catalog_search, assistant_steps_catalog_record",
+    ]);
+    expect(screen.getAllByText("assistant_tool_catalog_find_region_name")).toHaveLength(1);
+    expect(screen.getAllByText("assistant_tool_project_count_features_layer")).toHaveLength(1);
+  });
+
+  it("shows a failure and its retry as two lines while the retry runs, then as one folded step", () => {
+    const rejected = step("catalog_search", { q: "" }, undefined, "output-error");
+    const retry = searchFor("rad");
+    render(
+      answer([rejected, { ...retry, state: "input-available", output: undefined } as DynamicToolUIPart], true)
+    );
+    expect(screen.getByText(/assistant_step_failed/)).toBeTruthy();
+    expect(screen.getByText("assistant_tool_catalog_search_query_running")).toBeTruthy();
+    cleanup();
+    render(answer([rejected, retry, record(), say("Gefunden.")], false));
+    const [summary] = summaries();
+    expect(summary.textContent).toBe("Assistant_steps_catalog_search, assistant_steps_catalog_record");
+    expect(screen.queryByText(/assistant_step_failed/)).toBeNull();
+    fireEvent.click(summary);
+    expect(screen.getByRole("button", { name: /assistant_tool_catalog_search_query/ }).textContent).toContain(
+      "assistant_step_retried"
+    );
+  });
+
+  it("keeps an ask card and a created workflow's card in their places between the groups", () => {
+    const asking = step("ask_user", { questions: [] }, { card_id: "ask-w", status: "asked" });
+    const card = {
+      card_id: "ask-w",
+      questions: [
+        {
+          question: "Welcher Layer?",
+          header: "Layer",
+          multi_select: false,
+          options: [{ label: "Schulen", description: "", recommended: true }],
+        },
+      ],
+    };
+    render(
+      answer(
+        [
+          searchFor("schule"),
+          record(),
+          asking,
+          { type: "data-ask", id: "ask-w", data: card },
+          say("Bitte wählen Sie."),
+          count(),
+          region(),
+          create(),
+          say("Fertig."),
+        ],
+        false
+      )
+    );
+    const [first, second] = summaries();
+    expect(first.textContent).toBe(
+      "Assistant_steps_catalog_search, assistant_steps_catalog_record, assistant_steps_ask"
+    );
+    expect(second.textContent).toBe("Assistant_steps_counts, assistant_steps_region");
+    const form = screen.getByRole("form", { name: "assistant_ask_label" });
+    const created = screen.getByText("assistant_tool_workflow_create_name");
+    const workflowCard = screen.getByText("Schulen: 15 Minuten");
+    before(first, form);
+    before(form, screen.getByText("Bitte wählen Sie."));
+    before(screen.getByText("Bitte wählen Sie."), second);
+    before(second, created);
+    before(created, workflowCard);
+    before(workflowCard, screen.getByText("Fertig."));
+  });
+
+  it("shows a stopped answer's unreturned step as stopped, outside the fold", () => {
+    const unreturned = step("catalog_get_record", { item_id: "ds-9" });
+    render(
+      answer(
+        [
+          searchFor("a"),
+          searchFor("b"),
+          unreturned,
+          { type: "data-run-status", data: { status: "cancelled", error: null, code: null } },
+        ],
+        false
+      )
+    );
+    expect(summaries().map((button) => button.textContent)).toEqual(["Assistant_steps_catalog_search"]);
+    const line = screen.getByRole("button", { name: /assistant_tool_catalog_get_record_title_running/ });
+    expect(line.textContent).toContain("assistant_step_stopped");
+    expect(line.querySelector("[data-status]")?.getAttribute("data-status")).toBe("stopped");
+    expect(screen.getByText("assistant_run_cancelled")).toBeTruthy();
+  });
+
+  it("draws every step exactly once, open, closed and opened again", () => {
+    const steps = [
+      searchFor("rad"),
+      record(),
+      region(),
+      step("core_find", { query: "x" }, undefined, "output-error"),
+      create(),
+    ];
+    const labels = [
+      "assistant_tool_catalog_search_query",
+      "assistant_tool_catalog_get_record_title",
+      "assistant_tool_catalog_find_region_name",
+      "assistant_tool_core_find_query",
+      "assistant_tool_workflow_create_name",
+    ];
+    const drawn = () => labels.map((label) => screen.queryAllByText(label).length);
+    render(answer(steps, true));
+    expect(drawn()).toEqual([1, 1, 1, 1, 1]);
+    cleanup();
+    render(answer([...steps, say("Fertig.")], false));
+    // Closed: the failure and the write stay, the rest is behind the summary.
+    expect(drawn()).toEqual([0, 0, 0, 1, 1]);
+    fireEvent.click(summaries()[0]);
+    expect(drawn()).toEqual([1, 1, 1, 1, 1]);
   });
 });

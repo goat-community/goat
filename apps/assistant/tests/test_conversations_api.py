@@ -352,3 +352,13 @@ async def test_a_home_message_with_sources_reloads_with_its_context(
     }
     # A home message without sources keeps storing no context part.
     assert [p["type"] for p in users[1]["parts"]] == ["text"]
+
+
+async def test_a_reloaded_conversation_carries_each_message_s_time(api: Api) -> None:
+    async with api() as client:
+        conversation = await _create(client)
+        await _ask(client, conversation["id"], "Wo gibt es Spielplätze?")
+        detail = (await client.get(f"/conversations/{conversation['id']}")).json()
+    times = [m.get("metadata", {}).get("created_at") for m in detail["messages"]]
+    assert times and all(times), detail["messages"]
+    assert all(t.endswith("+00:00") for t in times)

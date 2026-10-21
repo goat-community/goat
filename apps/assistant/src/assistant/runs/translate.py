@@ -6,6 +6,9 @@ first part of each response that follows tool results. Part indexes restart per
 response, so the index → part-id map is reset with each step.
 """
 
+from dataclasses import replace
+from typing import cast
+
 from pydantic_ai.messages import (
     AgentStreamEvent,
     FunctionToolCallEvent,
@@ -18,8 +21,10 @@ from pydantic_ai.messages import (
     TextPartDelta,
     ToolReturnPart,
 )
+from pydantic_core import ErrorDetails
 
 from assistant.agent import PartIds
+from assistant.asks import ASK_TOOL
 from assistant.events import (
     RunEvent,
     StepStarted,
@@ -95,7 +100,24 @@ class EventTranslator:
                 return [
                     ToolFailed(
                         tool_call_id=event.tool_call_id,
-                        error=event.part.model_response(),
+                        error=_retry_text(event.part),
                     )
                 ]
         return []
+
+
+def _retry_text(part: RetryPromptPart) -> str:
+    """The retry as the web sees it. Arguments that are not JSON fail in
+    pydantic-ai's own validation, whose errors carry the raw arguments as
+    ``input``: for an ask card those hold the option values, which stay on the
+    server (``assistant.asks``). The model still gets the whole retry, from the
+    message history."""
+    if part.tool_name != ASK_TOOL or isinstance(part.content, str):
+        return part.model_response()
+    errors = [
+        cast(
+            ErrorDetails, {key: value for key, value in error.items() if key != "input"}
+        )
+        for error in part.content
+    ]
+    return replace(part, content=errors).model_response()

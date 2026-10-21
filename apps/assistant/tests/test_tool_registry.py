@@ -7,7 +7,7 @@ from pydantic_ai.messages import RetryPromptPart, ToolReturnPart
 
 from assistant.agent import INSTRUCTIONS, RunDeps, build_agent
 from assistant.context import parse_context
-from assistant.prompt import render_note
+from assistant.prompt import SKILLS_INDEX, render_note
 from assistant.surfaces import SURFACES
 from assistant.tools.registry import ALL_TOOLS, BY_WIRE_NAME, MCP_TOOLS, tools_for
 from assistant.tools.testing import (
@@ -38,7 +38,9 @@ def test_names_are_unique_namespaced_and_sorted() -> None:
     names = [spec.wire_name for spec in ALL_TOOLS]
     assert names == sorted(names) and len(set(names)) == len(names)
     for spec in ALL_TOOLS:
-        assert re.fullmatch(r"(core|catalog|project|map)\.[a-z_]+", spec.name)
+        assert re.fullmatch(
+            r"(core|catalog|project|map|ask|skills|workflow)\.[a-z_]+", spec.name
+        )
         assert re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", spec.wire_name)
         assert BY_WIRE_NAME[spec.wire_name] is spec
         assert len(spec.description) >= 20
@@ -55,11 +57,13 @@ def test_packs_per_surface_follow_the_spec() -> None:
         return {spec.wire_name for spec in tools_for(surface)}  # type: ignore[arg-type]
 
     core = {
+        "ask_user",
         "core_find",
         "core_find_layers",
         "core_page_context",
         "core_show_items",
         "core_whoami",
+        "skills_load",
     }
     catalog_read = {
         "catalog_describe",
@@ -82,13 +86,23 @@ def test_packs_per_surface_follow_the_spec() -> None:
     # The public catalog is searchable from every page, and a filter suggestion
     # is offered everywhere: off the catalog page its card opens the catalog.
     catalog = catalog_read | {"catalog_propose_filters"}
+    # Spec 2026-10-17 §3: the workflows pack, on the two pages that build workflows.
+    workflows = {
+        "project_add_catalog_layer",
+        "workflow_check_draft",
+        "workflow_create",
+        "workflow_create_from_template",
+        "workflow_describe_tool",
+        "workflow_find_templates",
+        "workflow_tools",
+    }
     # Decision T16: Home reads other projects (with an explicit project_id).
     # Only the map can apply a view proposal.
     expected = {
         "catalog": core | catalog,
         "none": core | catalog | project_read,
-        "project.map": core | catalog | project_read | {"map_propose_view"},
-        "project.workflows": core | catalog | project_read,
+        "project.map": core | catalog | project_read | {"map_propose_view"} | workflows,
+        "project.workflows": core | catalog | project_read | workflows,
         "project.layouts": core | catalog | project_read,
         "project.dashboard": core | catalog | project_read,
     }
@@ -96,9 +110,10 @@ def test_packs_per_surface_follow_the_spec() -> None:
     for surface, wire_names in expected.items():
         assert names(surface) == wire_names, surface
     for surface in SURFACES:
-        # The spec's target is 10-20 per page (§7.3); the map page went to 21 with
-        # workflows and layouts. Raising this again is a decision, not a fix.
-        assert len(tools_for(surface)) <= 22
+        # The spec's target is 10-20 per page (§7.3); the map and Workflows pages
+        # carry the workflows pack, the card and the skills, 30 on the map.
+        # Raising this again is a decision, not a fix.
+        assert len(tools_for(surface)) <= 30
         assert [s.wire_name for s in tools_for(surface)] == sorted(
             s.wire_name for s in tools_for(surface)
         )
@@ -115,10 +130,30 @@ def test_mcp_publishes_the_five_read_only_catalog_tools() -> None:
     assert all(spec.risk == "read" and not spec.returns_data for spec in MCP_TOOLS)
 
 
+#: The write tools (spec 2026-10-17 §3): they create, never change or delete.
+WRITE_TOOLS = {
+    "project_add_catalog_layer",
+    "workflow_create",
+    "workflow_create_from_template",
+}
+
+
 def test_risk_classes() -> None:
     for spec in ALL_TOOLS:
-        assert spec.risk == ("propose" if "propose" in spec.name else "read")
-        assert spec.scope == "goat:read"
+        if spec.wire_name in WRITE_TOOLS:
+            assert (spec.risk, spec.scope) == ("write", "goat:write"), spec.wire_name
+        else:
+            assert spec.risk == ("propose" if "propose" in spec.name else "read")
+            assert spec.scope == "goat:read"
+
+
+def test_write_tools_take_no_project_id() -> None:
+    """The project a write goes into is the page's: no argument can name another."""
+    writes = [spec for spec in ALL_TOOLS if spec.risk == "write"]
+    assert {spec.wire_name for spec in writes} == WRITE_TOOLS
+    for spec in writes:
+        names = {name for name, _ in _walk(spec.json_schema())}
+        assert "project_id" not in names, spec.wire_name
 
 
 def test_every_data_tool_has_a_restricted_form() -> None:
@@ -173,7 +208,10 @@ async def test_the_model_sees_fixed_instructions_the_tools_in_order_and_the_note
     # Only the fixed instructions, identical in every request: the cached prefix.
     for info in (first, second):
         parts = info.model_request_parameters.instruction_parts or []
-        assert [(p.content, p.dynamic) for p in parts] == [(INSTRUCTIONS, False)]
+        # The skills index follows the instructions in the same cached part.
+        assert [(p.content, p.dynamic) for p in parts] == [
+            (f"{INSTRUCTIONS}\n\n{SKILLS_INDEX}", False)
+        ]
     # The note leads the user message.
     note = script.note(0)
     assert note.startswith("<goat-note>\nInterface language: German")
@@ -187,9 +225,9 @@ def test_the_instructions_and_page_notes_name_only_tools_that_exist() -> None:
 
     text = " ".join((INSTRUCTIONS, _DOCUMENT_LIMITS, _NO_PROJECT, _OPEN_PROJECT))
     # project_id is an argument, not a tool.
-    named = set(re.findall(r"\b(?:catalog|core|project)_[a-z_]+\b", text)) - {
-        "project_id"
-    }
+    named = set(
+        re.findall(r"\b(?:catalog|core|project|workflow|ask|skills)_[a-z_]+\b", text)
+    ) - {"project_id"}
     assert named, "the prompt names tools"
     assert named <= set(BY_WIRE_NAME), named - set(BY_WIRE_NAME)
 

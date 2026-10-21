@@ -12,7 +12,7 @@ only the caller that won it emits the final ``RunEnded``.
 
 import asyncio
 import logging
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Mapping
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -32,10 +32,11 @@ from pydantic_ai.messages import (
     UserPromptPart,
 )
 from pydantic_ai.models import Model
-from pydantic_ai.usage import RunUsage, UsageLimits
+from pydantic_ai.usage import RunUsage
 from pydantic_core import to_jsonable_python
 
 from assistant.agent import PartIds, RunDeps, build_agent
+from assistant.asks import AskHistory, CardAnswer, answer_lines, answer_problem
 from assistant.budget import RunBudget
 from assistant.bus import CONTROL_CHANNEL, EventBus, events_channel
 from assistant.config import AssistantSettings
@@ -72,6 +73,7 @@ from assistant.runs.translate import EventTranslator
 from assistant.surfaces import Locale, Surface
 from assistant.tools.http import ServiceClients
 from assistant.tools.runtime import ToolEnv, client_secrets
+from assistant.tools.toolset import earlier_writes
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +106,24 @@ class SurfaceDisabled(Exception):  # noqa: N818
         self.surface = surface
 
 
+class InvalidAnswer(ValueError):  # noqa: N818
+    """The answer does not fit a card of the conversation; nothing is stored."""
+
+
+def _answered(asks: AskHistory, answer: CardAnswer) -> tuple[AskHistory, str]:
+    """The conversation's cards and answers with ``answer`` added, and the
+    answer as the model reads it. Raises ``InvalidAnswer``."""
+    card = asks.cards.get(answer.card_id)
+    if card is None:
+        raise InvalidAnswer("There is no such card in this conversation.")
+    if answer.card_id in asks.answers:
+        raise InvalidAnswer("This card was answered already.")
+    problem = answer_problem(card, answer)
+    if problem is not None:
+        raise InvalidAnswer(f"The answer does not fit the card: {problem}.")
+    return asks.with_answer(answer), answer_lines(card, answer)
+
+
 @dataclass(frozen=True)
 class RunSetup:
     """What a run takes from its request besides the text. Held by the run's
@@ -114,6 +134,13 @@ class RunSetup:
     locale: Locale
     note: str
     login: Login = field(repr=False)
+    #: The user's answer to a card, as the model reads it; empty without one.
+    answer: str = ""
+    #: The conversation's cards and answers, this message's included.
+    asks: AskHistory = field(default_factory=AskHistory)
+    #: The first result of each write call in this conversation, by call key
+    #: (assistant.tools.toolset.earlier_writes).
+    earlier_writes: Mapping[str, dict[str, Any]] = field(default_factory=dict)
 
     @classmethod
     def default(cls) -> "RunSetup":
@@ -302,12 +329,15 @@ class RunManager:
         login: Login | None = None,
         resolution: Resolution | None = None,
         target: UUID | None = None,
+        answer: CardAnswer | None = None,
     ) -> tuple[UUID, UUID]:
         """``resolution``: the user's model, when the caller resolved it already
         (the run route does, before it prepares the login). ``target``: the
         project the conversation must be in once the run is recorded, bound then
         if it is unbound (``Repository.begin_run``; raises
-        ``ConversationBoundElsewhere``)."""
+        ``ConversationBoundElsewhere``). ``answer``: the user's answer to a card
+        of this conversation; checked against the card before anything is
+        stored (raises ``InvalidAnswer``)."""
         if self._stopping:
             raise ShuttingDown()
         page = context or NO_PAGE
@@ -320,16 +350,31 @@ class RunManager:
         if resolution is None:
             resolution = await self.resolver.resolve(user_id)
         previous = _stored_context(await self.repo.last_user_context(conversation_id))
+        # The conversation's cards and answers: an answer is checked against its
+        # card before anything is stored, and tools read them for the user's
+        # consent (assistant.asks.user_chose).
+        stored = await self.repo.list_messages(conversation_id, exclude_message_id=None)
+        asks = AskHistory.from_stored(stored)
+        answer_text = ""
+        if answer is not None:
+            asks, answer_text = _answered(asks, answer)
         setup = RunSetup(
             page=page,
             locale=locale,
             note=render_note(page, previous, locale, text),
             login=login or StaticLogin(None),
+            answer=answer_text,
+            asks=asks,
+            earlier_writes=earlier_writes(stored),
         )
         user_parts: list[dict[str, Any]] = [{"type": "user_text", "text": text}]
         # A home page with @ mentioned sources still has context worth showing.
         if page.surface != "none" or page.sources:
             user_parts.append({"type": "context", "context": dump_context(page)})
+        if answer is not None:
+            user_parts.append(
+                {"type": "answer", "answer": answer.model_dump(mode="json")}
+            )
         run_id, message_id = await self.repo.begin_run(
             conversation_id,
             user_id,
@@ -454,11 +499,12 @@ class RunManager:
                 part_ids=part_ids,
                 data_policy=resolution.data_policy,
                 prompt_note=setup.note,
-                budget=RunBudget(
-                    max_tokens=self.settings.run_max_tokens,
-                    max_tool_calls=self.settings.run_max_tool_calls,
-                ),
+                prompt_answer=setup.answer,
+                budget=self._budget(),
             )
+            # A write repeated in this answer returns its first result, as in
+            # the answer that made it (assistant.tools.toolset).
+            deps.earlier_results.update(setup.earlier_writes)
             if self.tool_services is not None:
                 deps.env = ToolEnv(
                     services=self.tool_services,
@@ -471,6 +517,7 @@ class RunManager:
                     emit_data=deps.emit_data,
                     repo=self.repo,
                     extra_secrets=client_secrets(self.settings),
+                    asks=setup.asks,
                 )
             targets = [resolution.main]
             if resolution.fallback is not None:
@@ -621,6 +668,14 @@ class RunManager:
                 run_id, conversation_id, user_id, resolution, served, text
             )
 
+    def _budget(self) -> RunBudget:
+        """The run's limits: the budget that ends an answer early and the hard
+        limits, which count tokens the same way (assistant.budget)."""
+        return RunBudget(
+            max_tokens=self.settings.run_max_tokens,
+            max_tool_calls=self.settings.run_max_tool_calls,
+        )
+
     def _secrets(self, target: Target, login: Login) -> list[str]:
         """Everything to mask in what a run attempt logs or stores: the
         provider's credentials, the user's tokens and the Keycloak client
@@ -659,13 +714,10 @@ class RunManager:
         async with self._models(target) as models:
             agent = self.agent_factory(models.main)
             translator = EventTranslator(part_ids)
-            limits = UsageLimits(
-                tool_calls_limit=self.settings.run_max_tool_calls,
-                total_tokens_limit=self.settings.run_max_tokens,
-            )
+            limits = self._budget().usage_limits()
             model_messages: list[dict[str, Any]] = []
             async with agent.run_stream_events(
-                with_note(deps.prompt_note, text),
+                with_note(deps.prompt_note, text, deps.prompt_answer),
                 deps=deps,
                 message_history=history,
                 usage_limits=limits,

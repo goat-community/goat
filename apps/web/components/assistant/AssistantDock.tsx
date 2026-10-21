@@ -17,12 +17,13 @@ import {
 import { visuallyHidden } from "@mui/utils";
 import type { TextUIPart } from "ai";
 import { usePathname, useRouter } from "next/navigation";
-import { type DragEvent, useId, useMemo, useState } from "react";
+import { type DragEvent, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
+import { refreshWorkflowList } from "@/lib/api/workflows";
 import { addItemToProject } from "@/lib/assistant/addToProject";
 import { plainTranslate } from "@/lib/assistant/chips";
 import {
@@ -30,6 +31,7 @@ import {
   updateConversation,
   useConversations,
 } from "@/lib/assistant/conversations";
+import { openCreatedWorkflow, workflowHref } from "@/lib/assistant/createdWorkflows";
 import { assistantErrorKey } from "@/lib/assistant/errors";
 import { conversationTitle } from "@/lib/assistant/history";
 import {
@@ -41,6 +43,7 @@ import {
   useDockState,
 } from "@/lib/assistant/store";
 import type { AssistantMessage } from "@/lib/assistant/types";
+import appStore from "@/lib/store";
 import { setMapMode } from "@/lib/store/map/slice";
 import { DROP_FILE_EXTENSIONS, NEEDS_SETUP, carriesFiles, extensionOf } from "@/lib/utils/dataFiles";
 
@@ -114,6 +117,8 @@ export default function AssistantDock({ variant }: { variant: "docked" | "fullsc
       )
     : t("assistant_new_conversation");
   const inProject = !!surface?.project;
+  /** Workflows the card's Open reads the list for before it opens them. */
+  const openingWorkflows = useRef(new Set<string>());
 
   const actions = useMemo<DockActions>(
     () => ({
@@ -129,11 +134,49 @@ export default function AssistantDock({ variant }: { variant: "docked" | "fullsc
       },
       openInProjectMode: (projectId, mode, itemId) => {
         // The project page reads mode and item from the URL, also when it is open already.
-        const param = mode === "workflows" ? "workflow" : "layout";
-        const href = `/map/${projectId}?mode=${mode}&${param}=${encodeURIComponent(itemId)}`;
-        if (inProject && surface?.project?.id !== projectId) window.open(href, "_blank", "noopener");
-        else router.push(href);
+        const href =
+          mode === "workflows"
+            ? workflowHref(projectId, itemId)
+            : `/map/${projectId}?mode=${mode}&layout=${encodeURIComponent(itemId)}`;
+        if (inProject && surface?.project?.id !== projectId) {
+          window.open(href, "_blank", "noopener");
+          return;
+        }
+        if (mode !== "workflows") {
+          router.push(href);
+          return;
+        }
+        // The page selects the workflow only from a list that carries it, and the
+        // cached list may predate it (one the assistant just created): read it first.
+        // A second click while it is read starts nothing; a person who left the
+        // project meanwhile stays where they went.
+        if (openingWorkflows.current.has(itemId)) return;
+        openingWorkflows.current.add(itemId);
+        const from = getActiveSurface()?.project?.id ?? null;
+        void refreshWorkflowList(projectId)
+          .catch(() => undefined)
+          .then(() => {
+            openingWorkflows.current.delete(itemId);
+            if ((getActiveSurface()?.project?.id ?? null) === from) router.push(href);
+          });
       },
+      openCreatedWorkflow: (projectId, workflowId) =>
+        openCreatedWorkflow(
+          { projectId, workflowId },
+          {
+            openProjectId: () => getActiveSurface()?.project?.id ?? null,
+            // The app's one store (StoreProvider provides this object), read when
+            // asked, so an edit made while the list is read counts. Features drawn
+            // or edited on the map and not saved yet count too, as the map's own
+            // "stop editing" confirmation counts them.
+            hasUnsavedChanges: () => {
+              const { workflow, featureEditor } = appStore.getState();
+              return workflow.isDirty || Object.keys(featureEditor.pendingFeatures).length > 0;
+            },
+            refreshList: refreshWorkflowList,
+            navigate: (href) => router.push(href),
+          }
+        ),
       previewDataset: (layerId) => setPreview(layerId),
       previewBundle: (bundleId) => setBundlePreview(bundleId),
       zoomToLayer: (layerProjectId) => void getActiveSurface()?.zoomToLayer?.(layerProjectId),

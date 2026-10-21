@@ -9,6 +9,7 @@ import json
 from collections.abc import Iterable
 from typing import Any
 
+from assistant.asks import public_args
 from assistant.events import (
     DataPart,
     RunEnded,
@@ -78,7 +79,7 @@ class AiSdkEncoder:
                     "type": "tool-input-available",
                     "toolCallId": event.tool_call_id,
                     "toolName": event.tool_name,
-                    "input": event.args,
+                    "input": public_args(event.tool_name, event.args),
                     "dynamic": True,
                 },
             ]

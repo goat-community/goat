@@ -146,3 +146,32 @@ describe("assistant transport", () => {
     expect((refused as AssistantRequestError).code).toBe("conversation_not_found");
   });
 });
+
+describe("assistant transport answers", () => {
+  it("sends an ask card's answer with the message it belongs to", async () => {
+    getSessionMock.mockResolvedValue(null);
+    const reply = {
+      card_id: "ask-call-7",
+      answers: [
+        { question: 0, options: [0, 1], other: null },
+        { question: 1, options: [], other: "e-scooter" },
+      ],
+    };
+    const answering: AssistantMessage = {
+      id: "m2",
+      role: "user",
+      metadata: { answer: reply },
+      parts: [{ type: "text", text: "Destinations: Supermarkets, Schools. Mode: e-scooter" }],
+    };
+    await send(createAssistantTransport("c1"), [
+      user("m1", "15 minute workflow in Munich"),
+      answer("a1"),
+      answering,
+    ]);
+    expect(sent().body).toEqual({
+      message: { id: "m2", text: "Destinations: Supermarkets, Schools. Mode: e-scooter", answer: reply },
+      context: null,
+      locale: "en",
+    });
+  });
+});

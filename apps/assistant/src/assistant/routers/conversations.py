@@ -17,6 +17,7 @@ from pydantic import (
 )
 from starlette.types import Receive, Scope, Send
 
+from assistant.asks import CardAnswer
 from assistant.auth import Principal, get_principal
 from assistant.bus import events_channel
 from assistant.config import AssistantSettings
@@ -44,7 +45,12 @@ from assistant.repo import (
     Repository,
     UserRunLimit,
 )
-from assistant.runs.manager import SHUTTING_DOWN, ShuttingDown, SurfaceDisabled
+from assistant.runs.manager import (
+    SHUTTING_DOWN,
+    InvalidAnswer,
+    ShuttingDown,
+    SurfaceDisabled,
+)
 from assistant.services import AppServices
 from assistant.surfaces import Locale
 
@@ -89,6 +95,9 @@ class RunMessage(BaseModel):
     #: never stored: the server assigns its own ids.
     id: str | None = Field(default=None, max_length=200)
     text: str = Field(max_length=MAX_MESSAGE_CHARS)
+    #: The answer to a card of this conversation (assistant.asks); the text
+    #: lists the same answers for the transcript.
+    answer: CardAnswer | None = None
 
 
 class ConversationUpdate(BaseModel):
@@ -442,7 +451,8 @@ async def get_conversation(
         "access": access,
         "project_name": project_name,
         "messages": [
-            to_ui_message(str(m["id"]), m["role"], m["parts"]) for m in messages
+            to_ui_message(str(m["id"]), m["role"], m["parts"], m["created_at"])
+            for m in messages
         ],
         # The user's own ratings, by answer id, so the buttons show their state.
         "feedback": await repo.feedback_in(conversation_id, principal.user_id),
@@ -591,7 +601,10 @@ async def start_run(
             login=login,
             resolution=resolution,
             target=target,
+            answer=body.message.answer,
         )
+    except InvalidAnswer as exc:
+        raise _refusal(422, "invalid_answer", str(exc)) from exc
     except ConversationBoundElsewhere as exc:
         raise _bound_elsewhere(exc.project_id) from exc
     except SurfaceDisabled as exc:

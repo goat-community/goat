@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import de from "@/i18n/locales/de/common.json";
 import en from "@/i18n/locales/en/common.json";
 
+import { STEP_KIND_NAMES } from "@/lib/assistant/stepLabels";
 import { RUN_ERROR_CODES } from "@/lib/assistant/types";
 
 const EN = en as unknown as Record<string, string>;
@@ -30,6 +31,15 @@ const TOOLS = [
   "project_get_fields",
   "project_get_layers",
   "project_sample_features",
+  "ask_user",
+  "skills_load",
+  "workflow_tools",
+  "workflow_describe_tool",
+  "workflow_find_templates",
+  "workflow_check_draft",
+  "workflow_create",
+  "workflow_create_from_template",
+  "project_add_catalog_layer",
 ];
 const ROWS = [
   "q",
@@ -94,6 +104,25 @@ describe("assistant texts", () => {
     }
   });
 
+  it("call a conversation an Unterhaltung in German, as everywhere in the dock", () => {
+    for (const key of assistantKeys(DE)) expect(DE[key], key).not.toMatch(/Gespräch/);
+  });
+
+  it("speak of an ask card's questions as a whole, since a card holds one to four", () => {
+    // The card's own name is plural too ("Questions from the assistant").
+    const toasts = [
+      "assistant_ask_already_answered",
+      "assistant_ask_cannot_answer",
+      "assistant_ask_passed_over",
+    ];
+    for (const key of toasts) {
+      expect(EN[key], key).toMatch(/\bthese questions\b/i);
+      expect(EN[key], key).not.toMatch(/\bthis question\b/i);
+      expect(DE[key], key).toMatch(/\bdiese Fragen\b/i);
+      expect(DE[key], key).not.toMatch(/\bdiese Frage\b/i);
+    }
+  });
+
   it("use no dashes inside sentences", () => {
     for (const key of assistantKeys(EN)) {
       expect(EN[key], key).not.toMatch(/[—–]/);
@@ -113,6 +142,19 @@ describe("assistant texts", () => {
       expect(EN).toHaveProperty(`assistant_empty_heading_${group}`);
       expect(EN).toHaveProperty(`assistant_empty_sub_${group}`);
       for (const n of [1, 2, 3]) expect(EN).toHaveProperty(`assistant_suggestion_${group}_${n}`);
+    }
+  });
+
+  it("give every step label a running form, and every summary kind its plural forms", () => {
+    const labels = Object.keys(EN).filter(
+      (key) => key.startsWith("assistant_tool_") && !key.endsWith("_running")
+    );
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.filter((key) => !(`${key}_running` in EN))).toEqual([]);
+    // A running form says the step is still under way.
+    for (const key of labels) expect(EN[`${key}_running`], key).toMatch(/…$/);
+    for (const kind of STEP_KIND_NAMES) {
+      for (const form of ["one", "other"]) expect(EN).toHaveProperty(`assistant_steps_${kind}_${form}`);
     }
   });
 });

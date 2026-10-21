@@ -127,10 +127,11 @@ async def test_readyz_runs_the_checks_concurrently(
             await asyncio.sleep(5)
 
     services = SimpleNamespace(db=SimpleNamespace(pool=SlowPool()), bus=SlowBus())
-    started = time.monotonic()
     async with _client(settings, services) as client:
+        # Started once the client is built: the bound measures the checks.
+        started = time.monotonic()
         response = await client.get("/readyz")
-    elapsed = time.monotonic() - started
+        elapsed = time.monotonic() - started
     assert response.status_code == 503
     assert response.json()["checks"] == {
         "database": "unavailable",

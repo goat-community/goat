@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 
+import type { Choice } from "@/lib/assistant/ask";
 import type { AssistantSurfaceAdapter, PageContext, SourceRef, UndoFn } from "@/lib/assistant/types";
 
 /**
@@ -277,6 +278,44 @@ export const clearDraft = (key: string): void => {
   drafts.delete(key);
 };
 
+/**
+ * The choices made in an ask card not sent yet, one per question, by card id
+ * (minted per card by the server, so unique across conversations). Expanding
+ * or collapsing the dock mounts the card's panel again, so it restores from
+ * here, as the composer does from its draft. The chat drops them once the
+ * server took the message that answers or passes over the card: a refused one
+ * opens the card again with its picks. Kept in memory only, like the drafts.
+ */
+const askChoices = new Map<string, Choice[]>();
+/** The tab the card's panel shows, next to its choices. */
+const askTabs = new Map<string, number>();
+/**
+ * Why the composer holds an open card instead of the panel: "reply", the
+ * person chose "Reply in text instead"; "typing", the card came while they
+ * typed in the composer. By card id: a chat mounted again keeps the composer.
+ */
+export type AskInComposer = "reply" | "typing";
+const askInComposer = new Map<string, AskInComposer>();
+export const getAskChoices = (cardId: string): Choice[] | null => askChoices.get(cardId) ?? null;
+export function saveAskChoices(cardId: string, choices: Choice[]): void {
+  askChoices.set(cardId, choices);
+}
+export const getAskTab = (cardId: string): number => askTabs.get(cardId) ?? 0;
+export function saveAskTab(cardId: string, tab: number): void {
+  askTabs.set(cardId, tab);
+}
+export const getAskInComposer = (cardId: string): AskInComposer | null => askInComposer.get(cardId) ?? null;
+export function setAskInComposer(cardId: string, why: AskInComposer | null): void {
+  if (why) askInComposer.set(cardId, why);
+  else askInComposer.delete(cardId);
+}
+/** Forgets what is kept for the card: its choices, its tab, and why the composer holds it. */
+export const clearAskChoices = (cardId: string): void => {
+  askChoices.delete(cardId);
+  askTabs.delete(cardId);
+  askInComposer.delete(cardId);
+};
+
 /** The message that creates a conversation, sent by its chat view once mounted. */
 type FirstMessage = { conversationId: string; text: string; context: PageContext | null };
 let firstMessage: FirstMessage | null = null;
@@ -338,6 +377,9 @@ export function resetAssistantStore(): void {
   surfaceOwner = null;
   undoers.clear();
   drafts.clear();
+  askChoices.clear();
+  askTabs.clear();
+  askInComposer.clear();
   firstMessage = null;
   dockListeners.forEach((listener) => listener());
   notifySurface();

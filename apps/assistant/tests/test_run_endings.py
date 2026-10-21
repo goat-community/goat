@@ -2,15 +2,23 @@
 
 import asyncio
 from collections.abc import AsyncIterator, Callable
+from typing import Any
 from uuid import UUID
 
 import pytest
 from pydantic_ai import Agent
 from pydantic_ai.exceptions import ModelAPIError, UsageLimitExceeded
-from pydantic_ai.messages import ModelMessage
+from pydantic_ai.messages import (
+    ModelMessage,
+    ModelResponse,
+    RetryPromptPart,
+    TextPart,
+    ToolCallPart,
+)
 from pydantic_ai.models.function import AgentInfo, FunctionModel
 
-from assistant.agent import INSTRUCTIONS, RunDeps
+from assistant.agent import INSTRUCTIONS, RunDeps, build_agent
+from assistant.budget import RunBudget
 from assistant.bus import InMemoryEventBus
 from assistant.config import AssistantSettings
 from assistant.encoding.ai_sdk import AiSdkEncoder
@@ -30,8 +38,11 @@ from assistant.llm.failures import (
     user_message,
 )
 from assistant.llm.providers import OpenModels, Target
+from assistant.prompt import NO_ANSWER_TEXT
 from assistant.repo import Repository
 from assistant.runs.manager import RunManager
+from assistant.tools.testing import Recorder, fake_clients, tool_env
+from assistant.tools.toolset import TOOL_RETRIES
 from tests.test_manager import _gated_agent
 
 USER = UUID(int=1)
@@ -230,3 +241,92 @@ def test_live_and_stored_endings_carry_the_same_data(ended: RunEnded) -> None:
     stored_status = next(p for p in stored["parts"] if p["type"] == "data-run-status")
     assert live_status["data"] == stored_status["data"]
     assert live_usage["messageMetadata"] == stored["metadata"]
+
+
+SHOWN_PROJECT = UUID(int=0x5E4)
+SHOWN_LAYERS = Recorder(
+    {
+        ("GET", f"/api/v2/project/{SHOWN_PROJECT}"): {"name": "Erreichbarkeit"},
+        ("GET", f"/api/v2/project/{SHOWN_PROJECT}/layer"): [
+            {
+                "id": 34,
+                "name": "Supermärkte",
+                "layer_id": str(UUID(int=34)),
+                "type": "feature",
+                "feature_layer_geometry_type": "point",
+            }
+        ],
+    }
+)
+SHOW_SHOPS = {
+    "groups": [
+        {"items": [{"kind": "layer", "id": "34", "project_id": str(SHOWN_PROJECT)}]}
+    ]
+}
+
+
+def _ends_after_the_card(closing: list[str]) -> tuple[FunctionModel, list[list[Any]]]:
+    """A model that shows a layer as a card and then answers with the texts
+    of ``closing`` in turn, the last one for good. Records what each call
+    was sent after the card."""
+    sent: list[list[Any]] = []
+
+    def respond(messages: list[ModelMessage], info: AgentInfo) -> ModelResponse:
+        responses = sum(isinstance(m, ModelResponse) for m in messages)
+        if responses == 0:
+            call = ToolCallPart(
+                tool_name="core_show_items", args=SHOW_SHOPS, tool_call_id="c0"
+            )
+            return ModelResponse(parts=[call])
+        sent.append(list(messages[-1].parts))
+        text = closing[min(responses - 1, len(closing) - 1)]
+        return ModelResponse(parts=[TextPart(content=text)])
+
+    return FunctionModel(respond), sent
+
+
+def _deps() -> RunDeps:
+    async def emit(event: Any) -> None:
+        return None
+
+    return RunDeps(
+        message_id="m1",
+        emit=emit,
+        env=tool_env(fake_clients(core=SHOWN_LAYERS)),
+        budget=RunBudget(max_tokens=10**9, max_tool_calls=30),
+    )
+
+
+async def test_an_answer_that_ends_after_its_cards_without_text_is_asked_for_it() -> (
+    None
+):
+    """wf-08: after core_show_items the model's last response was a single
+    space. Pydantic AI takes any text that is not empty as the answer, so the
+    run ended with the cards and no word on them. Text of only whitespace is
+    asked for again."""
+    model, sent = _ends_after_the_card(
+        [" ", "Der Workflow ist angelegt; du startest ihn mit Run."]
+    )
+    result = await build_agent(model).run("Erstelle einen Workflow.", deps=_deps())
+    assert result.output == "Der Workflow ist angelegt; du startest ihn mit Run."
+    [retry] = [part for part in sent[1] if isinstance(part, RetryPromptPart)]
+    assert retry.content == NO_ANSWER_TEXT
+
+
+async def test_a_model_that_never_writes_the_text_ends_as_it_answered() -> None:
+    """The text is asked for while retries are left; the last attempt's answer
+    ends the run, as before, instead of failing it after the cards were
+    shown."""
+    model, sent = _ends_after_the_card([" "])
+    result = await build_agent(model).run("Build a workflow.", deps=_deps())
+    assert result.output == " "
+    assert len(sent) == 1 + TOOL_RETRIES
+
+
+def test_the_request_for_the_text_says_what_to_write() -> None:
+    assert "no text" in NO_ANSWER_TEXT
+    # A model that wrote its answer before the cards closes without repeating it.
+    assert "if your text before the cards said that" in NO_ANSWER_TEXT
+    assert (
+        "Write" in NO_ANSWER_TEXT and "language of the user's message" in NO_ANSWER_TEXT
+    )

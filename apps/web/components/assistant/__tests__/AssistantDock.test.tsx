@@ -1,8 +1,11 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { getDockState, registerSurface, resetAssistantStore, setDockState } from "@/lib/assistant/store";
+import appStore from "@/lib/store";
+import { addPendingFeature, stopEditing } from "@/lib/store/featureEditor/slice";
 import { setMapMode } from "@/lib/store/map/slice";
+import { markSaved, setNodes } from "@/lib/store/workflow/slice";
 
 import AssistantDock from "@/components/assistant/AssistantDock";
 
@@ -14,6 +17,11 @@ const { pushMock, toastMock, updateMock, dispatchMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/store/ContextHooks", () => ({ useAppDispatch: () => dispatchMock }));
+const { refreshMock } = vi.hoisted(() => ({ refreshMock: vi.fn() }));
+vi.mock("@/lib/api/workflows", async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
+  refreshWorkflowList: refreshMock,
+}));
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: pushMock }), usePathname: () => "/home" }));
 vi.mock("react-toastify", () => ({ toast: toastMock }));
@@ -40,6 +48,8 @@ vi.mock("@/components/assistant/ConversationPane", async () => {
             onClick={() => void actions.openInProject("p2", { bindConversationId: "c1", partId: "m1:1" })}>
             review
           </button>
+          <button onClick={() => actions.openInProjectMode("p1", "workflows", "w9")}>open workflow</button>
+          <button onClick={() => void actions.openCreatedWorkflow("p1", "w9")}>created workflow</button>
           <button
             onClick={() =>
               onLoaded?.({
@@ -162,5 +172,135 @@ describe("AssistantDock", () => {
     render(<AssistantDock variant="docked" />);
     const button = screen.getByRole("button", { name: "assistant_untitled" });
     expect(button).toHaveAccessibleDescription("assistant_history");
+  });
+});
+
+describe("AssistantDock workflows", () => {
+  beforeEach(() => {
+    registerSurface({
+      surface: "project.map",
+      project: { id: "p1", name: "Eins" },
+      getContext: () => ({ surface: "project.map", project_id: "p1" }),
+    });
+    appStore.dispatch(markSaved());
+    appStore.dispatch(stopEditing());
+    setDockState({ conversationId: "c1" });
+  });
+
+  it("reads the project's workflow list again before it opens a workflow there", async () => {
+    let release: () => void = () => undefined;
+    refreshMock.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+    );
+    render(<AssistantDock variant="docked" />);
+    fireEvent.click(screen.getByRole("button", { name: "open workflow" }));
+    expect(refreshMock).toHaveBeenCalledWith("p1");
+    await act(async () => undefined);
+    expect(pushMock).not.toHaveBeenCalled();
+    release();
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/map/p1?mode=workflows&workflow=w9"));
+  });
+
+  it("stays where the person went when they left the project while the list was read", async () => {
+    let release: () => void = () => undefined;
+    refreshMock.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+    );
+    render(<AssistantDock variant="docked" />);
+    fireEvent.click(screen.getByRole("button", { name: "open workflow" }));
+    expect(refreshMock).toHaveBeenCalledWith("p1");
+    act(() => {
+      registerSurface({
+        surface: "project.map",
+        project: { id: "p2", name: "Zwei" },
+        getContext: () => ({ surface: "project.map", project_id: "p2" }),
+      });
+    });
+    release();
+    // Every promise callback has run by the next task.
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("reads the list once for a second click while it is read, and again after it opened", async () => {
+    let release: () => void = () => undefined;
+    refreshMock.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+    );
+    render(<AssistantDock variant="docked" />);
+    fireEvent.click(screen.getByRole("button", { name: "open workflow" }));
+    fireEvent.click(screen.getByRole("button", { name: "open workflow" }));
+    expect(refreshMock).toHaveBeenCalledTimes(1);
+    release();
+    await waitFor(() => expect(pushMock).toHaveBeenCalledTimes(1));
+    fireEvent.click(screen.getByRole("button", { name: "open workflow" }));
+    expect(refreshMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("opens a workflow of another project in a new tab, without reading its list", () => {
+    const openSpy = vi.spyOn(window, "open").mockImplementation(() => null);
+    try {
+      registerSurface({
+        surface: "project.map",
+        project: { id: "p2", name: "Zwei" },
+        getContext: () => ({ surface: "project.map", project_id: "p2" }),
+      });
+      render(<AssistantDock variant="docked" />);
+      fireEvent.click(screen.getByRole("button", { name: "open workflow" }));
+      expect(openSpy).toHaveBeenCalledWith("/map/p1?mode=workflows&workflow=w9", "_blank", "noopener");
+      expect(refreshMock).not.toHaveBeenCalled();
+      expect(pushMock).not.toHaveBeenCalled();
+    } finally {
+      openSpy.mockRestore();
+    }
+  });
+
+  it("opens a workflow the assistant created only while the editor holds no unsaved changes", async () => {
+    refreshMock.mockResolvedValue([]);
+    render(<AssistantDock variant="docked" />);
+    appStore.dispatch(setNodes([]));
+    fireEvent.click(screen.getByRole("button", { name: "created workflow" }));
+    await act(async () => undefined);
+    expect(refreshMock).not.toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+
+    appStore.dispatch(markSaved());
+    fireEvent.click(screen.getByRole("button", { name: "created workflow" }));
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/map/p1?mode=workflows&workflow=w9"));
+    expect(refreshMock).toHaveBeenCalledWith("p1");
+  });
+
+  it("opens a workflow the assistant created only while no feature edits on the map wait to be saved", async () => {
+    refreshMock.mockResolvedValue([]);
+    render(<AssistantDock variant="docked" />);
+    appStore.dispatch(
+      addPendingFeature({
+        id: "f1",
+        drawFeatureId: null,
+        geometry: { type: "Point", coordinates: [11.57, 48.14] },
+        properties: { name: "Neu" },
+        committed: true,
+        action: "create",
+      })
+    );
+    fireEvent.click(screen.getByRole("button", { name: "created workflow" }));
+    await act(async () => undefined);
+    expect(refreshMock).not.toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+
+    appStore.dispatch(stopEditing());
+    fireEvent.click(screen.getByRole("button", { name: "created workflow" }));
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/map/p1?mode=workflows&workflow=w9"));
   });
 });

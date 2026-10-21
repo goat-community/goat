@@ -3,33 +3,49 @@
 import { useChat } from "@ai-sdk/react";
 import { Alert, Box, Button, CircularProgress, Stack, Typography, useTheme } from "@mui/material";
 import type { ChatStatus } from "ai";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-toastify";
+
+import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { announceRunEnd, lastAnswer, runEndOf } from "@/lib/assistant/announce";
-import { type Translate, plain, plainTranslate } from "@/lib/assistant/chips";
+import { type AskCardState, answersCard, askCardOf, askCardState, openAskCard } from "@/lib/assistant/ask";
+import { type Translate, fitContext, plain, plainTranslate, stripContext } from "@/lib/assistant/chips";
 import { refreshConversationLists } from "@/lib/assistant/conversations";
 import { assistantErrorKey, toRequestError } from "@/lib/assistant/errors";
 import {
+  type AskInComposer,
   type QueuedMessage,
   addPendingRun,
+  clearAskChoices,
   clearFirstMessage,
+  getAskInComposer,
   getDraft,
   removePendingRun,
   saveDraft,
+  setAskInComposer,
   setDockState,
   useActiveSurface,
   useDockState,
 } from "@/lib/assistant/store";
-import { cancelAssistantRun, createAssistantTransport } from "@/lib/assistant/transport";
-import type { AnswerFeedback, AssistantMessage, Locale, PageContext } from "@/lib/assistant/types";
+import { cancelAssistantRun, createAssistantTransport, fetchConversation } from "@/lib/assistant/transport";
+import type { AnswerFeedback, AskAnswer, AssistantMessage, Locale, PageContext } from "@/lib/assistant/types";
 
+import AskPanel from "@/components/assistant/AskPanel";
 import Composer from "@/components/assistant/Composer";
 import { useDockActions } from "@/components/assistant/DockActions";
 import QueuedItem from "@/components/assistant/QueuedItem";
+import { useOpenCreatedWorkflows } from "@/components/assistant/useOpenCreatedWorkflows";
 import DockNote from "@/components/assistant/messages/DockNote";
 import MessageList from "@/components/assistant/messages/MessageList";
-import { composerFooterSx, mutedText, neutralPillSx, pillButtonSx } from "@/components/assistant/styles";
+import {
+  composerFooterSx,
+  focusRing,
+  mutedText,
+  neutralPillSx,
+  pillButtonSx,
+} from "@/components/assistant/styles";
 import { useComposerContext } from "@/components/assistant/useComposerContext";
 
 /** How long Stop waits for the server's own end of the run before it drops the connection. */
@@ -83,6 +99,16 @@ const hasRunStatus = (message: AssistantMessage | undefined) =>
   !!message && message.role === "assistant" && message.parts.some((part) => part.type === "data-run-status");
 
 const isBusy = (status: ChatStatus) => status === "submitted" || status === "streaming";
+
+/** How a card stands in a stored conversation; null when the conversation holds no such card. */
+function storedCardState(messages: AssistantMessage[], cardId: string): AskCardState | null {
+  const index = messages.findIndex(
+    (message) =>
+      message.role === "assistant" &&
+      message.parts.some((part) => part.type === "data-ask" && askCardOf(part.data)?.card_id === cardId)
+  );
+  return index < 0 ? null : askCardState(messages, index, cardId);
+}
 
 /** The run of this conversation ended: forget it as pending, refresh the history (titles), announce it. */
 function endRun(conversationId: string, message: AssistantMessage, title: string, t: Translate): void {
@@ -151,9 +177,10 @@ export default function ChatView(props: ChatViewProps) {
   const sentFirst = useRef(false);
   /**
    * Set while a request of ours is out: only its refusal may undo a message (a
-   * resume never does). "queued" when it carries the queued message.
+   * resume never does). "queued" when it carries the queued message, "answer"
+   * when it carries an ask card's answer.
    */
-  const inFlight = useRef<"send" | "queued" | null>(null);
+  const inFlight = useRef<"send" | "queued" | "answer" | null>(null);
   /** The project an unbound conversation becomes bound to when the server accepts the send. */
   const pendingBind = useRef<{ projectId: string; name: string | null } | null>(null);
   /** A TypeError the AI SDK did not recognise as a dropped connection (Safari: "Load failed"). */
@@ -199,10 +226,21 @@ export default function ChatView(props: ChatViewProps) {
    * found no run to stop, so it is sent again once the stream starts.
    */
   const cancelAgain = useRef(false);
-  /** The composer's chips and sources clear only when the server accepted the send. */
+  /** Set by a send: once the server accepts it, the history is read again (it shows the run). */
+  const refreshOnAccept = useRef(false);
+  /** The composer's chips and sources clear only when the server accepted a message of the composer's. */
   const resetOnAccept = useRef(false);
+  /** The open ask card the message on its way answers or passes over: its picks go once the server takes it. */
+  const passedCard = useRef<string | null>(null);
   // Resume is decided at mount: useChat would resume a live chat if it turned true later.
   const [resume] = useState(props.resume);
+  /**
+   * The run this chat resumed at mount is replaying (a page load, a reconnect):
+   * a card it brings was open already, so it does not take the focus. It ends
+   * with that run, or with a send of this chat.
+   */
+  const replaying = useRef(props.resume);
+  const replayRan = useRef(false);
 
   useEffect(() => {
     locale.current = i18n.language?.startsWith("de") ? "de" : "en";
@@ -224,14 +262,23 @@ export default function ChatView(props: ChatViewProps) {
     if (binding) props.onBound?.(binding.projectId, binding.name);
   };
 
-  /** The server accepted the send: it bound the conversation, and the composer starts afresh. */
+  /**
+   * The server accepted the send: it bound the conversation, the history marks
+   * it as running, and after a message of the composer's the composer starts afresh.
+   */
   const accepted = () => {
     reportBinding();
+    if (refreshOnAccept.current) {
+      refreshOnAccept.current = false;
+      void refreshConversationLists();
+    }
     if (resetOnAccept.current) {
       resetOnAccept.current = false;
       composer.reset();
-      // The history marks the conversation as running.
-      void refreshConversationLists();
+    }
+    if (passedCard.current) {
+      clearAskChoices(passedCard.current);
+      passedCard.current = null;
     }
   };
 
@@ -249,13 +296,22 @@ export default function ChatView(props: ChatViewProps) {
         // conversation. Its text, chips and sources go back into the composer;
         // a queued message goes back into the queue, ahead of what was queued since.
         setMessages((list) => (live = dropLastUserMessage(list)));
+        // A refused answer leaves the composer as it is: with its message dropped, the card is open again.
         if (inFlight.current === "queued") {
           queue(lastSent.current, { reason: assistantErrorKey(refused), first: true });
           setQueueRefused(true);
-        } else changeDraft(lastSent.current);
+        } else if (inFlight.current === "send") changeDraft(lastSent.current);
+        // The server refuses an answer that no longer fits its card (answered
+        // already, in another tab): the stored conversation shows how it stands.
+        if (inFlight.current === "answer" && refused.code === "invalid_answer") {
+          toast.info(t("assistant_ask_cannot_answer"));
+          props.onReconnect();
+        }
         removePendingRun(conversationId);
         pendingBind.current = null;
+        refreshOnAccept.current = false;
         resetOnAccept.current = false;
+        passedCard.current = null;
         if (refused.code === "conversation_bound" && refused.projectId)
           props.onBound?.(refused.projectId, null);
       } else if (!refused && err instanceof TypeError) {
@@ -267,13 +323,16 @@ export default function ChatView(props: ChatViewProps) {
       }
     },
     onFinish: ({ message, isDisconnect, isAbort, isError }) => {
+      replaying.current = false;
       inFlight.current = null;
       activeRun.current = null;
       cancelAgain.current = false;
       // The server answered with parts: it accepted the run, so it bound the conversation.
       if (message.role === "assistant" && message.parts.length > 0) accepted();
       pendingBind.current = null;
+      refreshOnAccept.current = false;
       resetOnAccept.current = false;
+      passedCard.current = null;
       if (isDisconnect || brokeOff.current) {
         brokeOff.current = false;
         // The run goes on server side; a reconnect (fresh chat) shows the rest.
@@ -298,8 +357,21 @@ export default function ChatView(props: ChatViewProps) {
   });
 
   const busy = isBusy(status);
+  /** The conversation's open ask card, from its messages alone. */
+  const liveCard = openAskCard(messages);
+  const liveId = liveCard?.card_id ?? null;
+  /** The open card the dock asks with: none while the page's project is not known, or in a read-only conversation. */
+  const openCard = props.waiting || props.readOnly ? null : liveCard;
+  const openId = openCard?.card_id ?? null;
+  // A workflow the running answer creates opens in the editor when the page allows.
+  useOpenCreatedWorkflows(messages, props.initialMessages);
   useEffect(() => {
     statusRef.current = status;
+    if (replaying.current) {
+      // The replay ran and has stopped (it found no run, or the run ended).
+      if (isBusy(status)) replayRan.current = true;
+      else if (replayRan.current) replaying.current = false;
+    }
     if (status !== "streaming") return;
     // Streaming means the server accepted the send (or the replay began).
     accepted();
@@ -309,25 +381,33 @@ export default function ChatView(props: ChatViewProps) {
     }
   });
 
-  const send = async (text: string, context: PageContext | null, fromQueue = false) => {
+  const send = async (
+    text: string,
+    context: PageContext | null,
+    { fromQueue = false, answer }: { fromQueue?: boolean; answer?: AskAnswer } = {}
+  ) => {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
     lastSent.current = trimmed;
-    inFlight.current = fromQueue ? "queued" : "send";
+    replaying.current = false;
+    inFlight.current = fromQueue ? "queued" : answer ? "answer" : "send";
     const pageProject = context && "project_id" in context ? context.project_id : null;
     pendingBind.current =
       !props.projectId && pageProject
         ? { projectId: pageProject, name: surface?.project?.name ?? null }
         : null;
     // Cleared at once so a remount while the request is out shows no stale text;
-    // a refusal puts it back (onError). A queued message leaves what the user types meanwhile.
+    // a refusal puts it back (onError). A queued message or an answer leaves what the user types meanwhile.
     if (fromQueue) setQueued(null);
-    else changeDraft("");
+    else if (!answer) changeDraft("");
     setQueueRefused(false);
     setStopError(null);
     setDisconnected(false);
     cancelAgain.current = false;
-    resetOnAccept.current = true;
+    refreshOnAccept.current = true;
+    // An answer is not the composer's message: the draft's sources and chips stay.
+    resetOnAccept.current = !answer;
+    passedCard.current = answer ? answer.card_id : openId;
     addPendingRun({
       conversationId,
       title: props.title || trimmed.slice(0, 80),
@@ -337,7 +417,8 @@ export default function ChatView(props: ChatViewProps) {
     });
     const parts: AssistantMessage["parts"] = [{ type: "text", text: trimmed }];
     if (context) parts.push({ type: "data-context", data: context });
-    await sendMessage({ parts }, { body: { context } });
+    // The answer rides on the message's metadata: its card reads itself answered at once.
+    await sendMessage(answer ? { parts, metadata: { answer } } : { parts }, { body: { context } });
   };
   // Read through a ref: `send` is new on every render, and the first-message
   // timer below must be armed once, not again on each render.
@@ -349,6 +430,129 @@ export default function ChatView(props: ChatViewProps) {
     firstSentRef.current = props.onFirstMessageSent;
     contextRef.current = composer.context;
   });
+
+  /**
+   * Set when this chat unmounts. A Stop still waiting then gives up without a
+   * late cancel: the reopened conversation may run a new answer by then. An
+   * answer whose stored conversation was being read is not sent.
+   */
+  const unmounted = useRef(false);
+  /** Set while an ask card's answer is on its way; a second Send waits. */
+  const answering = useRef(false);
+  const [answerPending, setAnswerPending] = useState(false);
+  /**
+   * Sends an ask card's answer as the next message, with the page's own context:
+   * the draft's sources and removed chips belong to the draft. The stored
+   * conversation is read first: when another tab answered the card meanwhile, or
+   * passed it over with a typed reply, nothing goes out and the chat loads
+   * again, so the card shows how it stands.
+   */
+  const sendAnswer = async (answer: AskAnswer, text: string) => {
+    if (answering.current || busy || stopping) return;
+    answering.current = true;
+    setAnswerPending(true);
+    const page = stripContext(surface ? surface.getContext() : null, new Set());
+    const context = page && fitContext(page);
+    try {
+      let stored: AssistantMessage[] | null = null;
+      try {
+        stored = (await fetchConversation(conversationId)).messages;
+      } catch {
+        // Not known: the answer goes out, and a refusal shows as for any message.
+      }
+      // Closed meanwhile (another conversation, a reload): nothing goes out, nothing is announced.
+      if (unmounted.current) return;
+      const answered = !!stored && answersCard(stored, answer.card_id);
+      if (stored && (answered || storedCardState(stored, answer.card_id)?.superseded)) {
+        toast.info(t(answered ? "assistant_ask_already_answered" : "assistant_ask_passed_over"));
+        props.onReconnect();
+        return;
+      }
+      // The send of the newest render, which sees the chat as it is after the read.
+      await sendRef.current(text, context, { answer });
+    } finally {
+      answering.current = false;
+      setAnswerPending(false);
+    }
+  };
+
+  /**
+   * Send in the panel: the answer goes out, and the panel gives way to the
+   * composer. The card in the transcript, which turns "Answered", takes the
+   * focus, so it does not fall back to the page. The chat does the scrolling.
+   */
+  const answerCard = (answer: AskAnswer, text: string) => {
+    scrollRef.current
+      ?.querySelector<HTMLElement>(`[data-ask-card=${JSON.stringify(answer.card_id)}]`)
+      ?.focus({ preventScroll: true });
+    void sendAnswer(answer, text);
+  };
+
+  /**
+   * Why the composer holds the open card instead of the panel (see
+   * `AskInComposer`). Kept in the store for a chat mounted again; the state renders a change.
+   */
+  const [heldFor, setHeldFor] = useState<{ cardId: string; why: AskInComposer | null } | null>(null);
+  const inComposer = !openId ? null : heldFor?.cardId === openId ? heldFor.why : getAskInComposer(openId);
+  const holdInComposer = (cardId: string, why: AskInComposer | null) => {
+    setAskInComposer(cardId, why);
+    setHeldFor({ cardId, why });
+  };
+  /** "Reply in text instead" hands the composer the focus as it takes the panel's place. */
+  const [focusComposer, setFocusComposer] = useState(false);
+  useEffect(() => {
+    if (focusComposer) setFocusComposer(false);
+  }, [focusComposer]);
+  /** The panel opens during the session (a card that came, the way back): it takes the focus. */
+  const [focusPanel, setFocusPanel] = useState(false);
+  const replyInText = (cardId: string) => {
+    holdInComposer(cardId, "reply");
+    setFocusComposer(true);
+  };
+  const answerQuestions = (cardId: string) => {
+    holdInComposer(cardId, null);
+    setFocusPanel(true);
+  };
+  /** Raised by the transcript's waiting line: the panel moves the focus in. */
+  const [panelFocusRequest, setPanelFocusRequest] = useState(0);
+  const footerRef = useRef<HTMLDivElement>(null);
+  /**
+   * The card last seen open in the messages. One that opens during the session
+   * (it came, or a refused answer opened it again) takes the focus into the
+   * panel; one that comes while the person types in the composer stays with
+   * the composer. A card that was open already (a reload, a remount, access
+   * back, the replay of a resumed run) leaves the focus be. Decided before the
+   * paint, so the panel does not flash.
+   */
+  const [seen, setSeen] = useState(liveId);
+  useLayoutEffect(() => {
+    if (seen === liveId) return;
+    setSeen(liveId);
+    if (!openId) return;
+    const active = document.activeElement;
+    if (draft.trim() && active instanceof HTMLTextAreaElement && footerRef.current?.contains(active)) {
+      setAskInComposer(openId, "typing");
+      setHeldFor({ cardId: openId, why: "typing" });
+    } else if (!getAskInComposer(openId) && !replaying.current) setFocusPanel(true);
+  }, [liveId, seen, openId, draft]);
+  const panelCard = openCard && seen === liveId && !inComposer ? openCard : null;
+  const panelOpen = !!panelCard;
+  /**
+   * The way back to the card the composer holds, for either reason, whatever the draft
+   * holds (it waits behind the panel): "Answer the questions" above the composer and the
+   * transcript's waiting line. Not while a message is queued: once it goes, it passes the
+   * card over.
+   */
+  const wayBack = !!openCard && !!inComposer && !queued;
+  /** The transcript's waiting line: into the panel, or the panel in the composer's place. */
+  const showAsk = (cardId: string) => {
+    if (panelCard?.card_id === cardId) setPanelFocusRequest((count) => count + 1);
+    else if (openId === cardId && wayBack) answerQuestions(cardId);
+  };
+  // The panel read `autoFocus` when it mounted: a later mount (access back) leaves the focus be.
+  useEffect(() => {
+    if (panelOpen && focusPanel) setFocusPanel(false);
+  }, [panelOpen, focusPanel]);
 
   useEffect(() => {
     const first = props.firstMessage;
@@ -368,18 +572,31 @@ export default function ChatView(props: ChatViewProps) {
   const readOnly = !!props.readOnly;
   // The queued message goes once nothing runs and no Stop is still settling (its late
   // cancel could stop the new run). The flag is cleared first: a further pass sends nothing.
+  // An answer on its way counts as running.
   useEffect(() => {
-    if (!releaseQueued || busy || stopping || props.waiting || readOnly) return;
+    if (!releaseQueued || busy || stopping || answerPending || props.waiting || readOnly) return;
     setReleaseQueued(false);
     const next = getDraft(conversationId)?.queued;
-    if (next) void sendRef.current(next.text, contextRef.current, true);
-  }, [releaseQueued, busy, stopping, props.waiting, readOnly, conversationId]);
+    if (next) void sendRef.current(next.text, contextRef.current, { fromQueue: true });
+  }, [releaseQueued, busy, stopping, answerPending, props.waiting, readOnly, conversationId]);
 
-  // The queued item takes room from the transcript: its newest message stays in view.
+  // The queued item and the ask panel take room from the transcript: its newest message stays in view.
   useEffect(() => {
     const element = scrollRef.current;
     if (element) element.scrollTop = element.scrollHeight;
-  }, [messages, status, queued]);
+  }, [messages, status, queued, panelOpen]);
+  /** The transcript shows its end: a footer that grows (a taller question in the panel) keeps it there. */
+  const atEnd = useRef(true);
+  useEffect(() => {
+    const footer = footerRef.current;
+    const element = scrollRef.current;
+    if (!footer || !element || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      if (atEnd.current) element.scrollTop = element.scrollHeight;
+    });
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (dock.review?.conversationId !== conversationId) return;
@@ -389,11 +606,6 @@ export default function ChatView(props: ChatViewProps) {
     setDockState({ review: null });
   }, [dock.review, conversationId, messages]);
 
-  /**
-   * Set when this chat unmounts. A Stop still waiting then gives up without a
-   * late cancel: the reopened conversation may run a new answer by then.
-   */
-  const unmounted = useRef(false);
   /** The pending poll of `settled`, so an unmount can clear it at once. */
   const stopWait = useRef<{ timer: ReturnType<typeof setTimeout>; resolve: () => void } | null>(null);
   useEffect(() => {
@@ -469,18 +681,23 @@ export default function ChatView(props: ChatViewProps) {
     }
   };
 
-  /** Send, or queue while an answer runs; with a message queued already, the text joins it. */
+  /**
+   * Send, or queue while an answer runs; with a message queued already, the text
+   * joins it. An ask card's answer on its way counts as running: the typed
+   * message goes after it.
+   */
   const submit = () => {
     const text = draft.trim();
     if (!text) return;
-    if (!busy && !stopping && !queued) {
+    const running = busy || stopping || answerPending;
+    if (!running && !queued) {
       void send(draft, composer.context);
       return;
     }
     queue(text);
     changeDraft("");
     // Nothing runs: the joined message goes at once.
-    if (!busy && !stopping) setReleaseQueued(true);
+    if (!running) setReleaseQueued(true);
   };
 
   /** "Send now": stop the running answer the way Stop does, then send the queued message. */
@@ -499,10 +716,12 @@ export default function ChatView(props: ChatViewProps) {
 
   const last = messages[messages.length - 1];
   // A dropped connection has its own banner; a failed run its own note.
-  // A refusal the read-only notice explains needs no second note.
+  // A refusal the read-only notice explains needs no second note, nor an answer
+  // the server no longer takes: the chat loads again, and a toast says why.
   const refusedCode = toRequestError(error)?.code;
   const explained =
-    !!props.readOnly && (refusedCode === "project_access_lost" || refusedCode === "conversation_bound");
+    refusedCode === "invalid_answer" ||
+    (!!props.readOnly && (refusedCode === "project_access_lost" || refusedCode === "conversation_bound"));
   // A refused queued message shows the reason in its own item.
   const errorKey =
     error && !disconnected && !explained && !queueRefused && !hasRunStatus(last)
@@ -515,6 +734,10 @@ export default function ChatView(props: ChatViewProps) {
     <Stack sx={{ flex: 1, minHeight: 0 }}>
       <Box
         ref={scrollRef}
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          atEnd.current = element.scrollHeight - element.scrollTop - element.clientHeight < 8;
+        }}
         sx={{ flex: 1, overflowY: "auto", px: props.big ? "24px" : "16px", py: props.big ? "24px" : "18px" }}>
         <Stack gap="14px" sx={{ maxWidth: props.big ? 720 : "none", mx: "auto" }}>
           <MessageList
@@ -525,6 +748,9 @@ export default function ChatView(props: ChatViewProps) {
             projectName={props.projectName}
             readOnly={!!props.readOnly}
             feedback={props.initialFeedback}
+            panelAskId={panelCard?.card_id ?? null}
+            heldAskId={wayBack && openCard ? openCard.card_id : null}
+            onShowAsk={showAsk}
           />
           {disconnected && (
             <Alert
@@ -541,7 +767,7 @@ export default function ChatView(props: ChatViewProps) {
           {stopError && <Alert severity="error">{t(stopError)}</Alert>}
         </Stack>
       </Box>
-      <Box sx={composerFooterSx(props.big)}>
+      <Box ref={footerRef} sx={composerFooterSx(props.big)}>
         <Box sx={{ maxWidth: props.big ? 720 : "none", mx: "auto" }}>
           {props.waiting ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: "8px" }}>
@@ -579,21 +805,48 @@ export default function ChatView(props: ChatViewProps) {
           ) : (
             <>
               {queued && <QueuedItem queued={queued} onSendNow={sendNow} onRemove={removeQueued} />}
-              <Composer
-                draft={draft}
-                onDraftChange={changeDraft}
-                busy={busy}
-                queueWhileBusy
-                onSend={submit}
-                onStop={() => void onStop()}
-                chips={composer.chips}
-                onRemoveChip={composer.removeChip}
-                mentionsEnabled={composer.mentionsEnabled}
-                onAddSource={composer.addSource}
-                sourcesFull={composer.sourcesFull}
-                excludeProjectId={composer.projectId}
-                big={props.big}
-              />
+              {panelCard ? (
+                // The open card asks in the composer's place; the draft waits behind it.
+                <AskPanel
+                  key={panelCard.card_id}
+                  card={panelCard}
+                  busy={busy || stopping || answerPending}
+                  onSend={answerCard}
+                  onReplyInText={() => replyInText(panelCard.card_id)}
+                  autoFocus={focusPanel}
+                  focusRequest={panelFocusRequest}
+                  onStop={busy ? () => void onStop() : undefined}
+                />
+              ) : (
+                <>
+                  {openCard && wayBack && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => answerQuestions(openCard.card_id)}
+                      startIcon={<Icon iconName={ICON_NAME.COMMENT} style={{ fontSize: 11 }} />}
+                      sx={(theme) => ({ ...pillButtonSx, mb: "10px", ...focusRing(theme) })}>
+                      {t("assistant_ask_return")}
+                    </Button>
+                  )}
+                  <Composer
+                    draft={draft}
+                    onDraftChange={changeDraft}
+                    busy={busy}
+                    queueWhileBusy
+                    onSend={submit}
+                    onStop={() => void onStop()}
+                    chips={composer.chips}
+                    onRemoveChip={composer.removeChip}
+                    mentionsEnabled={composer.mentionsEnabled}
+                    onAddSource={composer.addSource}
+                    sourcesFull={composer.sourcesFull}
+                    excludeProjectId={composer.projectId}
+                    big={props.big}
+                    autoFocus={focusComposer}
+                  />
+                </>
+              )}
             </>
           )}
         </Box>

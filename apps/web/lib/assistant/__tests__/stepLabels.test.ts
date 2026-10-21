@@ -1,10 +1,23 @@
 import type { DynamicToolUIPart } from "ai";
 import { describe, expect, it } from "vitest";
 
-import { plainTranslate } from "@/lib/assistant/chips";
-import { ARGUMENT_CHARS, clip, layerNames, stepLabel, stepRows } from "@/lib/assistant/stepLabels";
+import { commonT } from "@/i18n/__tests__/commonI18n";
+
+import { type Translate, plainTranslate } from "@/lib/assistant/chips";
+import {
+  ARGUMENT_CHARS,
+  clip,
+  groupSummary,
+  layerNames,
+  staysVisible,
+  stepLabel,
+  stepRows,
+} from "@/lib/assistant/stepLabels";
 
 import { enTranslate } from "./enTranslate";
+
+/** The German texts through i18next itself, values unescaped as the dock renders them. */
+const deTranslate = plainTranslate(commonT("de") as unknown as Parameters<typeof plainTranslate>[0]);
 
 type State = "output-available" | "output-error" | "input-available";
 
@@ -281,5 +294,252 @@ describe("step rows", () => {
       [ok.toolCallId, []],
       [bad.toolCallId, []],
     ]);
+  });
+});
+
+describe("workflow step labels", () => {
+  const created = {
+    workflow: { id: "w1", name: "Schools: 15-minute walk", project_id: "p1" },
+    open_issues: [],
+    groups: [],
+  };
+
+  it("name the workflow a create step made, and fall back to the plain label", () => {
+    expect(label(call("workflow_create", { draft: {} }, created))).toBe(
+      "Created the workflow “Schools: 15-minute walk”"
+    );
+    expect(label(call("workflow_create_from_template", { template_id: "t1" }, created))).toBe(
+      "Created the workflow “Schools: 15-minute walk”"
+    );
+    expect(label(call("workflow_create", { draft: {} }))).toBe("Created a workflow");
+    expect(label(failed("workflow_create_from_template", { template_id: "t1" }))).toBe(
+      "Created a workflow from a template"
+    );
+  });
+
+  it("have a label for each of the assistant's new tools", () => {
+    expect(label(call("ask_user", { questions: [] }, {}))).toBe("Asked for your choice");
+    expect(label(call("skills_load", { name: "build-a-workflow" }, {}))).toBe("Read the instructions for the task");
+    expect(label(call("workflow_tools", {}, {}))).toBe("Read the available tools");
+    expect(label(call("workflow_describe_tool", { tool_ids: ["buffer"] }, {}))).toBe("Read the settings of tools");
+    expect(label(call("workflow_find_templates", { query: "catchment" }, {}))).toBe("Searched workflow templates");
+    expect(label(call("workflow_check_draft", { draft: {} }, {}))).toBe("Checked the workflow draft");
+    expect(label(call("project_add_catalog_layer", { catalog_id: "c1" }, {}))).toBe(
+      "Added a catalog dataset to the project"
+    );
+  });
+});
+
+describe("running step labels", () => {
+  const running = (step: DynamicToolUIPart, t: Translate = enTranslate) =>
+    stepLabel(step, layerNames([step]), t, true);
+
+  it("say in the present tense what the step is doing, with its argument", () => {
+    expect(running(call("catalog_search", { q: "Schule" }))).toBe("Searching the catalog for “Schule”…");
+    expect(running(call("catalog_search", { q: "Schule", year: 2024 }))).toBe(
+      "Searching the catalog for “Schule” (filters: 1)…"
+    );
+    expect(running(call("core_find", { query: "rad", kind: "workflow" }))).toBe(
+      "Searching workflows for “rad”…"
+    );
+    expect(running(call("catalog_get_record", { item_id: "ds-1" }))).toBe(
+      "Reading the catalog record “ds-1”…"
+    );
+    expect(running(call("project_count_features", { layer_project_id: 5 }))).toBe(
+      "Counting features in layer 5…"
+    );
+    expect(running(call("workflow_check_draft", { draft: {} }))).toBe("Checking the workflow draft…");
+    expect(running(call("workflow_create", { draft: {} }))).toBe("Creating a workflow…");
+  });
+
+  it("say it in German, and fall back to Working for a tool the dock does not know", () => {
+    expect(running(call("catalog_search", { q: "Schule" }), deTranslate)).toBe(
+      "Durchsucht den Katalog nach „Schule“…"
+    );
+    expect(running(call("project_count_features", {}), deTranslate)).toBe("Zählt Objekte…");
+    expect(running(call("some_new_tool", {}))).toBe("Working…");
+    expect(running(call("some_new_tool", {}), deTranslate)).toBe("Arbeitet…");
+  });
+
+  it("keep the past tense for a finished step", () => {
+    const step = call("catalog_search", { q: "Schule" }, { numberMatched: 2 });
+    expect(stepLabel(step, layerNames([step]), enTranslate)).toBe("Searched the catalog for “Schule”");
+  });
+});
+
+describe("step group summaries", () => {
+  const search = (q: string) => call("catalog_search", { q }, { numberMatched: 1 });
+  const record = (id: string) => call("catalog_get_record", { item_id: id }, { title: id });
+  const region = () => call("catalog_find_region", { name: "Bonn" }, { regions: [] });
+  const summary = (steps: DynamicToolUIPart[], t: Translate = enTranslate) =>
+    groupSummary(stepRows(steps), t, false);
+
+  it("count the steps by kind, in the order the kinds first appear", () => {
+    const steps = [
+      search("a"),
+      record("r1"),
+      search("b"),
+      record("r2"),
+      record("r3"),
+      search("c"),
+      record("r4"),
+      record("r5"),
+      search("d"),
+      record("r6"),
+      region(),
+    ];
+    expect(summary(steps)).toBe("Searched the catalog 4 times, read 6 catalog records, looked up a region");
+    expect(summary(steps, deTranslate)).toBe(
+      "Katalog 4-mal durchsucht, 6 Katalogeinträge gelesen, eine Region nachgeschlagen"
+    );
+  });
+
+  it("start with a capital whichever kind comes first", () => {
+    expect(summary([region(), search("a")])).toBe("Looked up a region, searched the catalog");
+    expect(summary([region(), search("a")], deTranslate)).toBe(
+      "Eine Region nachgeschlagen, Katalog durchsucht"
+    );
+  });
+
+  it("name three kinds at most, then count the other steps", () => {
+    const count = () => call("project_count_features", { layer_project_id: 1 }, { layer: "A", count: 1 });
+    const fields = () => call("project_get_fields", { layer_project_id: 1 }, { layer: "A", fields: [] });
+    const steps = [search("a"), search("b"), record("r1"), region(), count(), count(), fields()];
+    expect(summary(steps)).toBe(
+      "Searched the catalog 2 times, read a catalog record, looked up a region and 3 more steps"
+    );
+    expect(summary(steps, deTranslate)).toBe(
+      "Katalog 2-mal durchsucht, einen Katalogeintrag gelesen, eine Region nachgeschlagen und 3 weitere Schritte ausgeführt"
+    );
+    expect(summary([search("a"), record("r1"), region(), fields()])).toBe(
+      "Searched the catalog, read a catalog record, looked up a region and 1 more step"
+    );
+  });
+
+  it("leave writes and failures out of the count: they stay visible as lines of their own", () => {
+    const create = call("workflow_create", { draft: {} }, { workflow: { name: "W" } });
+    const added = call("project_add_catalog_layer", { catalog_id: "c1" }, {});
+    const broken = failed("core_find", { query: "x" });
+    const steps = [search("a"), broken, search("b"), create, added];
+    const rows = stepRows(steps);
+    expect(rows.filter((row) => staysVisible(row, false)).map((row) => row.step)).toEqual([
+      broken,
+      create,
+      added,
+    ]);
+    expect(groupSummary(rows, enTranslate, false)).toBe("Searched the catalog 2 times");
+    // A rejected attempt the model corrected is part of its retry, not a failure.
+    const rejected = failed("catalog_search", { q: "" });
+    expect(stepRows([rejected, search("c")]).filter((row) => staysVisible(row, false))).toEqual([]);
+  });
+
+  it("keep a step the run left unreturned visible once the answer stopped, and count it while it runs", () => {
+    const unreturned = call("catalog_search", { q: "c" });
+    const rows = stepRows([search("a"), search("b"), unreturned]);
+    expect(rows.filter((row) => staysVisible(row, false)).map((row) => row.step)).toEqual([unreturned]);
+    expect(groupSummary(rows, enTranslate, false)).toBe("Searched the catalog 2 times");
+    expect(rows.filter((row) => staysVisible(row, true))).toEqual([]);
+    expect(groupSummary(rows, enTranslate, true)).toBe("Searched the catalog 3 times");
+  });
+
+  it("count records, regions, layers, projects, statistics and tasks by the inputs that name them", () => {
+    const fields = (layer: number, project?: string) =>
+      call(
+        "project_get_fields",
+        { layer_project_id: layer, ...(project ? { project_id: project } : {}) },
+        {}
+      );
+    const regionOf = (name: string) => call("catalog_find_region", { name }, { regions: [] });
+    const layers = (project?: string) =>
+      call("project_get_layers", project ? { project_id: project } : {}, {});
+    const statistic = (tool: string, field?: string) =>
+      call(tool, { layer_project_id: 1, ...(field ? { field } : {}) }, {});
+    const skill = (name: string) => call("skills_load", { name }, {});
+    expect(summary([record("r1"), record("r1"), record("r2")])).toBe("Read 2 catalog records");
+    expect(summary([fields(1), fields(1)])).toBe("Read the fields of a layer");
+    expect(summary([fields(1), fields(1, "p2"), fields(2)])).toBe("Read the fields of 3 layers");
+    expect(summary([regionOf("Bonn"), regionOf("bonn "), regionOf("Köln")])).toBe("Looked up 2 regions");
+    // A call without project_id reads the open project.
+    expect(summary([layers(), layers("p2"), layers()])).toBe("Read the layers of 2 projects");
+    expect(
+      summary([
+        statistic("project_field_statistics", "a"),
+        statistic("project_field_statistics", "a"),
+        statistic("project_area_statistics"),
+      ])
+    ).toBe("Computed 2 statistics");
+    expect(summary([skill("build-a-workflow"), skill("build-a-workflow")])).toBe(
+      "Read the instructions for a task"
+    );
+    // A call that names nothing counts on its own.
+    const unnamed = () => call("catalog_get_record", {}, {});
+    expect(summary([unnamed(), unnamed()])).toBe("Read 2 catalog records");
+    expect(summary([layers(), layers("p2")], deTranslate)).toBe("Die Layer von 2 Projekten gelesen");
+  });
+
+  it("count statistics on one layer apart when the inputs that shape them differ", () => {
+    const district = (name: string) => ({
+      match: "all",
+      conditions: [{ field: "district", op: "=", value: name }],
+    });
+    const area = (input: Record<string, unknown> = {}) =>
+      call("project_area_statistics", { layer_project_id: 3, ...input }, { feature_count: 4 });
+    const widths = (input: Record<string, unknown> = {}) =>
+      call(
+        "project_field_statistics",
+        { layer_project_id: 3, field: "width", ...input },
+        { kind: "numeric", feature_count: 4 }
+      );
+    // The parks of two districts are two results, and so are two classifications of one field.
+    expect(summary([area({ filter: district("A") }), area({ filter: district("B") })])).toBe(
+      "Computed 2 statistics"
+    );
+    expect(summary([widths({ filter: district("A") }), widths()])).toBe("Computed 2 statistics");
+    expect(summary([widths({ breaks: 5 }), widths({ breaks: 7 })])).toBe("Computed 2 statistics");
+    expect(summary([widths({ method: "quantile" }), widths({ method: "equal_interval" })])).toBe(
+      "Computed 2 statistics"
+    );
+    // The same inputs written in another order, or a filter given as null, are the same statistic.
+    const reordered = { conditions: [{ value: "A", op: "=", field: "district" }], match: "all" };
+    expect(summary([area({ filter: reordered }), area({ filter: district("A") })])).toBe(
+      "Computed a statistic"
+    );
+    expect(summary([area({ filter: null }), area()])).toBe("Computed a statistic");
+    expect(summary([area({ filter: district("A") }), area({ filter: district("B") })], deTranslate)).toBe(
+      "2 Statistiken berechnet"
+    );
+  });
+
+  it("count a call that names the open project as one without project_id", () => {
+    const open = "3731e570-0000-4000-8000-000000000001";
+    const openSummary = (steps: DynamicToolUIPart[]) =>
+      groupSummary(stepRows(steps), enTranslate, false, open);
+    const layers = (project?: string) =>
+      call("project_get_layers", project ? { project_id: project } : {}, {});
+    const fields = (project?: string) =>
+      call("project_get_fields", { layer_project_id: 1, ...(project ? { project_id: project } : {}) }, {});
+    const workflows = (project?: string) =>
+      call("project_get_workflows", project ? { project_id: project } : {}, {});
+    const area = (project?: string) =>
+      call(
+        "project_area_statistics",
+        { layer_project_id: 1, ...(project ? { project_id: project } : {}) },
+        {}
+      );
+    expect(openSummary([layers(), layers(open)])).toBe("Read the layers of a project");
+    expect(openSummary([layers(), layers(open.toUpperCase())])).toBe("Read the layers of a project");
+    expect(openSummary([fields(), fields(open)])).toBe("Read the fields of a layer");
+    expect(openSummary([workflows(open), workflows()])).toBe("Listed the workflows of a project");
+    expect(openSummary([area(open), area()])).toBe("Computed a statistic");
+    // Another project stays another project.
+    expect(openSummary([layers(), layers("p2")])).toBe("Read the layers of 2 projects");
+    // Without an open project, an ID is counted as it is.
+    expect(summary([layers(), layers(open)])).toBe("Read the layers of 2 projects");
+  });
+
+  it("count a step of a tool the dock does not know", () => {
+    expect(summary([search("a"), call("some_new_tool", {}, {}), call("other_new_tool", {}, {})])).toBe(
+      "Searched the catalog, ran 2 steps"
+    );
   });
 });

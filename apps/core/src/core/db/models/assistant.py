@@ -263,6 +263,11 @@ class AssistantToolCall(SQLModel, table=True):
     #: ok, invalid (arguments rejected) or error
     status: str = _text(nullable=False)
     error: str | None = _text(nullable=True)
+    #: What a write tool created (``{"kind": "workflow", "ids": [...],
+    #: "project_id": ...}``); NULL for every other call.
+    created: dict[str, Any] | None = Field(
+        default=None, sa_column=Column(JSONB, nullable=True)
+    )
     created_at: datetime | None = _created_at()
 
 

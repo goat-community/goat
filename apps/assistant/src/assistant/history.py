@@ -25,7 +25,18 @@ from pydantic_ai.messages import (
 )
 
 #: Tools whose results are what the user was shown: kept whole.
-SHOWN_TOOLS = frozenset({"catalog_show_records", "core_show_items"})
+SHOWN_TOOLS = frozenset(
+    {
+        "catalog_show_records",
+        "core_show_items",
+        "ask_user",
+        "workflow_create",
+        "workflow_create_from_template",
+    }
+)
+#: Tools whose results stay whole in later answers: the cards the user was
+#: shown, and loaded skills, which would otherwise be loaded again each turn.
+KEPT_TOOLS = SHOWN_TOOLS | {"skills_load"}
 #: A result this long or shorter is cheaper to keep than to shorten.
 SHORT_RESULT_CHARS = 1500
 #: A shortened text result keeps its start.
@@ -57,7 +68,7 @@ def _summary(content: Any) -> Any:
 
 
 def _shortened(part: ToolReturnPart) -> ToolReturnPart:
-    if part.tool_name in SHOWN_TOOLS:
+    if part.tool_name in KEPT_TOOLS:
         return part
     if len(part.model_response_str()) <= SHORT_RESULT_CHARS:
         return part

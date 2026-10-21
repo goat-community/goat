@@ -266,11 +266,11 @@ class SearchInput(BaseModel):
         default=None,
         description=(
             "Free text over title, description and keywords: spaces mean AND, "
-            "commas OR ('radweg,fahrrad'), rows matching several alternatives rank "
-            "first. Substring match in any case: prefer the shorter stem "
-            "('grünfläche' finds 'Grünflächen', not the reverse). Nothing found: "
-            "drop a word or use commas, check a word with catalog_suggest_terms. "
-            "Prefer a structured filter when catalog_describe shows a matching value."
+            "commas OR ('radweg,fahrrad,cycle'), rows matching several alternatives "
+            "rank first, so one search with a topic's German and English words "
+            "covers it. Substring match in any case: prefer the shorter stem "
+            "('grünfläche' finds 'Grünflächen', not the reverse). Prefer a "
+            "structured filter when catalog_describe shows a matching value."
         ),
     )
     bbox: str | None = Field(
@@ -335,14 +335,28 @@ class SearchInput(BaseModel):
     )
 
 
+#: The note of a search that found nothing, in place of its facet lists, which
+#: would all be empty: what an empty result means and when to stop searching.
+NOTHING_FOUND = (
+    "Nothing matches. q finds its words inside titles, descriptions and keywords, "
+    "in any case and also within longer words; of words joined by spaces all must "
+    "match, of words separated by commas one is enough. Search once more only if q "
+    "joined words with spaces or lacked the topic's German or English word, then "
+    "with them separated by commas. Otherwise the catalog has no such dataset for "
+    "these filters: say so, and in a workflow leave that dataset step open."
+)
+
+
 class SearchResult(BaseModel):
     number_matched: int = Field(serialization_alias="numberMatched")
     number_returned: int = Field(serialization_alias="numberReturned")
     truncated: bool
     results: list[dict[str, Any]]
-    #: Only with the first page: later pages share its filters, so the counts
-    #: would only repeat.
+    #: Only with the first page of a search that found something: later pages
+    #: share its filters, so the counts would only repeat.
     facets: list[dict[str, Any]] | None = None
+    #: What a search that found nothing means (``NOTHING_FOUND``).
+    note: str | None = None
 
 
 _FILTER_FIELDS = (
@@ -395,13 +409,19 @@ async def _search(env: ToolEnv, args: SearchInput) -> SearchResult:
         [_search_row(c) for c in page.get("collections", [])],
         reserved=_json_size(facets or []),
     )
+    matched = int(page.get("numberMatched") or 0)
     return SearchResult(
-        number_matched=int(page.get("numberMatched") or 0),
+        number_matched=matched,
         number_returned=len(trimmed),
         truncated=truncated,
         results=trimmed,
-        facets=facets,
+        facets=facets if matched else None,
+        note=None if matched else NOTHING_FOUND,
     )
+
+
+def _no_datasets(result: dict[str, Any]) -> bool:
+    return not result.get("numberMatched")
 
 
 SEARCH: ToolSpec[SearchInput, SearchResult] = ToolSpec(
@@ -422,6 +442,7 @@ SEARCH: ToolSpec[SearchInput, SearchResult] = ToolSpec(
     surfaces=CATALOG_SURFACES,
     returns_data=False,
     mcp=True,
+    found_nothing=_no_datasets,
 )
 
 
@@ -529,14 +550,26 @@ class TermMatch(BaseModel):
     id: str
 
 
+#: The note of a prefix no word starts with.
+NO_SUCH_WORD = "No dataset's text has a word starting with this prefix."
+
+
 class SuggestResult(BaseModel):
     prefix: str
     matches: list[TermMatch]
+    note: str | None = None
 
 
 async def _suggest(env: ToolEnv, args: SuggestInput) -> SuggestResult:
     body = await _get(env, "/suggest", {"prefix": args.prefix, "limit": args.limit})
-    return SuggestResult.model_validate(body)
+    result = SuggestResult.model_validate(body)
+    if not result.matches:
+        result.note = NO_SUCH_WORD
+    return result
+
+
+def _no_words(result: dict[str, Any]) -> bool:
+    return not result.get("matches")
 
 
 SUGGEST_TERMS: ToolSpec[SuggestInput, SuggestResult] = ToolSpec(
@@ -552,6 +585,7 @@ SUGGEST_TERMS: ToolSpec[SuggestInput, SuggestResult] = ToolSpec(
     surfaces=CATALOG_SURFACES,
     returns_data=False,
     mcp=True,
+    found_nothing=_no_words,
 )
 
 

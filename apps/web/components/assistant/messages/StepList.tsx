@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, ButtonBase, Stack, Typography, useTheme } from "@mui/material";
+import { Box, ButtonBase, CircularProgress, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import type { DynamicToolUIPart } from "ai";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,12 +9,18 @@ import { GOATLogoIconOnlyGreen } from "@p4b/ui/assets/svg/GOATLogoIconOnlyGreen"
 import { ICON_NAME, Icon } from "@p4b/ui/components/Icon";
 
 import { plainTranslate } from "@/lib/assistant/chips";
-import { layerNames, stepLabel, stepResult, stepRows } from "@/lib/assistant/stepLabels";
+import {
+  type StepRow,
+  layerNames,
+  stepLabel,
+  stepResult,
+  stepRows,
+  stepRunning,
+} from "@/lib/assistant/stepLabels";
 
-import { focusRing, mutedText } from "@/components/assistant/styles";
+import { focusRing, mutedText, shimmerSx } from "@/components/assistant/styles";
 
 const JSON_CHARS = 4000;
-const RUNNING = new Set(["input-streaming", "input-available", "approval-requested", "approval-responded"]);
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const pretty = (value: unknown): string => {
@@ -22,7 +28,22 @@ const pretty = (value: unknown): string => {
   return text.length > JSON_CHARS ? `${text.slice(0, JSON_CHARS)}…` : text;
 };
 
-const rowSx = {
+/** The system asks for less motion: a running step shows a spinner instead of the shimmer. */
+export const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
+
+/** A small spinner for something under way, in the 14px slot of a status icon. */
+export function StepSpinner({ status }: { status?: StepStatus }) {
+  return (
+    <Box
+      aria-hidden
+      data-status={status}
+      sx={{ width: 14, height: 14, mt: "2px", flexShrink: 0, display: "flex", justifyContent: "center" }}>
+      <CircularProgress size={10} thickness={5} sx={{ mt: "2px", color: mutedText }} />
+    </Box>
+  );
+}
+
+export const rowSx = {
   // A button does not inherit the page font by itself.
   fontFamily: "inherit",
   width: "100%",
@@ -36,15 +57,27 @@ const rowSx = {
   "&:hover": { bgcolor: "action.hover" },
 } as const;
 
-/** Done, running (GOAT's mark) or failed, in one 14px slot. */
-function StatusIcon({ state }: { state: "done" | "running" | "failed" }) {
+/**
+ * A step's state: done, failed, running (GOAT's mark, or a spinner with
+ * reduced motion), or stopped (the answer ended before the step returned).
+ */
+type StepStatus = "done" | "running" | "spinning" | "failed" | "stopped";
+
+/** A step's state in one 14px slot. */
+function StatusIcon({ state }: { state: StepStatus }) {
   const theme = useTheme();
+  if (state === "spinning") return <StepSpinner status={state} />;
   if (state === "running") {
-    return <GOATLogoIconOnlyGreen style={{ width: 14, height: 14, flexShrink: 0, marginTop: 2 }} />;
+    return (
+      <Box data-status={state} sx={{ display: "flex", flexShrink: 0, mt: "2px" }}>
+        <GOATLogoIconOnlyGreen style={{ width: 14, height: 14 }} />
+      </Box>
+    );
   }
   const failed = state === "failed";
   return (
     <Box
+      data-status={state}
       sx={{
         width: 14,
         height: 14,
@@ -58,7 +91,7 @@ function StatusIcon({ state }: { state: "done" | "running" | "failed" }) {
         justifyContent: "center",
       }}>
       <Icon
-        iconName={failed ? ICON_NAME.CLOSE : ICON_NAME.CHECK}
+        iconName={failed ? ICON_NAME.CLOSE : state === "stopped" ? ICON_NAME.MINUS : ICON_NAME.CHECK}
         style={{ fontSize: 7, color: failed ? theme.palette.error.main : mutedText(theme) }}
       />
     </Box>
@@ -67,14 +100,28 @@ function StatusIcon({ state }: { state: "done" | "running" | "failed" }) {
 
 /**
  * The tools an answer used (spec §4.7, §10): one line per call with what it
- * found, its input and result on click. The list never folds: the lines are
- * short, and they show how the answer came about.
+ * found, its input and result on click. The list shows every row it is given;
+ * `StepGroup` folds a group's rows behind its summary. While the answer runs
+ * (`running`), a step that has not returned says what it is doing, with the
+ * shimmer of the Answering line; once the answer ended, such a step is marked
+ * as stopped, with the same words: it was under way, not done.
  */
-export default function StepList({ steps }: { steps: DynamicToolUIPart[] }) {
+export default function StepList({
+  steps,
+  rows: only,
+  running = false,
+}: {
+  /** The group's steps: they name the layers, also those of rows not shown here. */
+  steps: DynamicToolUIPart[];
+  /** The rows to show, in their order; all of the group's when absent. */
+  rows?: StepRow[];
+  running?: boolean;
+}) {
   const { t } = useTranslation("common");
   const theme = useTheme();
+  const reducedMotion = useMediaQuery(REDUCED_MOTION);
   const [open, setOpen] = useState<string | null>(null);
-  const rows = stepRows(steps);
+  const rows = only ?? stepRows(steps);
   const names = layerNames(steps);
   // The labels carry the call's arguments (search words, layer names): React escapes them as text.
   const translate = plainTranslate(t);
@@ -85,19 +132,35 @@ export default function StepList({ steps }: { steps: DynamicToolUIPart[] }) {
         const expanded = open === step.toolCallId;
         const output = (step as { output?: unknown }).output;
         const failed = step.state === "output-error";
-        const result = failed ? t("assistant_step_failed") : stepResult(step, translate);
+        const unreturned = stepRunning(step);
+        const underWay = running && unreturned;
+        const stopped = !running && unreturned;
+        const result = failed
+          ? t("assistant_step_failed")
+          : stopped
+            ? t("assistant_step_stopped")
+            : stepResult(step, translate);
         const extras = [result, rejected.length ? t("assistant_step_retried") : null].filter(Boolean);
+        const status: StepStatus = underWay
+          ? reducedMotion
+            ? "spinning"
+            : "running"
+          : stopped
+            ? "stopped"
+            : failed
+              ? "failed"
+              : "done";
         return (
           <Box key={step.toolCallId}>
             <ButtonBase
               onClick={() => setOpen(expanded ? null : step.toolCallId)}
               aria-expanded={expanded}
               sx={{ ...rowSx, ...focusRing(theme) }}>
-              <StatusIcon state={RUNNING.has(step.state) ? "running" : failed ? "failed" : "done"} />
+              <StatusIcon state={status} />
               <Typography
                 sx={{ flex: 1, minWidth: 0, fontSize: 12.5, lineHeight: 1.5, overflowWrap: "anywhere" }}>
-                <Box component="span" sx={{ color: "text.primary" }}>
-                  {stepLabel(step, names, translate)}
+                <Box component="span" sx={underWay && !reducedMotion ? shimmerSx : { color: "text.primary" }}>
+                  {stepLabel(step, names, translate, unreturned)}
                 </Box>
                 {extras.map((extra) => (
                   <Box

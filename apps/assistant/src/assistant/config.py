@@ -157,6 +157,8 @@ class AssistantSettings(BaseSettings):
     secrets_key: SecretStr = SecretStr("")
 
     run_max_tool_calls: int = 30
+    #: Tokens per answer, input and output; tokens read from the provider's
+    #: cache count at a tenth (``assistant.budget.CACHE_READ_WEIGHT``).
     run_max_tokens: int = 200_000
     run_max_seconds: int = 900
     user_max_concurrent_runs: int = 3
