@@ -286,6 +286,54 @@ export const workflowConfigSchema = z.object({
 export type WorkflowConfig = z.infer<typeof workflowConfigSchema>;
 
 // ============================================================================
+// Drawable config
+// ============================================================================
+
+const WORKFLOW_NODE_TYPES = ["dataset", "tool", "textAnnotation", "export", "if"] as const;
+
+/**
+ * What the canvas needs to draw a stored config: a list of steps, each with
+ * an id, a known type, a numeric position and a data object, without two
+ * steps sharing an id, and a list of connections with both ends. It mirrors
+ * the server's "damaged" codes (goatlib `workflows/checks.py`) plus the
+ * position React Flow lays a step out by. `workflowConfigSchema` describes
+ * what the editor writes and is stricter (a dataset step's `layerId` must be
+ * a UUID, where older steps hold a project layer's number), so it would lock
+ * workflows that draw and run.
+ */
+export const workflowCanvasConfigSchema = z
+  .object({
+    nodes: z
+      .array(
+        z
+          .object({
+            id: z.string().min(1),
+            type: z.enum(WORKFLOW_NODE_TYPES),
+            position: z.object({ x: z.number(), y: z.number() }),
+            data: z.record(z.unknown()),
+          })
+          .passthrough()
+      )
+      .superRefine((nodes, ctx) => {
+        const seen = new Set<string>();
+        nodes.forEach((node, index) => {
+          if (seen.has(node.id)) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: [index, "id"], message: "Two steps share this id" });
+          }
+          seen.add(node.id);
+        });
+      }),
+    edges: z.array(z.object({ source: z.string().min(1), target: z.string().min(1) }).passthrough()),
+    viewport: z.object({ x: z.number(), y: z.number(), zoom: z.number() }).nullish(),
+    variables: z.array(z.object({ name: z.string() }).passthrough()).nullish(),
+  })
+  .passthrough();
+
+/** Whether the canvas can draw this stored config (see `workflowCanvasConfigSchema`). */
+export const isDrawableWorkflowConfig = (config: unknown): boolean =>
+  workflowCanvasConfigSchema.safeParse(config).success;
+
+// ============================================================================
 // Workflow Entity
 // ============================================================================
 

@@ -159,7 +159,7 @@ Beginnen Sie mit einfachen 2-3 Knoten-Workflows, um die Benutzeroberfläche zu v
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content"><strong>Erstellen Sie einen neuen Workflow</strong>: Klicken Sie auf <code>+ Neu</code> im linken Panel und wählen Sie <code>Neu erstellen</code>, um mit einer leeren Leinwand zu beginnen, oder <code>Aus Vorlage</code>, um von einem fertigen Workflow zu starten (siehe <a href="#mit-einer-vorlage-starten">Mit einer Vorlage starten</a>). Ein neuer Workflow wird mit einem Standardnamen zur Liste hinzugefügt.</div>
+  <div class="content"><strong>Erstellen Sie einen neuen Workflow</strong>: Klicken Sie auf <code>+ Neu</code> im linken Panel und wählen Sie <code>Neu erstellen</code>, um mit einer leeren Leinwand zu beginnen, oder <code>Aus Vorlage</code>, um von einem fertigen Workflow zu starten (siehe <a href="#mit-einer-vorlage-starten">Mit einer Vorlage starten</a>). Ein neuer Workflow wird mit einem Standardnamen zur Liste hinzugefügt. In einem Projekt ohne Workflows bietet die Leinwand dasselbe in ihrer Mitte an: <code>Neuer Workflow</code>, <code>Mit einer Vorlage beginnen</code>, wenn Ihnen Workflow-Vorlagen zur Verfügung stehen, und den Link <code>Was ist ein Workflow?</code> zu dieser Seite.</div>
 </div>
 
 <div class="step">
@@ -198,7 +198,7 @@ Beginnen Sie mit einfachen 2-3 Knoten-Workflows, um die Benutzeroberfläche zu v
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content"><strong>Workflow ausführen</strong>: Verwenden Sie die Option <code>Workflow ausführen</code>, um den gesamten Workflow von Anfang bis Ende auszuführen.</div>
+  <div class="content"><strong>Workflow ausführen</strong>: Klicken Sie unten auf der Leinwand auf <code>Ausführen</code>, um den gesamten Workflow von Anfang bis Ende auszuführen. Solange der Workflow Fehler hat, ist die Schaltfläche ausgegraut (siehe <a href="#workflows-prüfen-und-ausführen">Workflows prüfen und ausführen</a>).</div>
 </div>
 
 <div class="step">
@@ -217,7 +217,32 @@ Beginnen Sie mit einfachen 2-3 Knoten-Workflows, um die Benutzeroberfläche zu v
 </div>
 
 :::info Auto-Speicher-Feature
-Workflows speichern Änderungen automatisch, während Sie sie erstellen. Das System bewahrt alle Konfigurationen, Verbindungen und Ausführungszustände auf.
+Workflows speichern Änderungen automatisch, während Sie sie erstellen. Das System bewahrt alle Konfigurationen, Verbindungen und Ausführungszustände auf. Schlägt das Speichern fehl, erscheint oben auf der Leinwand der Hinweis <code>Nicht gespeichert</code>; klicken Sie auf <code>Erneut versuchen</code>, um noch einmal zu speichern.
+:::
+
+### Workflows prüfen und ausführen
+
+GOAT prüft den Workflow, während Sie ihn erstellen, und zeigt, was noch Aufmerksamkeit braucht. Nichts davon hindert Sie daran, weiterzubauen oder zu speichern.
+
+- Neben <code>Ausführen</code> zählt ein Chip wie <code>2 Probleme</code> alles, was gefunden wurde. Klicken Sie darauf, um die Liste zu öffnen, gruppiert nach Knoten; Probleme, die den ganzen Workflow betreffen, stehen oben.
+- Ein Knoten mit einem Problem zeigt unten rechts eine Markierung. Zeigen Sie auf die Markierung oder tippen Sie darauf, um ihre Meldungen zu lesen.
+- Ein Eingang, der verbunden sein muss, es aber nicht ist, erhält einen orangefarbenen Ring um seinen Anschluss.
+- In den Einstellungen eines Knotens erscheint eine Meldung unter der betroffenen Einstellung, die übrigen Probleme des Knotens stehen oben. Pflichteinstellungen sind mit einem Sternchen (<code>*</code>) markiert.
+
+Klicken Sie auf ein Problem in der Liste oder an einer Markierung, um dorthin zu gelangen: Die Leinwand springt zum Knoten, wählt ihn aus und öffnet seine Einstellungen bei der betroffenen Einstellung.
+
+| Stufe | Farbe | Bedeutung |
+|---|---|---|
+| Fehler | orange | Der Workflow kann noch nicht ausgeführt werden, zum Beispiel weil ein Eingang nicht verbunden ist, eine Pflichteinstellung leer ist oder ein Feld im Eingangsdatensatz fehlt. |
+| Warnung | grau | Einen Blick wert, verhindert aber nie eine Ausführung, zum Beispiel ein Knoten, der mit keinem anderen Knoten verbunden ist. |
+| Ausführungsfehler | rot | Der Knoten ist bei der letzten Ausführung fehlgeschlagen, und seine Markierung zeigt seine eigene Fehlermeldung. Sie verschwindet, sobald Sie den Knoten ändern oder den Workflow erneut ausführen. |
+
+Solange der Workflow Fehler hat, ist <code>Ausführen</code> ausgegraut; zeigen Sie darauf, sehen Sie, wie viele noch offen sind, zum Beispiel <code>Beheben Sie 2 Probleme, um den Workflow auszuführen</code>. Warnungen und Ausführungsfehler deaktivieren <code>Ausführen</code> nie.
+
+Konnte der Workflow nicht geprüft werden, etwa weil die Verbindung unterbrochen war, erscheint ein Chip <code>Nicht geprüft</code>. Klicken Sie darauf, um erneut zu prüfen; ein Lauf wird beim Start immer geprüft.
+
+:::info Beschädigte Workflows
+Kann die gespeicherte Fassung eines Workflows nicht gelesen werden, etwa weil sie außerhalb von GOAT geändert wurde, öffnet er sich mit dem Hinweis <code>Dieser Workflow kann nicht geöffnet werden</code> anstelle der Leinwand, der auflistet, was defekt ist. Ein solcher Workflow kann dort weder bearbeitet noch ausgeführt werden, und GOAT speichert nicht darüber. Die anderen Workflows des Projekts funktionieren weiter.
 :::
 
 ### Mit einer Vorlage starten

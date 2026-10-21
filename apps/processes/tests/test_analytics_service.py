@@ -398,6 +398,21 @@ class TestCatalogLayers:
 
         assert result["breaks"]
 
+    def test_column_names_read_a_catalog_layer(self, tmp_path, monkeypatch):
+        """What the workflow check compares field settings with."""
+        monkeypatch.setenv("CATALOG_LAYERS_DIR", str(tmp_path))
+        self._write_layer(tmp_path, self.TABLE)
+        service = AnalyticsService()
+
+        with patch(
+            "processes.services.analytics_service.ducklake_manager",
+            self._fresh_connections(),
+        ):
+            names = service.column_names(self.LAYER_ID)
+
+        # rowid is the view's own column (`catalog_view_sql`).
+        assert names == ["rowid", "source", "level"]
+
 
 def test_validate_sql_loads_spatial_through_goatlib(monkeypatch) -> None:
     """Extensions come from the image's baked directory; goatlib's

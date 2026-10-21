@@ -13,6 +13,7 @@ Usage:
 import asyncio
 import logging
 import re
+from collections.abc import Callable
 from typing import Any
 
 import asyncpg
@@ -25,22 +26,18 @@ from goatlib.tools.workflow_dataset_nodes import (
     project_layer_ids,
     with_current_layer_ids,
 )
-from goatlib.utils.credentials import redact_credentials
+from goatlib.workflows.run_errors import error_message
 
 logger = logging.getLogger(__name__)
-
-# Pattern to strip usernames from Windmill cancellation messages
-# e.g. "cancelled by majkshkurti (reason: User requested dismissal)" -> "cancelled (reason: User requested dismissal)"
-_CANCEL_USER_RE = re.compile(r"cancelled by \S+")
 
 # Numbered opportunity-layer canvas handles, e.g. "opportunity_layer_2_id"
 _NUMBERED_OPPORTUNITY = re.compile(r"opportunity_layer_(\d+)_id")
 
 
-def _sanitize_error_msg(msg: str) -> str:
-    """A step's error text without the username of a Windmill cancellation
-    and without credentials."""
-    return redact_credentials(_CANCEL_USER_RE.sub("cancelled", msg))
+def _step_error(node_id: str, error: object) -> dict[str, str]:
+    """A failed step as the run result lists it: its id and its error's
+    message, never the stack (`goatlib.workflows.run_errors`)."""
+    return {"node_id": node_id, "message": error_message(error)}
 
 
 class WorkflowNode(BaseModel):
@@ -78,14 +75,14 @@ class WorkflowRunnerParams(BaseModel):
 class WorkflowResult(BaseModel):
     """Result from workflow execution."""
 
-    status: str = "success"
+    status: str = Field(default="success", description='"success" or "failed"')
     node_results: dict[str, dict[str, Any]] = Field(
         default_factory=dict,
         description="Results keyed by node_id",
     )
-    errors: list[dict[str, Any]] = Field(
+    errors: list[dict[str, str]] = Field(
         default_factory=list,
-        description="Any errors encountered",
+        description='Each failed step: {"node_id", "message"}',
     )
 
 
@@ -543,26 +540,29 @@ def export_style(
     return source_properties if isinstance(source_properties, dict) else None
 
 
-def build_tool_inputs(
+def tool_arguments(
     node: dict,
     edges: list[dict],
     all_nodes: list[dict],
-    results: dict[str, dict],
-    params: WorkflowRunnerParams,
+    variables: list[dict[str, Any]],
+    layer_id_for_source: Callable[[dict], str | None],
 ) -> dict[str, Any]:
-    """Build the input parameters for a tool node.
+    """The tool parameters a node's settings and incoming edges give.
 
-    Combines:
-    - Node's configured parameters
-    - Input layer IDs from connected nodes
-    - Workflow context (user_id, project_id, temp_mode, etc.)
+    Combines the node's configured parameters (workflow variables resolved,
+    scalars wrapped where the tool expects a list) with the layer each
+    incoming edge delivers, then folds the canvas-only numbered inputs into
+    the shapes the tools take. `layer_id_for_source` names the layer an
+    upstream node delivers: a run asks its results, the workflow check
+    (`workflow_arguments`) puts placeholders in. `add_run_context` adds the
+    run's own values.
     """
     # Start with node's configured parameters
     node_data = node.get("data", {})
     inputs: dict[str, Any] = dict(node_data.get("config", {}))
 
     # Substitute workflow variables in config values
-    var_map = variable_map(params.variables)
+    var_map = variable_map(variables)
     if var_map:
         inputs = substitute_variables_in_config(inputs, var_map)
 
@@ -583,11 +583,12 @@ def build_tool_inputs(
         if not source_node:
             continue
 
-        # Determine target handle (input parameter name)
-        target_handle = edge.get("targetHandle", "input_layer_id")
+        # Target handle (input parameter name). A connection that names
+        # none, also with an explicit null, feeds the usual single input.
+        target_handle = edge.get("targetHandle") or "input_layer_id"
 
         # Get layer_id from source
-        layer_id = get_input_layer_id(source_node, results)
+        layer_id = layer_id_for_source(source_node)
         if layer_id:
             # Get optional filter from dataset nodes
             source_type = source_node.get("data", {}).get("type")
@@ -704,20 +705,64 @@ def build_tool_inputs(
         if opportunities:
             inputs["opportunities"] = opportunities
 
-    # Add workflow context
-    inputs["user_id"] = params.user_id
-    inputs["project_id"] = params.project_id
-    inputs["folder_id"] = params.folder_id
+    return inputs
+
+
+def add_run_context(
+    inputs: dict[str, Any],
+    node: dict,
+    *,
+    user_id: str,
+    project_id: str,
+    folder_id: str,
+    workflow_id: str,
+) -> dict[str, Any]:
+    """`inputs` with what every tool job of a workflow run gets besides its
+    parameters: who runs it, where results go, and temp mode."""
+    inputs["user_id"] = user_id
+    inputs["project_id"] = project_id
+    inputs["folder_id"] = folder_id
 
     # Enable temp mode for workflow preview
     inputs["temp_mode"] = True
-    inputs["workflow_id"] = params.workflow_id
+    inputs["workflow_id"] = workflow_id
     inputs["node_id"] = node["id"]
 
     # Set layer name from node label
-    inputs["result_layer_name"] = node_data.get("label", "Workflow Result")
+    inputs["result_layer_name"] = node.get("data", {}).get("label", "Workflow Result")
 
     return inputs
+
+
+def build_tool_inputs(
+    node: dict,
+    edges: list[dict],
+    all_nodes: list[dict],
+    results: dict[str, dict],
+    params: WorkflowRunnerParams,
+) -> dict[str, Any]:
+    """Build the input parameters for a tool node.
+
+    Combines:
+    - Node's configured parameters
+    - Input layer IDs from connected nodes
+    - Workflow context (user_id, project_id, temp_mode, etc.)
+    """
+    inputs = tool_arguments(
+        node,
+        edges,
+        all_nodes,
+        params.variables,
+        lambda source_node: get_input_layer_id(source_node, results),
+    )
+    return add_run_context(
+        inputs,
+        node,
+        user_id=params.user_id,
+        project_id=params.project_id,
+        folder_id=params.folder_id,
+        workflow_id=params.workflow_id,
+    )
 
 
 def run_tool_node(
@@ -887,7 +932,8 @@ def main(
         edges: List of workflow edges
 
     Returns:
-        Execution results for each node
+        Execution results for each node; `status` "failed" and each failed
+        step's {"node_id", "message"} in `errors` when a step failed
     """
     print(f"[workflow_runner] Starting workflow {workflow_id}")
     print(f"[workflow_runner] user_id={user_id}, project_id={project_id}")
@@ -921,7 +967,7 @@ def main(
     # Track results per node and node→job mapping
     results: dict[str, dict] = {}
     node_jobs: dict[str, str] = {}  # node_id → child job_id
-    errors: list[dict] = []
+    errors: list[dict[str, str]] = []
 
     # Variable map for If-node condition evaluation
     if_var_map = variable_map(params.variables)
@@ -992,7 +1038,7 @@ def main(
             except Exception as e:
                 print(f"[workflow_runner] If node {node_id} failed: {e}")
                 logger.error(f"If node {node_id} failed: {e}")
-                errors.append({"node_id": node_id, "error": str(e)})
+                errors.append(_step_error(node_id, e))
                 break
             continue
 
@@ -1003,7 +1049,7 @@ def main(
         process_id = node.get("data", {}).get("processId")
 
         if not process_id:
-            errors.append({"node_id": node_id, "error": "No processId"})
+            errors.append(_step_error(node_id, "No tool is chosen for this step."))
             continue
 
         print(f"[workflow_runner] Executing node {node_id} ({process_id})...")
@@ -1023,12 +1069,7 @@ def main(
             # Check if node failed (result contains error)
             if "error" in result:
                 print(f"[workflow_runner] Node {node_id} failed: {result.get('error')}")
-                errors.append(
-                    {
-                        "node_id": node_id,
-                        "error": result.get("error"),
-                    }
-                )
+                errors.append(_step_error(node_id, result.get("error")))
                 # Stop execution on error - downstream nodes depend on this
                 break
 
@@ -1039,12 +1080,7 @@ def main(
         except Exception as e:
             print(f"[workflow_runner] Node {node_id} failed: {e}")
             logger.error(f"Node {node_id} failed: {e}")
-            errors.append(
-                {
-                    "node_id": node_id,
-                    "error": str(e),
-                }
-            )
+            errors.append(_step_error(node_id, e))
             # Stop execution on error - downstream nodes depend on this
             break
 
@@ -1063,7 +1099,8 @@ def main(
         for export_node in export_nodes:
             export_node_id = export_node["id"]
             export_data = export_node.get("data", {})
-            dataset_name = export_data.get("datasetName", "").strip()
+            # An explicit null is no name, like an empty one.
+            dataset_name = str(export_data.get("datasetName") or "").strip()
 
             # Honor skipped status from the reachability pass — don't finalize
             # exports on a rejected branch.
@@ -1138,12 +1175,7 @@ def main(
                         f"[workflow_runner] Export node {export_node_id} failed: "
                         f"{result.get('error')}"
                     )
-                    errors.append(
-                        {
-                            "node_id": export_node_id,
-                            "error": result.get("error"),
-                        }
-                    )
+                    errors.append(_step_error(export_node_id, result.get("error")))
                 else:
                     print(
                         f"[workflow_runner] Export node {export_node_id} completed: "
@@ -1153,36 +1185,23 @@ def main(
             except Exception as e:
                 print(f"[workflow_runner] Export node {export_node_id} failed: {e}")
                 logger.error(f"Export node {export_node_id} failed: {e}")
-                errors.append(
-                    {
-                        "node_id": export_node_id,
-                        "error": str(e),
-                    }
-                )
+                errors.append(_step_error(export_node_id, e))
 
     print(
         f"[workflow_runner] Workflow complete: {len(results)} results, {len(errors)} errors"
     )
 
+    # A failed run is returned, not raised: Windmill keeps only an
+    # exception's text as a failed job's result, which would lose each
+    # step's own error. processes reports a result with errors as a failed
+    # job and lists them as the job's `node_errors`.
     result = WorkflowResult(
-        status="success" if not errors else "partial",
+        status="failed" if errors else "success",
         node_results=results,
         errors=errors,
     ).model_dump()
 
     # Add node_jobs mapping to result for final reference
     result["node_jobs"] = node_jobs
-
-    # If there were errors, raise to mark job as failed in Windmill
-    if errors:
-        # Build error message from first error
-        first_error = errors[0]
-        error_info = first_error.get("error", {})
-        if isinstance(error_info, dict):
-            error_msg = error_info.get("message", str(error_info))
-        else:
-            error_msg = str(error_info)
-        node_id = first_error.get("node_id", "unknown")
-        raise RuntimeError(f"Node {node_id} failed: {_sanitize_error_msg(error_msg)}")
 
     return result

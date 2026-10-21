@@ -34,7 +34,6 @@ vi.mock("@/lib/api/processes", () => ({
 vi.mock("@/lib/api/workflows", () => ({
   executeWorkflow: vi.fn(),
   finalizeWorkflowLayer: vi.fn(),
-  cleanupWorkflowTemp: vi.fn(),
 }));
 
 const toolNode = {

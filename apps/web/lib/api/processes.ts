@@ -133,6 +133,9 @@ export interface Job {
         temp_layer_id?: string; // Temp layer ID for completed nodes
       }
   >;
+  /** Error text of each step that failed, for workflow_runner jobs: from the
+   * failed child jobs while the run goes on, from the run's result after it. */
+  node_errors?: Record<string, string>;
 }
 
 /**

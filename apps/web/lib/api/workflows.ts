@@ -7,6 +7,11 @@ import { PROCESSES_BASE_URL } from "@/lib/constants";
 // ============================================================================
 import { GEOAPI_BASE_URL } from "@/lib/constants";
 import type { Workflow, WorkflowCreate, WorkflowUpdate } from "@/lib/validations/workflow";
+import {
+  type WorkflowIssue,
+  workflowCheckResponseSchema,
+  workflowRefusalSchema,
+} from "@/lib/validations/workflowIssues";
 
 import { PROJECTS_API_BASE_URL } from "./projects";
 
@@ -38,11 +43,6 @@ export interface WorkflowFinalizeRequest {
 
 export interface WorkflowFinalizeResponse {
   job_id: string;
-}
-
-export interface WorkflowCleanupResponse {
-  status: string;
-  message: string;
 }
 
 // ============================================================================
@@ -143,7 +143,10 @@ export const updateWorkflow = async (
     body: JSON.stringify(workflow),
   });
   if (!response.ok) {
-    throw new Error("Failed to update workflow");
+    // Core refuses a damaged config (422) with the issues it found, in the
+    // shape of a refused run; the editor's "Not saved" notice lists them.
+    const refused = response.status === 422 ? issuesRefusal(response.status, await response.text()) : undefined;
+    throw refused ?? new Error("Failed to update workflow");
   }
   const updated = await response.json();
   refreshWorkflow(projectId, workflowId);
@@ -188,32 +191,64 @@ export const duplicateWorkflow = async (
 // ============================================================================
 
 /**
- * A run processes refused: the workflow's own nodes that hold datasets the
- * caller may not use, and whether the project or folder it writes to is
- * refused.
+ * A run processes refused because the workflow has damaged or error issues
+ * (HTTP 422). The editor shows these issues in place of its own list.
  */
-export class WorkflowRefusedError extends Error {
+export class WorkflowIssuesError extends Error {
   constructor(
-    public readonly refusedNodes: string[],
-    public readonly destinationRefused: boolean
+    public readonly issues: WorkflowIssue[],
+    message = "The workflow has issues."
   ) {
-    super("Workflow refused");
-    this.name = "WorkflowRefusedError";
+    super(message);
+    this.name = "WorkflowIssuesError";
   }
 }
 
-const refusal = (body: string): WorkflowRefusedError | undefined => {
+const issuesRefusal = (status: number, body: string): WorkflowIssuesError | undefined => {
+  if (status !== 422) return undefined;
   try {
-    const detail = (
-      JSON.parse(body) as { detail?: { refused_nodes?: unknown; destination_refused?: unknown } }
-    ).detail;
-    if (detail && Array.isArray(detail.refused_nodes)) {
-      return new WorkflowRefusedError(detail.refused_nodes.map(String), detail.destination_refused === true);
-    }
+    // A request validation error is a 422 too, with a list as `detail`; it does not parse here.
+    const parsed = workflowRefusalSchema.safeParse(JSON.parse(body));
+    if (parsed.success) return new WorkflowIssuesError(parsed.data.detail.issues, parsed.data.detail.message);
   } catch {
     // Not JSON: an error page or plain text.
   }
   return undefined;
+};
+
+export interface WorkflowCheckRequest {
+  projectId: string;
+  nodes: unknown[];
+  edges: unknown[];
+  variables: { name: string; type: string; defaultValue?: string | number }[];
+  /** The UI language: processes names steps, inputs and settings in it. */
+  language?: string;
+}
+
+/**
+ * Check a workflow as the editor holds it, saved or not. Processes answers
+ * 200 with the issues, also for a damaged workflow; the caller must be able
+ * to read the project.
+ */
+export const checkWorkflow = async ({
+  projectId,
+  nodes,
+  edges,
+  variables,
+  language,
+}: WorkflowCheckRequest): Promise<WorkflowIssue[]> => {
+  const response = await apiRequestAuth(`${WORKFLOWS_API_BASE_URL}/check`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(language ? { "Accept-Language": language } : {}),
+    },
+    body: JSON.stringify({ project_id: projectId, nodes, edges, variables }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to check workflow: ${response.status}`);
+  }
+  return workflowCheckResponseSchema.parse(await response.json()).issues;
 };
 
 /**
@@ -221,18 +256,21 @@ const refusal = (body: string): WorkflowRefusedError | undefined => {
  */
 export const executeWorkflow = async (
   workflowId: string,
-  request: WorkflowExecuteRequest
+  request: WorkflowExecuteRequest,
+  /** The UI language: a refusal's issues name steps and settings in it. */
+  language?: string
 ): Promise<WorkflowExecuteResponse> => {
   const response = await apiRequestAuth(`${WORKFLOWS_API_BASE_URL}/${workflowId}/execute`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(language ? { "Accept-Language": language } : {}),
     },
     body: JSON.stringify(request),
   });
   if (!response.ok) {
     const error = await response.text();
-    throw refusal(error) ?? new Error(`Failed to execute workflow: ${error}`);
+    throw issuesRefusal(response.status, error) ?? new Error(`Failed to execute workflow: ${error}`);
   }
   return await response.json();
 };
@@ -254,26 +292,6 @@ export const finalizeWorkflowLayer = async (
   if (!response.ok) {
     const error = await response.text();
     throw new Error(`Failed to finalize layer: ${error}`);
-  }
-  return await response.json();
-};
-
-/**
- * Cleanup temporary workflow files
- */
-export const cleanupWorkflowTemp = async (
-  workflowId: string,
-  nodeIds?: string[]
-): Promise<WorkflowCleanupResponse> => {
-  let url = `${WORKFLOWS_API_BASE_URL}/${workflowId}/temp`;
-  if (nodeIds && nodeIds.length > 0) {
-    url += `?node_ids=${nodeIds.join(",")}`;
-  }
-  const response = await apiRequestAuth(url, {
-    method: "DELETE",
-  });
-  if (!response.ok) {
-    throw new Error("Failed to cleanup temp files");
   }
   return await response.json();
 };

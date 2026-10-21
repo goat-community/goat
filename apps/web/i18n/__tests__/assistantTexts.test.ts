@@ -103,7 +103,8 @@ describe("assistant texts", () => {
 
   it("cover every key the dock uses, and the dynamic families", () => {
     expect(usedKeys().length).toBeGreaterThan(0);
-    const missing = usedKeys().filter((key) => !(key in EN));
+    // A key read with a count (`t(key, { count })`) exists as its plural forms only.
+    const missing = usedKeys().filter((key) => !(key in EN) && !(`${key}_one` in EN && `${key}_other` in EN));
     expect(missing).toEqual([]);
     for (const tool of TOOLS) expect(EN, tool).toHaveProperty(`assistant_tool_${tool}`);
     for (const code of RUN_ERROR_CODES) expect(EN, code).toHaveProperty(`assistant_run_error_${code}`);

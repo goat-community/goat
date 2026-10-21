@@ -4,11 +4,10 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import DeleteIcon from "@mui/icons-material/Delete";
 import DuplicateIcon from "@mui/icons-material/ContentCopy";
-import WarningIcon from "@mui/icons-material/Warning";
 import { Box, Stack, Tooltip, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { type NodeProps, NodeToolbar, Position, useEdges } from "@xyflow/react";
-import React, { memo, useCallback, useMemo } from "react";
+import { type NodeProps, NodeToolbar, Position } from "@xyflow/react";
+import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
@@ -19,6 +18,8 @@ import { addNode, removeNodes } from "@/lib/store/workflow/slice";
 import type { ExportNodeData } from "@/lib/validations/workflow";
 
 import { type TOOL_ICON_NAME, toolIconMap } from "@p4b/ui/assets/svg/ToolIcons";
+
+import StepIssueBadge from "@/components/workflows/issues/StepIssueBadge";
 
 import { useNodeExecutionStatus } from "../context/WorkflowExecutionContext";
 import {
@@ -40,21 +41,6 @@ const ParamRow = styled(Box)({
   gap: 16,
 });
 
-const WarningBadge = styled(Box)(({ theme }) => ({
-  position: "absolute",
-  bottom: -14,
-  right: -8,
-  width: 24,
-  height: 24,
-  borderRadius: "50%",
-  backgroundColor: theme.palette.warning.main,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: theme.palette.warning.contrastText,
-  zIndex: 1,
-}));
-
 interface ExportNodeProps extends NodeProps {
   data: ExportNodeData;
 }
@@ -64,24 +50,8 @@ const ExportNode: React.FC<ExportNodeProps> = ({ id, data, selected }) => {
   const dispatch = useDispatch<AppDispatch>();
   const nodes = useSelector(selectNodes);
 
-  const edges = useEdges();
   const { status: nodeStatus_ } = useNodeExecutionStatus(id);
   const nodeStatus = nodeStatus_ || data.status;
-
-  const missingDatasetName = !data.datasetName?.trim();
-  const missingConnection = !edges.some((e) => e.target === id);
-  const hasWarning = missingDatasetName || missingConnection;
-
-  const warningMessage = useMemo(() => {
-    const parts: string[] = [];
-    if (missingConnection) {
-      parts.push(t("missing_layer_connections"));
-    }
-    if (missingDatasetName) {
-      parts.push(t("dataset_name_required"));
-    }
-    return parts.join(". ");
-  }, [missingConnection, missingDatasetName, t]);
 
   // Handle duplicate node
   const handleDuplicate = useCallback(
@@ -139,17 +109,16 @@ const ExportNode: React.FC<ExportNodeProps> = ({ id, data, selected }) => {
       </NodeToolbar>
 
       <NodeContainer selected={selected}>
-        {/* Warning badge for missing dataset name or connection */}
-        {hasWarning && !nodeStatus && (
-          <Tooltip title={warningMessage} arrow>
-            <WarningBadge>
-              <WarningIcon sx={{ fontSize: 16 }} />
-            </WarningBadge>
-          </Tooltip>
-        )}
+        {/* The step's issues; stays after a run, next to the run status */}
+        <StepIssueBadge nodeId={id} />
 
         {/* Input handle - left (receives tool output) */}
-        <StyledHandle type="target" position={Position.Left} id="input" selected={selected} />
+        <StyledHandle
+          type="target"
+          position={Position.Left}
+          id="input"
+          selected={selected}
+        />
 
         <NodeHeader>
           <AnimatedBorderWrapper isRunning={nodeStatus === "running"}>

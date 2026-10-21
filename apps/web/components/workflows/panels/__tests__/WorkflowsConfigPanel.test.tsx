@@ -8,8 +8,11 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import { createWorkflow, updateWorkflow } from "@/lib/api/workflows";
 import type { Project } from "@/lib/validations/project";
 import type { Workflow } from "@/lib/validations/workflow";
+
+import { useWorkflowCreation } from "@/hooks/workflows/useWorkflowCreation";
 
 import WorkflowsConfigPanel from "@/components/workflows/panels/WorkflowsConfigPanel";
 
@@ -43,7 +46,10 @@ vi.mock("@/components/map/panels/layer/ProjectLayerTree", () => ({
 }));
 
 vi.mock("@/components/modals/Confirm", () => ({ default: () => null }));
-vi.mock("@/components/modals/WorkflowRename", () => ({ default: () => null }));
+vi.mock("@/components/modals/WorkflowRename", () => ({
+  default: ({ open, onRename }: { open: boolean; onRename: (name: string) => void }) =>
+    open ? <button onClick={() => onRename("Renamed workflow")}>confirm-rename</button> : null,
+}));
 vi.mock("@/components/templates/SaveTemplateDialog", () => ({ default: () => null }));
 vi.mock("@/components/workflows/dialogs/ReplaceDatasetsDialog", () => ({ default: () => null }));
 vi.mock("@/components/templates/UseTemplateFlow", () => ({ default: () => null }));
@@ -66,8 +72,34 @@ const project = { id: "p1" } as unknown as Project;
 
 workflowsMock.list = [mockWorkflow];
 
-const renderPanel = () =>
-  render(<WorkflowsConfigPanel project={project} selectedWorkflow={null} onSelectWorkflow={vi.fn()} />);
+/** The panel as the layout hosts it: creating a workflow is lifted out of it, and its dialogs mount next to it. */
+function Harness({
+  selectedWorkflow,
+  onSelectWorkflow,
+}: {
+  selectedWorkflow: Workflow | null;
+  onSelectWorkflow: (workflow: Workflow | null) => void;
+}) {
+  const creation = useWorkflowCreation({
+    project,
+    workflows: workflowsMock.list as Workflow[],
+    mutateWorkflows: async () => undefined,
+    onSelectWorkflow,
+  });
+  return (
+    <>
+      <WorkflowsConfigPanel
+        project={project}
+        selectedWorkflow={selectedWorkflow}
+        onSelectWorkflow={onSelectWorkflow}
+        creation={creation}
+      />
+      {creation.dialogs}
+    </>
+  );
+}
+
+const renderPanel = () => render(<Harness selectedWorkflow={null} onSelectWorkflow={vi.fn()} />);
 
 describe("WorkflowsConfigPanel template entry points", () => {
   it("does not mount the template browser until it is opened", () => {
@@ -120,13 +152,7 @@ describe("WorkflowsConfigPanel template entry points", () => {
     workflowsMock.list = [mockWorkflow, second];
     const onSelectWorkflow = vi.fn();
     try {
-      render(
-        <WorkflowsConfigPanel
-          project={project}
-          selectedWorkflow={second}
-          onSelectWorkflow={onSelectWorkflow}
-        />
-      );
+      render(<Harness selectedWorkflow={second} onSelectWorkflow={onSelectWorkflow} />);
       await expect(screen.getByText("Workflow 4").closest(".MuiListItemButton-root")).toHaveClass(
         "Mui-selected"
       );
@@ -138,9 +164,31 @@ describe("WorkflowsConfigPanel template entry points", () => {
 
   it("opens the first workflow only when nothing is selected anywhere", () => {
     const onSelectWorkflow = vi.fn();
-    render(
-      <WorkflowsConfigPanel project={project} selectedWorkflow={null} onSelectWorkflow={onSelectWorkflow} />
-    );
+    render(<Harness selectedWorkflow={null} onSelectWorkflow={onSelectWorkflow} />);
     expect(onSelectWorkflow).toHaveBeenCalledWith(expect.objectContaining({ id: mockWorkflow.id }));
+  });
+
+  it("renames with the new name only, so core keeps the stored config", async () => {
+    // Sending the list's copy of the config could revert newer canvas edits,
+    // and core refuses a damaged config: such a workflow could not be renamed.
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByRole("button", { name: "more_options" }));
+    await user.click(await screen.findByText("rename"));
+    await user.click(screen.getByRole("button", { name: "confirm-rename" }));
+
+    expect(updateWorkflow).toHaveBeenCalledWith("p1", "w1", { name: "Renamed workflow" });
+  });
+
+  it("creates from scratch through the same flow the empty-project card uses", async () => {
+    vi.mocked(createWorkflow).mockResolvedValueOnce({ id: "w-new" } as Workflow);
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByRole("button", { name: "new" }));
+    await user.click(await screen.findByRole("menuitem", { name: "from_scratch" }));
+
+    expect(createWorkflow).toHaveBeenCalledWith("p1", expect.objectContaining({ name: "workflow 2" }));
   });
 });

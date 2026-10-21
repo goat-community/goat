@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { Edge, Node } from "@xyflow/react";
 
+import { isDrawableWorkflowConfig } from "@/lib/validations/workflow";
 import type {
   Workflow,
   WorkflowConfig,
@@ -55,7 +56,10 @@ const initialState: WorkflowState = {
   activeDataPanelView: null,
 };
 
-// Helper to convert WorkflowConfig to ReactFlow format
+const DEFAULT_VIEWPORT: Viewport = { x: 0, y: 0, zoom: 1 };
+
+// Helper to convert WorkflowConfig to ReactFlow format. Only called for a
+// config `isDrawableWorkflowConfig` accepts (see `loadCanvas`).
 const configToReactFlow = (config: WorkflowConfig | undefined) => {
   if (!config) return { nodes: [], edges: [] };
 
@@ -85,6 +89,24 @@ const configToReactFlow = (config: WorkflowConfig | undefined) => {
   }));
 
   return { nodes, edges };
+};
+
+
+// The canvas state a stored config opens as. A config the canvas cannot draw
+// opens as an empty canvas: the editor shows the damaged notice in its place
+// and never saves over it, and the reducer never throws on it. The stored
+// config itself stays as it is.
+const loadCanvas = (config: WorkflowConfig | undefined) => {
+  if (!config || !isDrawableWorkflowConfig(config)) {
+    return {
+      nodes: [] as Node[],
+      edges: [] as Edge[],
+      viewport: { ...DEFAULT_VIEWPORT },
+      variables: [] as WorkflowVariable[],
+    };
+  }
+  const { nodes, edges } = configToReactFlow(config);
+  return { nodes, edges, viewport: config.viewport ?? { ...DEFAULT_VIEWPORT }, variables: config.variables ?? [] };
 };
 
 // Helper to convert ReactFlow to WorkflowConfig format
@@ -123,11 +145,11 @@ const workflowSlice = createSlice({
       if (!state.selectedWorkflowId || selectedWasKnown || state.isDirty) return;
       const workflow = action.payload.find((w) => w.id === state.selectedWorkflowId);
       if (!workflow) return;
-      const { nodes, edges } = configToReactFlow(workflow.config);
-      state.nodes = nodes;
-      state.edges = edges;
-      state.viewport = workflow.config?.viewport ?? { x: 0, y: 0, zoom: 1 };
-      state.variables = workflow.config?.variables ?? [];
+      const canvas = loadCanvas(workflow.config);
+      state.nodes = canvas.nodes;
+      state.edges = canvas.edges;
+      state.viewport = canvas.viewport;
+      state.variables = canvas.variables;
     },
 
     // Add a new workflow
@@ -153,11 +175,11 @@ const workflowSlice = createSlice({
 
       if (action.payload) {
         const workflow = state.workflows.find((w) => w.id === action.payload);
-        const { nodes, edges } = configToReactFlow(workflow?.config);
-        state.nodes = nodes;
-        state.edges = edges;
-        state.viewport = workflow?.config?.viewport ?? { x: 0, y: 0, zoom: 1 };
-        state.variables = workflow?.config?.variables ?? [];
+        const canvas = loadCanvas(workflow?.config);
+        state.nodes = canvas.nodes;
+        state.edges = canvas.edges;
+        state.viewport = canvas.viewport;
+        state.variables = canvas.variables;
       } else {
         state.nodes = [];
         state.edges = [];

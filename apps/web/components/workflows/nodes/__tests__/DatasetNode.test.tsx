@@ -1,10 +1,8 @@
 /**
- * `data.unresolved` is set by the backend when a template's "ask" dataset
- * slot isn't bound to a layer on use (apps/core/src/core/templates/snapshot.py's
- * freeze_workflow_config/bind_workflow_config, T7). The node should flag this
- * clearly and let the user jump to the picker that clears it — the sidebar's
- * Dataset settings panel (components/workflows/panels/DatasetNodeSettings.tsx),
- * opened by selecting the node.
+ * A dataset step without a layer (a template's open input, or an empty step
+ * from the palette) is reported by the workflow check as `layer_not_chosen`.
+ * The node shows that issue on its badge and keeps its "Pick a layer" action,
+ * which selects the node so the sidebar opens on its Dataset settings.
  */
 import { configureStore } from "@reduxjs/toolkit";
 import { render, screen } from "@testing-library/react";
@@ -17,7 +15,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { workflowReducer } from "@/lib/store/workflow/slice";
 import type { DatasetNodeData } from "@/lib/validations/workflow";
 
+import { makeIssue } from "@/components/workflows/issues/__tests__/issueFixtures";
 import DatasetNode from "@/components/workflows/nodes/DatasetNode";
+
+const { issuesByNode } = vi.hoisted(() => ({ issuesByNode: new Map<string, unknown[]>() }));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -45,6 +46,22 @@ vi.mock("@/hooks/map/CommonHooks", () => ({
   default: () => ({ layerFields: [] }),
 }));
 
+vi.mock("@/components/workflows/issues/WorkflowIssuesContext", () => ({
+  useStepIssues: (nodeId: string) => issuesByNode.get(nodeId) ?? [],
+  useWorkflowIssuesContext: () => ({
+    issues: [],
+    byNode: issuesByNode,
+    blockingCount: 0,
+    damaged: [],
+    focus: vi.fn(),
+    focusRequest: null,
+  }),
+}));
+
+vi.mock("@/lib/utils/workflowIssueText", () => ({
+  issueText: (_t: unknown, issue: { message: string }) => issue.message,
+}));
+
 type DatasetNodeProps = ComponentProps<typeof DatasetNode>;
 
 const makeStore = () => configureStore({ reducer: { workflow: workflowReducer } });
@@ -70,46 +87,57 @@ const renderNode = (data: DatasetNodeData, store: ReturnType<typeof makeStore>) 
   );
 
 const baseData: DatasetNodeData = { type: "dataset", label: "Dataset" };
+const notChosen = makeIssue({ code: "layer_not_chosen", node_ids: ["dataset-1"], message: "Dataset: no layer chosen." });
 
-describe("DatasetNode unresolved template input", () => {
+describe("DatasetNode without a chosen layer", () => {
   let store: ReturnType<typeof makeStore>;
 
   beforeEach(() => {
     store = makeStore();
+    issuesByNode.clear();
   });
 
-  it("shows nothing extra when the node is resolved", () => {
+  it("shows nothing extra while the check reports nothing for the step", () => {
     renderNode(baseData, store);
-    expect(screen.queryByLabelText("unresolved_input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("step-issue-badge")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "pick_a_layer" })).not.toBeInTheDocument();
   });
 
-  it("shows the unresolved badge and a pick-a-layer action", () => {
-    renderNode({ ...baseData, unresolved: true } as DatasetNodeData, store);
-    expect(screen.getByLabelText("unresolved_input")).toBeInTheDocument();
+  it("shows the issue on its badge and offers Pick a layer", async () => {
+    issuesByNode.set("dataset-1", [notChosen]);
+    renderNode(baseData, store);
+    await expect(screen.getByTestId("step-issue-badge")).toHaveAttribute("data-severity", "error");
     expect(screen.getByRole("button", { name: "pick_a_layer" })).toBeInTheDocument();
   });
 
   it("selects the node (opening its Dataset settings picker) when Pick a layer is clicked", async () => {
+    issuesByNode.set("dataset-1", [notChosen]);
     const user = userEvent.setup();
-    renderNode({ ...baseData, unresolved: true } as DatasetNodeData, store);
+    renderNode(baseData, store);
 
     await user.click(screen.getByRole("button", { name: "pick_a_layer" }));
 
     expect(store.getState().workflow.selectedNodeId).toBe("dataset-1");
   });
 
-  it("hides the badge and action once the node is resolved (data.unresolved cleared)", () => {
-    const { rerender } = renderNode({ ...baseData, unresolved: true } as DatasetNodeData, store);
-    expect(screen.getByLabelText("unresolved_input")).toBeInTheDocument();
+  it("drops the action once the check no longer reports the layer as missing", () => {
+    issuesByNode.set("dataset-1", [notChosen]);
+    const { rerender } = renderNode(baseData, store);
+    expect(screen.getByRole("button", { name: "pick_a_layer" })).toBeInTheDocument();
 
+    issuesByNode.clear();
     rerender(
       <Provider store={store}>
-        <DatasetNode {...nodeProps({ ...baseData, unresolved: false } as DatasetNodeData)} />
+        <DatasetNode {...nodeProps({ ...baseData, layerId: "11111111-1111-4111-8111-111111111111" })} />
       </Provider>
     );
 
-    expect(screen.queryByLabelText("unresolved_input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("step-issue-badge")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "pick_a_layer" })).not.toBeInTheDocument();
+  });
+
+  it("follows the check rather than the template's own flag", () => {
+    renderNode({ ...baseData, unresolved: true } as DatasetNodeData, store);
     expect(screen.queryByRole("button", { name: "pick_a_layer" })).not.toBeInTheDocument();
   });
 });

@@ -161,7 +161,7 @@ Begin with simple 2-3 node workflows to understand the interface, then gradually
 
 <div class="step">
   <div class="step-number">2</div>
-  <div class="content"><strong>Create a new workflow</strong>: Click <code>+ New</code> in the left panel and choose <code>From scratch</code> to start with an empty canvas, or <code>From template</code> to start from a ready-made workflow (see <a href="#start-from-a-template">Start from a template</a>). A new workflow is added to the list with a default name.</div>
+  <div class="content"><strong>Create a new workflow</strong>: Click <code>+ New</code> in the left panel and choose <code>From scratch</code> to start with an empty canvas, or <code>From template</code> to start from a ready-made workflow (see <a href="#start-from-a-template">Start from a template</a>). A new workflow is added to the list with a default name. In a project without workflows, the canvas offers the same in its centre: <code>New workflow</code>, <code>Start from a template</code> when workflow templates are available to you, and a <code>What's a workflow?</code> link to this page.</div>
 </div>
 
 <div class="step">
@@ -200,7 +200,7 @@ Begin with simple 2-3 node workflows to understand the interface, then gradually
 
 <div class="step">
   <div class="step-number">1</div>
-  <div class="content"><strong>Execute Workflow</strong>: Use the <code>Run Workflow</code> option to execute the entire workflow from start to finish.</div>
+  <div class="content"><strong>Execute Workflow</strong>: Click <code>Run</code> at the bottom of the canvas to execute the entire workflow from start to finish. It is greyed out while the workflow has errors (see <a href="#checking-and-running-a-workflow">Checking and running a workflow</a>).</div>
 </div>
 
 <div class="step">
@@ -219,7 +219,32 @@ Begin with simple 2-3 node workflows to understand the interface, then gradually
 </div>
 
 :::info Auto-Save Feature
-Workflows automatically save changes as you build them. The system preserves all configurations, connections, and execution states.
+Workflows automatically save changes as you build them. The system preserves all configurations, connections, and execution states. If a save fails, a <code>Not saved</code> notice appears at the top of the canvas; click <code>Retry</code> to save again.
+:::
+
+### Checking and running a workflow
+
+GOAT checks the workflow while you build it and shows what still needs attention. Nothing it finds stops you from building or saving.
+
+- Next to <code>Run</code>, a chip such as <code>2 issues</code> counts everything that was found. Click it to open the list, grouped by node; issues that concern the whole workflow come first.
+- A node with an issue shows a badge at its bottom right corner. Point at the badge, or tap it, to read its messages.
+- An input that must be connected but is not gets an amber ring around its handle.
+- In a node's settings, a message appears under the setting it concerns, and the node's other issues are listed at the top. Required settings are marked with an asterisk (<code>*</code>).
+
+Click an issue in the list or on a badge to go to it: the canvas moves to the node, selects it and opens its settings at the setting concerned.
+
+| Level | Colour | What it means |
+|---|---|---|
+| Error | amber | The workflow cannot run yet, for example because an input is not connected, a required setting is empty or a field does not exist in the input dataset. |
+| Warning | grey | Worth a look, but it never stops a run, for example a node that is not connected to any other node. |
+| Run error | red | The node failed in the last run, and its badge shows the node's own error message. It goes away when you change the node or run the workflow again. |
+
+While the workflow has errors, <code>Run</code> is greyed out; pointing at it tells you how many are left, for example <code>Fix 2 issues to run</code>. Warnings and run errors never disable <code>Run</code>.
+
+If the workflow could not be checked, for example because the connection dropped, a chip <code>Not checked</code> appears. Click it to check again; a run is always checked when it starts.
+
+:::info Damaged workflows
+If the saved version of a workflow cannot be read, for example because it was changed outside GOAT, it opens with the notice <code>This workflow cannot be opened</code> in place of the canvas, listing what is broken. Such a workflow cannot be edited or run there, and GOAT does not save over it. The other workflows of the project keep working.
 :::
 
 ### Start from a template

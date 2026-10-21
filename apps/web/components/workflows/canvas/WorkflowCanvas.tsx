@@ -253,10 +253,8 @@ interface WorkflowCanvasProps {
   // Execution props
   isExecuting?: boolean;
   canExecute?: boolean;
-  /** At least one dataset node still needs a layer (a template's unresolved
-   * "ask" input) — the run button stays disabled and explains why. */
-  hasUnresolvedInputs?: boolean;
-  onRun?: () => void;
+  /** Starts a run; resolves true when processes refused it with issues. */
+  onRun?: () => void | Promise<boolean>;
   onStop?: () => void;
 }
 
@@ -265,7 +263,6 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
   onDragOver,
   isExecuting = false,
   canExecute = false,
-  hasUnresolvedInputs = false,
   onRun,
   onStop,
 }) => {
@@ -750,7 +747,6 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
         onStop={onStop}
         isRunning={isExecuting}
         canRun={canExecute && localNodes.length > 0}
-        hasUnresolvedInputs={hasUnresolvedInputs}
         onVariablesClick={() => setVariablesDialogOpen(true)}
       />
 

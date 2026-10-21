@@ -99,3 +99,30 @@ describe("workflow slice — variable labels and descriptions", () => {
     expect(saved).toEqual([labelled, legacy]);
   });
 });
+
+
+describe("workflow slice — a stored config the canvas cannot draw", () => {
+  const damaged = (config: unknown): Workflow =>
+    ({ ...workflow("wf-bad", []), config }) as unknown as Workflow;
+
+  it("opens as an empty canvas instead of throwing", () => {
+    let state = reducer(initial, setWorkflows([damaged({ nodes: "not a list", edges: [] })]));
+    state = reducer(state, selectWorkflow("wf-bad"));
+    expect(state.nodes).toEqual([]);
+    expect(state.edges).toEqual([]);
+    expect(state.variables).toEqual([]);
+  });
+
+  it("also when the list brings it after it was selected", () => {
+    let state = reducer(initial, selectWorkflow("wf-bad"));
+    state = reducer(state, setWorkflows([damaged({ nodes: [{ id: "a", type: "tool", data: {} }], edges: [] })]));
+    expect(state.nodes).toEqual([]);
+  });
+
+  it("keeps the stored config as it is, for the notice and the check", () => {
+    const config = { nodes: [{ id: "a", type: "chart", position: { x: 0, y: 0 }, data: {} }], edges: [] };
+    let state = reducer(initial, setWorkflows([damaged(config)]));
+    state = reducer(state, selectWorkflow("wf-bad"));
+    expect(state.workflows[0].config).toEqual(config);
+  });
+});

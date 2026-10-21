@@ -130,6 +130,12 @@ class AnalyticsService:
             result = con.execute(f"DESCRIBE {table_name}").fetchall()
             return [row[0] for row in result]
 
+    def column_names(self, layer_id: str) -> list[str]:
+        """The column names of a layer, whichever home it has: a DuckLake
+        table or a promoted catalog file. Raises HTTPException 404 when it has
+        neither."""
+        return self._get_column_names(self._get_table_name(layer_id))
+
     def _detect_geometry_column(self, table_name: str) -> str:
         """Detect the geometry column name for a table.
 
