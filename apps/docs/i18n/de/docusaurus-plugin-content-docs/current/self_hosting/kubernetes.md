@@ -63,6 +63,8 @@ Beschreiben Sie Ihren S3-Speicher einmal in `global.s3`: den Bucket für Uploads
 
 Hochgeladene Bilder, etwa Vorschaubilder von Projekten und Datensätzen, Profilbilder und Bilder in Dashboards, liegen in einem zweiten Bucket desselben Speichers (`global.s3.assets.bucket`). Browser laden sie direkt aus diesem Bucket; machen Sie ihn deshalb öffentlich lesbar und tragen Sie seine öffentliche URL in `global.s3.assets.publicUrl` ein. Außerhalb von AWS ist die URL Pflicht. GOATs eigene Grafiken liefert die Web-App selbst aus; sie brauchen beides nicht.
 
+Erlaubt Ihr Speicher keinen öffentlich lesbaren Bucket, setzen Sie stattdessen `global.s3.assets.servedByCore: true` (`ASSETS_SERVED_BY_CORE`). GOAT legt die Bilder dann im Upload-Bucket unter `assets/` ab, und core liefert sie über seine API aus; Sie brauchen dann weder einen Assets-Bucket noch eine öffentliche URL. Core muss dafür GOAT v3.0.9 oder neuer ausführen, also neuer als die Vorgabe des Charts: Setzen Sie `core.image.tag`. Die Bildlinks zeigen auf die API von core unter dem Host der Web-App; hat core einen eigenen Host, setzen Sie `global.s3.assets.publicUrl` auf `<öffentliche URL von core>/api/v2/asset/file`.
+
 Ohne eigenen Speicher setzen Sie `garage.enabled: true`: Das Chart betreibt dann ein Garage mit einem Knoten, wie das Docker-Compose-Paket, legt beide Buckets und ein Schlüsselpaar an und füllt `global.s3` dafür aus. Browser erreichen es über den Host der Web-App, Uploads unter `/<bucket>` und Bilder unter `/<assets bucket>`; `garage.ingress.enabled: true` richtet beide Routen für ingress-nginx ein. Mit einem anderen Ingress-Controller richten Sie sie selbst ein (siehe README des Charts). Es ist ein einzelner Knoten ohne Replikation: Sichern Sie sein Datenvolume.
 
 ### Anmeldung {#auth}
