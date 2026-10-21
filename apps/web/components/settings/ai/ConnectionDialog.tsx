@@ -268,13 +268,6 @@ export default function ConnectionDialog({
           }
           {...register("model")}
         />
-        <TextField
-          label={t("ai_settings_field_background_model")}
-          disabled={busy}
-          error={Boolean(fieldError("background_model"))}
-          helperText={fieldError("background_model") ?? t("ai_settings_field_background_model_help")}
-          {...register("background_model")}
-        />
         {fields.secrets.includes("api_key") && (
           <TextField
             type="password"

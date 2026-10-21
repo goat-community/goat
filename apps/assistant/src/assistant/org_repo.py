@@ -24,7 +24,6 @@ _UPDATABLE = frozenset(
         "base_url",
         "region",
         "model",
-        "background_model",
         "credentials_encrypted",
         "capabilities",
     }
@@ -203,15 +202,14 @@ class OrgSettingsRepository:
             record = await self.db.pool.fetchrow(
                 f"INSERT INTO {self.db.t('connection')} "
                 "(organization_id, name, provider, base_url, region, model, "
-                "background_model, credentials_encrypted, capabilities) "
-                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+                "credentials_encrypted, capabilities) "
+                "VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *",
                 organization_id,
                 name,
                 fields.provider,
                 fields.base_url,
                 fields.region,
                 fields.model,
-                fields.background_model,
                 credentials_encrypted,
                 capabilities or {},
             )

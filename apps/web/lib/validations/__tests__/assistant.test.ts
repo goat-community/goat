@@ -62,6 +62,11 @@ describe("connection form", () => {
     expect(toConnectionPayload(compatible, "create").credentials).toEqual({});
   });
 
+  it("names one model: the one that answers also writes the titles", () => {
+    expect(toConnectionPayload(compatible, "create")).not.toHaveProperty("background_model");
+    expect(Object.keys(emptyConnectionForm("openai_compatible"))).not.toContain("background_model");
+  });
+
   it("drops fields the provider does not take", () => {
     const payload = toConnectionPayload(
       { ...compatible, provider: "openai", region: "eu-central-1", api_key: "sk-org", access_key_id: "x" },

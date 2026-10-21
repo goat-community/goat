@@ -80,7 +80,6 @@ def _settings() -> AssistantSettings:
             # GOAT AI runs on Pydantic AI's TestModel: no provider is ever called.
             "default_provider": "test",
             "default_model": "test",
-            "default_background_model": "",
             "default_base_url": "",
             "default_api_key": "",
             "default_region": "",

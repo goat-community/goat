@@ -127,7 +127,6 @@ def test_connection_fields_follow_the_provider(
             fields["base_url"],
             fields["region"],
             str(fields["model"]),
-            None,
             STRICT,
         )  # type: ignore[arg-type]
     assert caught.value.field == bad_field
@@ -135,17 +134,15 @@ def test_connection_fields_follow_the_provider(
 
 def test_valid_connection_fields_are_normalized() -> None:
     compatible = normalize_connection(
-        "openai_compatible", "https://LLM.example.org/v1/", None, " qwen3 ", "", STRICT
+        "openai_compatible", "https://LLM.example.org/v1/", None, " qwen3 ", STRICT
     )
     assert compatible.base_url == "https://llm.example.org/v1"
     assert compatible.model == "qwen3"
-    assert compatible.background_model is None
     bedrock = normalize_connection(
         "bedrock",
         None,
         "eu-central-1",
         "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        None,
         STRICT,
     )
     assert bedrock.region == "eu-central-1"
@@ -155,7 +152,6 @@ def test_valid_connection_fields_are_normalized() -> None:
         None,
         "eu-central-1",
         "arn:aws:bedrock:eu-central-1:123456789012:inference-profile/eu.team-profile",
-        None,
         STRICT,
     )
     assert arn.model.startswith("arn:aws:bedrock:")
@@ -164,7 +160,6 @@ def test_valid_connection_fields_are_normalized() -> None:
         "https://res.openai.azure.com/openai/v1/",
         None,
         "my-deployment",
-        None,
         STRICT,
     )
     assert azure.base_url == "https://res.openai.azure.com/openai/v1"
@@ -173,7 +168,7 @@ def test_valid_connection_fields_are_normalized() -> None:
 def test_private_base_url_is_refused() -> None:
     with pytest.raises(EndpointNotAllowed):
         normalize_connection(
-            "openai_compatible", "https://10.0.0.5/v1", None, "m", None, STRICT
+            "openai_compatible", "https://10.0.0.5/v1", None, "m", STRICT
         )
 
 
@@ -337,24 +332,20 @@ async def test_open_models_builds_each_provider(
         assert models.main.model_name == target.model
         assert models.main.base_url is not None
         assert models.main.base_url.rstrip("/") == base_url
-        assert models.background is models.main  # no background model set
     finally:
         await models.aclose()
 
 
-async def test_mistral_and_a_separate_background_model() -> None:
+async def test_mistral() -> None:
     models = open_models(
         _target(
-            "mistral",
-            model="mistral-large-latest",
-            background_model="mistral-small-latest",
-            credentials={"api_key": "mi-org"},
+            "mistral", model="mistral-large-latest", credentials={"api_key": "mi-org"}
         ),
         STRICT,
     )
     try:
         assert isinstance(models.main, MistralModel)
-        assert models.background.model_name == "mistral-small-latest"
+        assert models.main.model_name == "mistral-large-latest"
     finally:
         await models.aclose()
     assert all(client.is_closed for client in models.clients)

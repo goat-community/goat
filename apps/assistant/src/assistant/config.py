@@ -129,8 +129,6 @@ class AssistantSettings(BaseSettings):
     #: GOAT AI's model ID. With ``test``: ``test`` (the default) or ``demo``
     #: (the slow streaming model of the spike page).
     default_model: str = ""
-    #: Model for titles and summaries; empty uses ``default_model`` (§4.5).
-    default_background_model: str = ""
     #: Required for ``openai_compatible`` and ``azure_openai`` (the Azure v1
     #: endpoint); an optional gateway for ``anthropic``, ``openai``, ``mistral``.
     default_base_url: str = ""

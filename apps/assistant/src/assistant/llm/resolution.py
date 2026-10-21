@@ -91,7 +91,6 @@ class ModelResolver:
             connection_id=connection["id"],
             provider=connection["provider"],
             model=connection["model"],
-            background_model=connection["background_model"],
             base_url=connection["base_url"],
             region=connection["region"],
             credentials=self.decrypt(connection),

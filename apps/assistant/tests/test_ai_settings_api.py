@@ -195,6 +195,22 @@ async def test_admin_reads_the_defaults(
     }
 
 
+async def test_a_connection_has_one_model(
+    db: Database, authed: AssistantSettings, probe: FakeProbe
+) -> None:
+    """The model that answers also names the conversation: a connection keeps no
+    second model, and a client that still sends one has it ignored."""
+    async with _client(db, authed, ADMIN) as client:
+        created = await _create(client, background_model="own-small")
+        updated = await client.patch(
+            f"/connections/{created['id']}", json={"background_model": "own-small"}
+        )
+    assert updated.status_code == 200, updated.text
+    for body in (created, updated.json()):
+        assert body["model"] == CREATE["model"]
+        assert "background_model" not in body
+
+
 async def test_key_is_write_only(
     db: Database, authed: AssistantSettings, probe: FakeProbe
 ) -> None:

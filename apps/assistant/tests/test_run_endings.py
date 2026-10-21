@@ -101,7 +101,7 @@ def _failing_opener(error: Exception) -> Callable[[Target], OpenModels]:
 
     def open_(target: Target) -> OpenModels:
         model = FunctionModel(stream_function=stream)
-        return OpenModels(main=model, background=model)
+        return OpenModels(main=model)
 
     return open_
 

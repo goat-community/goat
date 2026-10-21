@@ -68,9 +68,8 @@ def _opener(own: Callable[[], Model]) -> Callable[[Target], OpenModels]:
 
     def open_(target: Target) -> OpenModels:
         if target.connection_id is None:
-            return OpenModels(main=dev_model("test"), background=dev_model("test"))
-        model = own()
-        return OpenModels(main=model, background=model)
+            return OpenModels(main=dev_model("test"))
+        return OpenModels(main=own())
 
     return open_
 
@@ -88,7 +87,7 @@ async def _activate(
         ORG,
         name="Own",
         fields=ConnectionFields(
-            "openai_compatible", "https://llm.example.org/v1", None, "own-model", None
+            "openai_compatible", "https://llm.example.org/v1", None, "own-model"
         ),
         credentials_encrypted=box.encrypt({"api_key": KEY}),
     )
@@ -290,7 +289,7 @@ async def test_a_failing_fallback_reports_goat_ai(
 
     def open_(target: Target) -> OpenModels:
         model = _failing(error)()
-        return OpenModels(main=model, background=model)
+        return OpenModels(main=model)
 
     manager = RunManager(repo, InMemoryEventBus(), settings, owner="a", opener=open_)
     run = await _run(manager, repo)
@@ -407,7 +406,7 @@ async def test_a_run_that_was_ended_elsewhere_writes_no_title(
     assert [purpose for purpose, *_ in await _usage(repo)] == ["main"]
 
 
-async def test_the_first_run_writes_a_title_with_the_background_model(
+async def test_the_first_run_writes_a_title_with_the_model_that_answers(
     repo: Repository, settings: AssistantSettings
 ) -> None:
     manager = RunManager(repo, InMemoryEventBus(), settings, owner="a")

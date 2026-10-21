@@ -85,7 +85,7 @@ FALLBACK_CAVEAT = (
     "Your organization's AI provider is unavailable. This answer uses GOAT AI."
 )
 
-#: A title is a nicety; a slow background model must not hold the task open.
+#: A title is a nicety; a slow model must not hold the task open.
 TITLE_TIMEOUT_SECONDS = 30.0
 
 SHUTTING_DOWN = "The assistant is shutting down."
@@ -770,8 +770,8 @@ class RunManager:
         target: Target,
         text: str,
     ) -> None:
-        """Name a new conversation with the background model of the connection
-        that answered (spec §4.5). Best effort: a failure is logged and the
+        """Name a new conversation with the model of the connection that
+        answered (spec §4.5). Best effort: a failure is logged and the
         conversation stays untitled. What the model consumed is recorded even
         when the title fails after the model answered."""
         try:
@@ -786,11 +786,11 @@ class RunManager:
         try:
             async with self._models(target) as models:
                 title, _ = await asyncio.wait_for(
-                    generate_title(models.background, text, usage=usage),
+                    generate_title(models.main, text, usage=usage),
                     TITLE_TIMEOUT_SECONDS,
                 )
         except TimeoutError as exc:
-            # A slow background model is expected now and then and costs nothing.
+            # A slow title is expected now and then and costs nothing.
             logger.warning(
                 "Run %s: writing the conversation title timed out: %s",
                 run_id,
@@ -809,9 +809,9 @@ class RunManager:
                     user_id,
                     resolution.organization_id,
                     target.provider,
-                    target.background,
+                    target.model,
                     "background",
-                    usage_event(target.provider, target.background, usage),
+                    usage_event(target.provider, target.model, usage),
                     connection_id=target.connection_id,
                 )
             if title:

@@ -141,8 +141,7 @@ See [AI assistant](./external_services.md#assistant) for how these work together
 | Setting | Default | Meaning |
 |---|---|---|
 | `ASSISTANT_DEFAULT_PROVIDER` | `none` | Provider of "GOAT AI", the built-in model every organization may use: `anthropic`, `bedrock`, `vertex`, `azure_openai`, `openai`, `mistral`, `openai_compatible`, or `none` (no built-in model) |
-| `ASSISTANT_DEFAULT_MODEL` | empty | The provider's model ID; required unless the provider is `none` |
-| `ASSISTANT_DEFAULT_BACKGROUND_MODEL` | empty | Model for conversation titles and summaries; empty uses the model above |
+| `ASSISTANT_DEFAULT_MODEL` | empty | The provider's model ID, which answers and also writes the conversation titles; required unless the provider is `none` |
 | `ASSISTANT_DEFAULT_BASE_URL` | empty | Required for `openai_compatible` and `azure_openai` (the Azure v1 endpoint, ending in `/openai/v1`); an optional gateway for `anthropic`, `openai` and `mistral` |
 | `ASSISTANT_DEFAULT_API_KEY` | empty | Required for `anthropic`, `openai`, `mistral` and `azure_openai`; optional for `openai_compatible`; for `bedrock` an optional Bedrock API key |
 | `ASSISTANT_DEFAULT_REGION` | empty | AWS region (`bedrock`) or Google Cloud location (`vertex`) |

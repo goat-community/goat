@@ -23,7 +23,6 @@ FIELDS = ConnectionFields(
     base_url="https://llm.example.org/v1",
     region=None,
     model="own-model",
-    background_model=None,
 )
 
 

@@ -153,7 +153,6 @@ class ConnectionFields:
     base_url: str | None
     region: str | None
     model: str
-    background_model: str | None
 
 
 @dataclass(frozen=True)
@@ -164,14 +163,9 @@ class Target:
     #: One of the provider types, or ``test`` (GOAT AI on Pydantic AI's test models).
     provider: str
     model: str
-    background_model: str | None = None
     base_url: str | None = None
     region: str | None = None
     credentials: Mapping[str, str] = field(default_factory=dict, repr=False)
-
-    @property
-    def background(self) -> str:
-        return self.background_model or self.model
 
     @property
     def own(self) -> bool:
@@ -183,28 +177,22 @@ def normalize_connection(
     base_url: str | None,
     region: str | None,
     model: str,
-    background_model: str | None,
     policy: EndpointPolicy,
 ) -> ConnectionFields:
     """Validate an own connection's fields for its provider type."""
     main = model.strip()
-    background = (background_model or "").strip() or None
-    for name, value in (("model", main), ("background_model", background)):
-        if value is not None and not _MODEL_ID.match(value):
-            raise ConnectionInvalid(
-                name, "Enter the model ID as the provider names it."
-            )
-        if (
-            value is not None
-            and provider in CLAUDE_ONLY
-            # An inference profile ARN does not name its model; the probe
-            # shows whether it works.
-            and not value.startswith(BEDROCK_ARN_PREFIX)
-            and "claude" not in value.lower()
-        ):
-            raise ConnectionInvalid(
-                name, "Bedrock and Vertex AI connections support Claude models."
-            )
+    if not _MODEL_ID.match(main):
+        raise ConnectionInvalid("model", "Enter the model ID as the provider names it.")
+    if (
+        provider in CLAUDE_ONLY
+        # An inference profile ARN does not name its model; the probe shows
+        # whether it works.
+        and not main.startswith(BEDROCK_ARN_PREFIX)
+        and "claude" not in main.lower()
+    ):
+        raise ConnectionInvalid(
+            "model", "Bedrock and Vertex AI connections support Claude models."
+        )
 
     url = (base_url or "").strip() or None
     if provider in NEEDS_BASE_URL:
@@ -234,7 +222,6 @@ def normalize_connection(
         base_url=url,
         region=zone,
         model=main,
-        background_model=background,
     )
 
 
@@ -332,7 +319,6 @@ def default_target(settings: AssistantSettings) -> Target | None:
         connection_id=None,
         provider=settings.default_provider,
         model=settings.default_model,
-        background_model=settings.default_background_model or None,
         base_url=settings.default_base_url or None,
         region=settings.default_region or None,
         credentials=credentials,
@@ -342,7 +328,6 @@ def default_target(settings: AssistantSettings) -> Target | None:
 @dataclass
 class OpenModels:
     main: Model
-    background: Model
     #: HTTP clients created for these models; the SDKs do not close injected clients.
     clients: list[httpx2.AsyncClient] = field(default_factory=list)
 
@@ -625,14 +610,14 @@ def open_models(
     *,
     transport: httpx2.AsyncBaseTransport | None = None,
 ) -> OpenModels:
-    """Build the main and background model of a target. ``transport`` replaces
-    the network in tests. Close the result with ``aclose``."""
+    """Build the model of a target, which answers and writes the titles.
+    ``transport`` replaces the network in tests. Close the result with ``aclose``."""
     if target.provider == "test":
         # Imported here: the agent's tool layer imports this module (through
         # assistant.llm.failures), so a module-level import would be a cycle.
         from assistant.agent import dev_model
 
-        return OpenModels(main=dev_model(target.model), background=dev_model("test"))
+        return OpenModels(main=dev_model(target.model))
     if target.own:
         client = guarded_client(policy, timeout=MODEL_HTTP_TIMEOUT, transport=transport)
     else:
@@ -649,12 +634,7 @@ def open_models(
     try:
         with _without_instance_sdk_env() if target.own else nullcontext():
             main = build(target, target.model, client)
-            background = (
-                main
-                if target.background == target.model
-                else build(target, target.background, client)
-            )
     except BaseException:
         _discard(client)
         raise
-    return OpenModels(main=main, background=background, clients=[client])
+    return OpenModels(main=main, clients=[client])

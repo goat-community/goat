@@ -141,8 +141,7 @@ Wie diese Einstellungen zusammenwirken, steht unter [KI-Assistent](./external_se
 | Einstellung | Vorgabe | Bedeutung |
 |---|---|---|
 | `ASSISTANT_DEFAULT_PROVIDER` | `none` | Anbieter von „GOAT AI“, dem eingebauten Modell, das jede Organisation nutzen darf: `anthropic`, `bedrock`, `vertex`, `azure_openai`, `openai`, `mistral`, `openai_compatible` oder `none` (kein eingebautes Modell) |
-| `ASSISTANT_DEFAULT_MODEL` | leer | Die Modell-ID des Anbieters; Pflicht, außer bei `none` |
-| `ASSISTANT_DEFAULT_BACKGROUND_MODEL` | leer | Modell für Titel und Zusammenfassungen von Unterhaltungen; leer verwendet das Modell oben |
+| `ASSISTANT_DEFAULT_MODEL` | leer | Die Modell-ID des Anbieters; das Modell antwortet und schreibt auch die Titel der Unterhaltungen; Pflicht, außer bei `none` |
 | `ASSISTANT_DEFAULT_BASE_URL` | leer | Pflicht für `openai_compatible` und `azure_openai` (der Azure-v1-Endpunkt, endet auf `/openai/v1`); ein optionales Gateway für `anthropic`, `openai` und `mistral` |
 | `ASSISTANT_DEFAULT_API_KEY` | leer | Pflicht für `anthropic`, `openai`, `mistral` und `azure_openai`; optional für `openai_compatible`; für `bedrock` ein optionaler Bedrock-API-Schlüssel |
 | `ASSISTANT_DEFAULT_REGION` | leer | AWS-Region (`bedrock`) oder Google-Cloud-Standort (`vertex`) |

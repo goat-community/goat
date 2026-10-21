@@ -60,7 +60,7 @@ RESOLVER: Resolver = system_resolver
 PROBE: Callable[[Target, EndpointPolicy], Awaitable[ProbeResult]] = probe_target
 
 #: Fields whose change needs a new test (P8).
-_RELEVANT = ("provider", "base_url", "region", "model", "background_model")
+_RELEVANT = ("provider", "base_url", "region", "model")
 
 
 def _error(
@@ -129,7 +129,6 @@ class ConnectionOut(BaseModel):
     base_url: str | None
     region: str | None
     model: str
-    background_model: str | None
     key_last4: str | None
     credentials_readable: bool
     capabilities: dict[str, Any]
@@ -149,7 +148,6 @@ class ConnectionCreate(BaseModel):
     base_url: str | None = None
     region: str | None = None
     model: str = Field(min_length=1, max_length=200)
-    background_model: str | None = None
     credentials: dict[str, str] = Field(default_factory=dict)
 
 
@@ -161,7 +159,6 @@ class ConnectionUpdate(BaseModel):
     base_url: str | None = None
     region: str | None = None
     model: str | None = Field(default=None, min_length=1, max_length=200)
-    background_model: str | None = None
     credentials: dict[str, str] | None = None
 
 
@@ -240,7 +237,6 @@ async def _connection_out(
         base_url=row["base_url"],
         region=row["region"],
         model=row["model"],
-        background_model=row["background_model"],
         key_last4=hint,
         credentials_readable=readable,
         capabilities=row["capabilities"] or {},
@@ -295,12 +291,9 @@ async def _checked_fields(
     base_url: str | None,
     region: str | None,
     model: str,
-    background_model: str | None,
 ) -> ConnectionFields:
     try:
-        fields = normalize_connection(
-            provider, base_url, region, model, background_model, caller.policy
-        )
+        fields = normalize_connection(provider, base_url, region, model, caller.policy)
         if fields.base_url is not None:
             await check_resolves(fields.base_url, caller.policy, RESOLVER)
     except EndpointNotAllowed as exc:
@@ -332,7 +325,6 @@ def _target(
         connection_id=connection_id,
         provider=fields.provider,
         model=fields.model,
-        background_model=fields.background_model,
         base_url=fields.base_url,
         region=fields.region,
         credentials=credentials,
@@ -497,7 +489,6 @@ async def create_connection(
         body.base_url,
         body.region,
         body.model,
-        body.background_model,
     )
     credentials = _checked_credentials(body.provider, body.credentials)
     try:
@@ -533,9 +524,6 @@ async def update_connection(
         body.base_url if "base_url" in sent else row["base_url"],
         body.region if "region" in sent else row["region"],
         body.model if body.model is not None else row["model"],
-        body.background_model
-        if "background_model" in sent
-        else row["background_model"],
     )
 
     entered = {
@@ -559,7 +547,6 @@ async def update_connection(
         "base_url": fields.base_url,
         "region": fields.region,
         "model": fields.model,
-        "background_model": fields.background_model,
     }
     relevant = credentials is not None or any(
         changes[key] != row[key] for key in _RELEVANT

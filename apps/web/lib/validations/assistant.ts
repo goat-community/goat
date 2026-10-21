@@ -60,7 +60,6 @@ export interface AssistantConnection {
   base_url: string | null;
   region: string | null;
   model: string;
-  background_model: string | null;
   key_last4: string | null;
   credentials_readable: boolean;
   capabilities: Record<string, unknown>;
@@ -133,7 +132,6 @@ export interface ConnectionFormValues {
   name: string;
   provider: AssistantProvider;
   model: string;
-  background_model: string;
   base_url: string;
   region: string;
   api_key: string;
@@ -146,7 +144,6 @@ export const emptyConnectionForm = (provider: AssistantProvider): ConnectionForm
   name: "",
   provider,
   model: "",
-  background_model: "",
   base_url: "",
   region: "",
   api_key: "",
@@ -160,7 +157,6 @@ export const toConnectionFormValues = (connection: AssistantConnection): Connect
   ...emptyConnectionForm(connection.provider),
   name: connection.name,
   model: connection.model,
-  background_model: connection.background_model ?? "",
   base_url: connection.base_url ?? "",
   region: connection.region ?? "",
 });
@@ -180,7 +176,6 @@ export function connectionFormSchema({ mode, allowHttp, originalProvider }: Sche
       name: z.string().trim().min(1, "ai_settings_error_required").max(120),
       provider: z.enum(ASSISTANT_PROVIDERS),
       model: z.string().trim().min(1, "ai_settings_error_required").max(200),
-      background_model: z.string().trim().max(200),
       base_url: z.string(),
       region: z.string(),
       api_key: z.string(),
@@ -201,12 +196,10 @@ export function connectionFormSchema({ mode, allowHttp, originalProvider }: Sche
       }
       if (fields.region && !values.region.trim()) issue("region", "ai_settings_error_required");
       if (fields.claudeOnly) {
-        for (const key of ["model", "background_model"] as const) {
-          const value = values[key].trim();
-          // An inference profile ARN does not name its model; the connection test shows whether it works.
-          if (value && !value.startsWith("arn:aws:bedrock:") && !value.toLowerCase().includes("claude"))
-            issue(key, "ai_settings_error_claude_only");
-        }
+        const model = values.model.trim();
+        // An inference profile ARN does not name its model; the connection test shows whether it works.
+        if (model && !model.startsWith("arn:aws:bedrock:") && !model.toLowerCase().includes("claude"))
+          issue("model", "ai_settings_error_claude_only");
       }
       const secretsRequired = mode === "create" || values.provider !== originalProvider;
       if (secretsRequired) {
@@ -231,7 +224,6 @@ export interface ConnectionPayload {
   name: string;
   provider: AssistantProvider;
   model: string;
-  background_model: string | null;
   base_url: string | null;
   region: string | null;
   credentials?: Partial<Record<SecretField, string>>;
@@ -251,7 +243,6 @@ export function toConnectionPayload(
     name: values.name.trim(),
     provider: values.provider,
     model: values.model.trim(),
-    background_model: values.background_model.trim() || null,
     base_url: fields.baseUrl ? values.base_url.trim() : null,
     region: fields.region ? values.region.trim() : null,
   };

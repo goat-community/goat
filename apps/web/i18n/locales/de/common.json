@@ -3504,8 +3504,6 @@
   "ai_settings_field_model": "Modell-ID",
   "ai_settings_field_model_help": "Das Modell so, wie Ihr Anbieter es benennt, zum Beispiel gpt-4.1 oder ein Deployment-Name.",
   "ai_settings_claude_only_help": "Verbindungen über Bedrock und Vertex AI unterstützen Claude-Modelle.",
-  "ai_settings_field_background_model": "Modell-ID für Hintergrundaufgaben",
-  "ai_settings_field_background_model_help": "Optional. Wird für Titel und Zusammenfassungen verwendet. Ohne Angabe wird das Hauptmodell verwendet.",
   "ai_settings_field_base_url": "Basis-URL",
   "ai_settings_field_base_url_help_compatible": "Die HTTPS-Adresse der OpenAI-kompatiblen API, zum Beispiel https://llm.example.org/v1.",
   "ai_settings_field_base_url_help_azure": "Der v1-Endpunkt Ihrer Azure-OpenAI-Ressource, zum Beispiel https://myresource.openai.azure.com/openai/v1.",

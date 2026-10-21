@@ -32,7 +32,6 @@ async def _own_connection(
             base_url="https://llm.example.org/v1",
             region=None,
             model="own-model",
-            background_model="own-small",
         ),
         credentials_encrypted=box.encrypt({"api_key": "sk-own-abcd1234"}),
     )
@@ -96,11 +95,7 @@ async def test_the_active_own_connection(
     resolution = await ModelResolver(org_repo, settings).resolve(USER)
     main = resolution.main
     assert main.connection_id == connection_id
-    assert (main.provider, main.model, main.background) == (
-        "openai_compatible",
-        "own-model",
-        "own-small",
-    )
+    assert (main.provider, main.model) == ("openai_compatible", "own-model")
     assert main.base_url == "https://llm.example.org/v1"
     assert dict(main.credentials) == {"api_key": "sk-own-abcd1234"}
     assert resolution.data_policy == "restricted"

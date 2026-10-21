@@ -45,7 +45,6 @@ const CONNECTION = {
   base_url: "https://llm.example.org/v1",
   region: null,
   model: "qwen3",
-  background_model: null,
   key_last4: "1234",
   credentials_readable: true,
   capabilities: {},

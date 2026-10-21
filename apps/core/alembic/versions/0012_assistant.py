@@ -207,7 +207,6 @@ def upgrade() -> None:
             sa.Column("base_url", sa.Text(), nullable=True),
             sa.Column("region", sa.Text(), nullable=True),
             sa.Column("model", sa.Text(), nullable=False),
-            sa.Column("background_model", sa.Text(), nullable=True),
             sa.Column("credentials_encrypted", sa.Text(), nullable=False),
             sa.Column(
                 "capabilities",

@@ -199,7 +199,7 @@ class AssistantRunEvent(SQLModel, table=True):
 
 class AssistantUsage(SQLModel, table=True):
     """Raw usage, one row per run and purpose (spec §11): ``main`` sums the
-    agent loop's model calls, ``background`` the title and summary calls.
+    agent loop's model calls, ``background`` the title calls.
     Kept when a conversation is deleted: it is what credit metering books
     later, hence no foreign key."""
 
@@ -295,7 +295,6 @@ class AssistantConnection(SQLModel, table=True):
     base_url: str | None = _text(nullable=True)
     region: str | None = _text(nullable=True)
     model: str = _text(nullable=False)
-    background_model: str | None = _text(nullable=True)
     credentials_encrypted: str = _text(nullable=False)
     #: The capability profile recorded by the last passed Test connection (§4.3).
     capabilities: dict[str, Any] | None = _jsonb_object()

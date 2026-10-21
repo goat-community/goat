@@ -3504,8 +3504,6 @@
   "ai_settings_field_model": "Model ID",
   "ai_settings_field_model_help": "The model as your provider names it, for example gpt-4.1 or a deployment name.",
   "ai_settings_claude_only_help": "Bedrock and Vertex AI connections support Claude models.",
-  "ai_settings_field_background_model": "Background model ID",
-  "ai_settings_field_background_model_help": "Optional. Used for titles and summaries. Without it the main model is used.",
   "ai_settings_field_base_url": "Base URL",
   "ai_settings_field_base_url_help_compatible": "The HTTPS address of the OpenAI compatible API, for example https://llm.example.org/v1.",
   "ai_settings_field_base_url_help_azure": "The v1 endpoint of your Azure OpenAI resource, for example https://myresource.openai.azure.com/openai/v1.",

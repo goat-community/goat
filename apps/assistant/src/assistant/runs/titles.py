@@ -1,4 +1,4 @@
-"""Conversation titles from the background model (spec §4.5)."""
+"""Conversation titles from the model that answered (spec §4.5)."""
 
 from pydantic_ai import Agent
 from pydantic_ai.models import Model

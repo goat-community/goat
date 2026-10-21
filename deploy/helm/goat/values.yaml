@@ -841,7 +841,6 @@ assistant:
     # openai_compatible. Its API key comes from `defaultConnection` below.
     ASSISTANT_DEFAULT_PROVIDER: "none"
     # ASSISTANT_DEFAULT_MODEL: ""
-    # ASSISTANT_DEFAULT_BACKGROUND_MODEL: ""   # titles and summaries; empty = the model above
     # ASSISTANT_DEFAULT_BASE_URL: ""           # openai_compatible, azure_openai (…/openai/v1), or a gateway
     # ASSISTANT_DEFAULT_REGION: ""             # bedrock: AWS region; vertex: Google Cloud location
     # What organizations may configure.
