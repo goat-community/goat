@@ -128,12 +128,18 @@ def _within_area_reach(
     area_cells: list[tuple[float, float]],
     params: HeatmapV2Params,
 ) -> list[tuple[list[tuple[float, float]], float, float, float]]:
-    """Opportunities the engine can count for a reference area: within the
-    mode's maximum travel time of the area's bbox. At full speed, a superset
-    of the engine's own reach (it sizes it at 0.8x), which drops the rest."""
+    """Opportunities that count for a reference area: within the mode's
+    maximum travel time of the area's bbox, as a straight-line buffer. The
+    engine loads the network over the area and these."""
     car = params.routing_mode == RoutingMode.car
     minutes = MAX_TIME_CAR_MIN if car else MAX_TIME_ACTIVE_MIN
-    speed = 50.0 if car else (params.speed or _MODE_SPEED_DEFAULTS[params.routing_mode])
+    speed = (
+        50.0
+        if car
+        else params.speed
+        if params.speed is not None
+        else _MODE_SPEED_DEFAULTS[params.routing_mode]
+    )
     xs = [x for x, _ in area_cells]
     ys = [y for _, y in area_cells]
     furthest_y = max(ys, key=abs)
