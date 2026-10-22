@@ -113,6 +113,9 @@ def test_only_indexed_files_touching_the_area(tmp_path) -> None:
     env = (11.5, 48.1, 11.6, 48.2)
     files, read = module.covering(con, units, src, "points", env)
     assert files == [f"{base}/points/part-00000.parquet"] and read == [("europe", "20261005")]
+    # A unit without an index is left out, not every other unit with it.
+    unindexed = {**units, "alps": {"version": "20261005", "bbox": [5, 45, 17, 49]}}
+    assert module.covering(con, unindexed, src, "points", env)[0] == files
     # A version's index is read once: deleted, the same files still come back.
     (base / "_index.parquet").unlink()
     assert module.covering(con, units, src, "points", env)[0] == files
@@ -244,7 +247,7 @@ def test_a_big_view(tmp_path, monkeypatch) -> None:
     con.execute(f"""COPY (SELECT * FROM (VALUES
         ('points.parquet', 'points', 'highway', NULL, 10000), ('points.parquet', 'points', 'highway', 'bus_stop', 10000),
         ('points.parquet', 'points', 'surface', NULL, 40000), ('points.parquet', 'points', 'surface', 'asphalt', 20000),
-        ('points.parquet', 'points', 'surface', 'gravel', 19000)
+        ('points.parquet', 'points', 'surface', 'gravel', 19000), ('points.parquet', 'points', 'addr:street', NULL, 30000)
         ) t(path, layer, key, value, count)) TO '{base}/_values.parquet' (FORMAT PARQUET)""")
     keys = module.mirror_values(con, area=square, feature_type="points", source_name="osm", quick=True)
     assert [v["value"] for v in keys["values"]] == ["surface", "highway"] and keys["complete"]

@@ -1,3 +1,4 @@
+import bboxPolygon from "@turf/bbox-polygon";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
@@ -66,19 +67,6 @@ export const roundBox = ([w, s, e, n]: Bbox): Bbox => [
   Math.ceil(e * 100) / 100,
   Math.ceil(n * 100) / 100,
 ];
-
-const bboxPolygon = ([w, s, e, n]: Bbox): GeoJSON.Polygon => ({
-  type: "Polygon",
-  coordinates: [
-    [
-      [w, s],
-      [e, s],
-      [e, n],
-      [w, n],
-      [w, s],
-    ],
-  ],
-});
 
 /** Several region outlines become one multipolygon: the tool reads one area. */
 const mergePolygons = (geometries: (GeoJSON.Geometry | undefined)[]): GeoJSON.MultiPolygon | undefined => {
@@ -196,9 +184,13 @@ export const useFetchFlow = ({
   );
 
   const area = useMemo(() => {
-    if (areaMode === "view") return viewBox ? bboxPolygon(viewBox) : undefined;
+    if (areaMode === "view") return viewBox ? bboxPolygon(viewBox).geometry : undefined;
     if (!spatial || spatial.kind !== areaMode) return undefined;
-    if (spatial.kind === "region") return mergePolygons(spatial.nutsIds.map((id) => geometries[id]));
+    if (spatial.kind === "region") {
+      // Every picked region or none: one still loading, or failed, would be left out unseen.
+      const outlines = spatial.nutsIds.map((id) => geometries[id]);
+      return outlines.every(Boolean) ? mergePolygons(outlines) : undefined;
+    }
     return spatialGeometry(spatial);
   }, [areaMode, viewBox, spatial, geometries]);
 

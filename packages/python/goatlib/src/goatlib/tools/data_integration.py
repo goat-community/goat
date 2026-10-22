@@ -20,7 +20,6 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Literal, Self
-from urllib.parse import urlparse
 
 from cachetools import TTLCache
 from pydantic import BaseModel, ConfigDict, Field
@@ -32,6 +31,8 @@ from goatlib.analysis.schemas.ui import (
     ui_sections,
 )
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import load_extensions
+from goatlib.storage.s3_config import apply_duckdb_s3_settings, duckdb_s3_endpoint
 from goatlib.tools.base import BaseToolRunner, _get_or_create_event_loop
 from goatlib.tools.schemas import ToolInputBase
 
@@ -308,38 +309,42 @@ def _has_key_sql(key: str, storage: str) -> str:
 
 
 def ensure_s3(con: "Any") -> None:
-    """Point a connection at our object storage.
-
-    Called rather than assumed: the connections this runs on are made for
-    DuckLake, which is read from disk, so nothing has configured S3 on them.
-    Idempotent, and quiet when no endpoint is set -- a deployment reading real
-    AWS needs no endpoint at all.
-    """
-    con.execute("INSTALL httpfs; LOAD httpfs; INSTALL spatial; LOAD spatial;")
-    endpoint = (os.environ.get("S3_ENDPOINT_URL") or "").strip()
-    key = os.environ.get("S3_ACCESS_KEY_ID") or ""
-    secret = os.environ.get("S3_SECRET_ACCESS_KEY") or ""
-    if endpoint:
-        host = endpoint.split("://", 1)[-1].rstrip("/")
-        con.execute(f"SET s3_endpoint = '{host}'")
-        con.execute(f"SET s3_use_ssl = {str(endpoint.startswith('https')).lower()}")
-        # Path style: a bucket in the host name only works for real AWS, and an
-        # endpoint is set precisely when this is not that.
-        con.execute("SET s3_url_style = 'path'")
-    if key and secret:
-        con.execute(f"SET s3_access_key_id = '{key}'")
-        con.execute(f"SET s3_secret_access_key = '{secret}'")
+    """Point a connection at our object storage and the catalog bucket's mirror."""
+    load_extensions(con, "httpfs", "spatial")
+    apply_duckdb_s3_settings(
+        con,
+        endpoint_url=os.environ.get("S3_ENDPOINT_URL"),
+        access_key=os.environ.get("S3_ACCESS_KEY_ID"),
+        secret_key=os.environ.get("S3_SECRET_ACCESS_KEY"),
+    )
     # The catalog bucket may sit in another store than GOAT's own; a secret
-    # scoped to it leaves every other s3:// read on the settings above.
-    c_endpoint = (os.environ.get("CATALOG_S3_ENDPOINT_URL") or "").strip()
-    if c_endpoint and CATALOG_BUCKET:
-        u = urlparse(c_endpoint)
-        con.execute(f"""CREATE SECRET IF NOT EXISTS goat_mirror (
-            TYPE s3, KEY_ID '{_quote(os.environ.get("CATALOG_S3_ACCESS_KEY_ID", ""))}',
-            SECRET '{_quote(os.environ.get("CATALOG_S3_SECRET_ACCESS_KEY", ""))}',
-            ENDPOINT '{_quote(u.netloc)}', USE_SSL {str(u.scheme == "https").lower()},
-            URL_STYLE 'path', REGION '{_quote(os.environ.get("CATALOG_S3_REGION") or "us-east-1")}',
-            SCOPE 's3://{_quote(CATALOG_BUCKET)}')""")
+    # scoped to it leaves every other s3:// read on the settings above. Each
+    # CATALOG_S3_* falls back to S3_*, as in the catalog service's settings.
+    if CATALOG_BUCKET:
+
+        def env(name: str) -> str:
+            return (
+                os.environ.get(f"CATALOG_S3_{name}")
+                or os.environ.get(f"S3_{name}")
+                or ""
+            )
+
+        host, use_ssl = duckdb_s3_endpoint(env("ENDPOINT_URL"))
+        options = "TYPE s3, KEY_ID ?, SECRET ?, REGION ?, URL_STYLE 'path', SCOPE ?"
+        params: list[object] = [
+            env("ACCESS_KEY_ID"),
+            env("SECRET_ACCESS_KEY"),
+            env("REGION") or "us-east-1",
+            f"s3://{CATALOG_BUCKET}",
+        ]
+        # No endpoint is real AWS: DuckDB's own default then.
+        if host:
+            options += ", ENDPOINT ?"
+            params.append(host)
+        if use_ssl is not None:
+            options += ", USE_SSL ?"
+            params.append(use_ssl)
+        con.execute(f"CREATE SECRET IF NOT EXISTS goat_mirror ({options})", params)
 
 
 #: How long a missing ``_values.parquet`` is trusted to stay missing.
@@ -373,13 +378,29 @@ def _index_rows(con: "Any", paths: list[str]) -> dict[str, list[tuple]]:
         known = {p: _indexes[p] for p in paths if p in _indexes}
     missing = [p for p in paths if p not in known]
     if missing:
-        listed = ", ".join(f"'{_quote(p)}'" for p in missing)
+
+        def read(paths: list[str]) -> list[tuple]:
+            listed = ", ".join(f"'{_quote(p)}'" for p in paths)
+            return con.execute(
+                "SELECT filename, path, layer, rows, xmin, ymin, xmax, ymax "
+                f"FROM read_parquet([{listed}], filename = true, union_by_name = true) "
+                "ORDER BY filename, path"
+            ).fetchall()
+
         fresh: dict[str, list[tuple]] = {p: [] for p in missing}
-        for index, *row in con.execute(
-            "SELECT filename, path, layer, rows, xmin, ymin, xmax, ymax "
-            f"FROM read_parquet([{listed}], filename = true, union_by_name = true) "
-            "ORDER BY filename, path"
-        ).fetchall():
+        try:
+            rows = read(missing)
+        except Exception:
+            # One unit without an index must not hide the others: each alone,
+            # and the one that fails is left out, as a missing pointer is.
+            rows = []
+            for p in missing:
+                try:
+                    rows += read([p])
+                except Exception as e:
+                    logger.warning("no mirror index at %s: %s", p, e)
+                    del fresh[p]
+        for index, *row in rows:
             fresh.setdefault(index, []).append(tuple(row))
         with _cache_lock:
             _indexes.update(fresh)
@@ -987,7 +1008,6 @@ def mirror_values(
     import hashlib
 
     src = SOURCES[source_name]
-    ensure_s3(con)
     table = area_table(con, area)
     envelope = area_envelope(con, table)
     boxes = area_boxes(con, table)
@@ -1022,7 +1042,10 @@ def mirror_values(
     if quick and (src.tagged or key is not None):
         built = _build_values(con, indexed, key)
         if built is not None and key is None:
-            built = [(t, n) for t, n in built if t not in IDENTIFIER_TAGS]
+            # Hidden as in the full list: names, and sub-keys such as addr:street.
+            built = [
+                (t, n) for t, n in built if t not in IDENTIFIER_TAGS and ":" not in t
+            ]
         if built is not None:
             # Per-country counts: shown without numbers, exact ones follow under the cap.
             in_view = _area_rows(row_groups(con, files, src.geom), boxes)
@@ -1550,14 +1573,17 @@ async def _record_provenance(
     # The project link this job just made keeps its own copy of the layer's
     # other_properties, taken before this ran, so the licence goes into that
     # copy too -- only this layer's links, which exist for seconds at this point.
-    for table, column in (("layer", "id"), ("layer_project", "layer_id")):
-        await pool.execute(
-            f"UPDATE {schema}.{table} "
-            "SET other_properties = COALESCE(other_properties, '{}'::jsonb) "
-            f"|| jsonb_build_object('provenance', $1::jsonb) WHERE {column} = $2::uuid",
-            json.dumps(provenance),
-            layer_id,
-        )
+    try:
+        for table, column in (("layer", "id"), ("layer_project", "layer_id")):
+            await pool.execute(
+                f"UPDATE {schema}.{table} "
+                "SET other_properties = COALESCE(other_properties, '{}'::jsonb) "
+                f"|| jsonb_build_object('provenance', $1::jsonb) WHERE {column} = $2::uuid",
+                json.dumps(provenance),
+                layer_id,
+            )
+    finally:
+        await pool.close()
 
 
 def main(params: DataIntegrationParams) -> dict:
