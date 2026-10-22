@@ -22,7 +22,7 @@ const KINDS: { kind: ConnectKind; icon: ICON_NAME; titleKey: string }[] = [
   },
   {
     kind: "overture",
-    icon: ICON_NAME.LAYERS,
+    icon: ICON_NAME.MAP,
     titleKey: "fetch_features_source_overture",
   },
 ];
