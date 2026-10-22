@@ -207,8 +207,7 @@ GOAT works without any of these. Each one switches on a feature that needs an ou
 |---|---|---|
 | `NEXT_PUBLIC_MAPTILER_KEY` | The satellite/hybrid basemap from MapTiler | That basemap is hidden; the other basemaps work |
 | `NEXT_PUBLIC_MAPBOX_TOKEN` | Place search in the map's search box (Mapbox) | The search box finds no places |
-| `CATALOG_S3_BUCKET`, `CATALOG_S3_ENDPOINT_URL`, `CATALOG_S3_ACCESS_KEY_ID`, `CATALOG_S3_SECRET_ACCESS_KEY`, `CATALOG_S3_REGION` | The GOAT data catalog: a read-only bucket with the harmonised datasets, mirrored on a schedule | The catalog stays empty, and its sync is switched off |
-| `OSM_MIRROR_URI`, `OVERTURE_MIRROR_URI`, `MIRROR_S3_*` | The OpenStreetMap and Overture Maps panes under *Add layer › Connect service*, read from a mirror in S3 ([details](#open-data-mirror)) | The two panes find no data; nothing else is affected |
+| `CATALOG_S3_BUCKET`, `CATALOG_S3_ENDPOINT_URL`, `CATALOG_S3_ACCESS_KEY_ID`, `CATALOG_S3_SECRET_ACCESS_KEY`, `CATALOG_S3_REGION` | The GOAT data catalog: a read-only bucket with the harmonised datasets, mirrored on a schedule. It also holds the OpenStreetMap and Overture Maps mirror ([details](#open-data-mirror)) | The catalog stays empty, its sync is switched off, and the OpenStreetMap and Overture Maps panes find no data |
 | `GEOCODING_URL`, `GEOCODING_AUTHORIZATION` | The geocoding service used by analysis tools | Analysis steps that need geocoding cannot run |
 | `OTEL_ENABLED`, `OTEL_EXPORTER_OTLP_ENDPOINT` | Export of traces, metrics and logs to your OpenTelemetry collector | Nothing is exported |
 
@@ -216,9 +215,6 @@ Links shown in the app and the source of the product artwork are listed in the [
 
 ### OpenStreetMap and Overture Maps {#open-data-mirror}
 
-The OpenStreetMap and Overture Maps panes under *Add layer › Connect service* copy the features of an area into a GOAT layer. They read from a mirror of both datasets, stored as GeoParquet in an S3 bucket. The mirror is not part of a GOAT installation; it is built by a separate pipeline. Two parts of GOAT read it: `processes` fills the attribute and value lists in the dialog, and the Windmill `tools` worker runs the copy.
-
-- `OSM_MIRROR_URI` and `OVERTURE_MIRROR_URI` point at the root of each mirror, for example `s3://my-bucket/mirror/osm` and `s3://my-bucket/mirror/overture`.
-- If the mirror sits in GOAT's own S3 store, that is all: GOAT reads it with the `S3_*` credentials. If it sits in another store, also set `MIRROR_S3_ENDPOINT_URL`, `MIRROR_S3_BUCKET`, `MIRROR_S3_REGION` (default `us-east-1`), `MIRROR_S3_ACCESS_KEY_ID` and `MIRROR_S3_SECRET_ACCESS_KEY`. These credentials are used for that bucket only; every other S3 read keeps using `S3_*`.
+The OpenStreetMap and Overture Maps panes under *Add layer › Connect service* copy the features of an area into a GOAT layer. They read from a mirror of both datasets, stored as GeoParquet in the catalog bucket (`CATALOG_S3_*`) under `mirror/osm` and `mirror/overture`. The mirror is not part of a GOAT installation; it is published there by a separate pipeline, next to the catalog. Two parts of GOAT read it: `processes` fills the attribute and value lists in the dialog, and the Windmill `tools` worker runs the copy. Nothing else needs setting: without a catalog bucket, the two panes find no data.
 
 The licence is recorded on each new layer: ODbL 1.0 for OpenStreetMap, CDLA-Permissive 2.0 for Overture places and ODbL 1.0 for the other Overture types.

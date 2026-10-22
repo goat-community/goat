@@ -37,12 +37,11 @@ from goatlib.tools.schemas import ToolInputBase
 
 logger = logging.getLogger(__name__)
 
-#: Where the harvester leaves its snapshots. Configurable because the mirror is
-#: not part of this deployment -- it is written by goat-data, and only the two
-#: agree on the location.
-#: Empty or unset (Windmill hands an unset one on as "") means no mirror.
-MIRROR_URI = os.environ.get("OSM_MIRROR_URI", "")
-OVERTURE_MIRROR_URI = os.environ.get("OVERTURE_MIRROR_URI", "")
+#: goat-data publishes the mirror beside the catalog, in the catalog bucket.
+#: No catalog bucket (Windmill hands an unset one on as "") means no mirror.
+CATALOG_BUCKET = (os.environ.get("CATALOG_S3_BUCKET") or "").strip()
+MIRROR_URI = f"s3://{CATALOG_BUCKET}/mirror/osm" if CATALOG_BUCKET else ""
+OVERTURE_MIRROR_URI = f"s3://{CATALOG_BUCKET}/mirror/overture" if CATALOG_BUCKET else ""
 
 #: Above this the extract fails rather than writing a layer cut at an arbitrary row.
 MAX_FEATURES = 1_000_000
@@ -60,8 +59,15 @@ IDENTIFIER_TAGS = (
     "check_date",
 )
 
+#: Rows per row group of a fetch's output: the layer ingest reads one group at a
+#: time, and 41,111 country outlines in one group needed 335 MB at once.
+OUTPUT_ROW_GROUP = 4_096
+
 #: Above this many features in the area a fetch is refused, whatever its filters.
-MAX_READ = 5_000_000
+MAX_READ_FEATURES = 5_000_000
+#: Above this much compressed geometry in the area too: unpacked it would not fit
+#: a job's memory (one country's divisions: 86 MB).
+MAX_READ_BYTES = 100_000_000
 
 #: Features read to suggest keys and values: the fetch limit, so any area small
 #: enough to fetch whole gets exact counts. Reading every feature of a large map
@@ -323,18 +329,17 @@ def ensure_s3(con: "Any") -> None:
     if key and secret:
         con.execute(f"SET s3_access_key_id = '{key}'")
         con.execute(f"SET s3_secret_access_key = '{secret}'")
-    # The mirror may sit in another store than GOAT's own; a secret scoped to its
-    # bucket leaves every other s3:// read on the settings above.
-    m_endpoint = (os.environ.get("MIRROR_S3_ENDPOINT_URL") or "").strip()
-    m_bucket = (os.environ.get("MIRROR_S3_BUCKET") or "").strip()
-    if m_endpoint and m_bucket:
-        u = urlparse(m_endpoint)
+    # The catalog bucket may sit in another store than GOAT's own; a secret
+    # scoped to it leaves every other s3:// read on the settings above.
+    c_endpoint = (os.environ.get("CATALOG_S3_ENDPOINT_URL") or "").strip()
+    if c_endpoint and CATALOG_BUCKET:
+        u = urlparse(c_endpoint)
         con.execute(f"""CREATE SECRET IF NOT EXISTS goat_mirror (
-            TYPE s3, KEY_ID '{_quote(os.environ.get("MIRROR_S3_ACCESS_KEY_ID", ""))}',
-            SECRET '{_quote(os.environ.get("MIRROR_S3_SECRET_ACCESS_KEY", ""))}',
+            TYPE s3, KEY_ID '{_quote(os.environ.get("CATALOG_S3_ACCESS_KEY_ID", ""))}',
+            SECRET '{_quote(os.environ.get("CATALOG_S3_SECRET_ACCESS_KEY", ""))}',
             ENDPOINT '{_quote(u.netloc)}', USE_SSL {str(u.scheme == "https").lower()},
-            URL_STYLE 'path', REGION '{_quote(os.environ.get("MIRROR_S3_REGION") or "us-east-1")}',
-            SCOPE 's3://{_quote(m_bucket)}')""")
+            URL_STYLE 'path', REGION '{_quote(os.environ.get("CATALOG_S3_REGION") or "us-east-1")}',
+            SCOPE 's3://{_quote(CATALOG_BUCKET)}')""")
 
 
 #: How long a missing ``_values.parquet`` is trusted to stay missing.
@@ -382,8 +387,8 @@ def _index_rows(con: "Any", paths: list[str]) -> dict[str, list[tuple]]:
     return {p: known.get(p, []) for p in paths}
 
 
-def row_groups(con: "Any", files: list[str]) -> list[tuple]:
-    """(file, first row, rows, xmin, ymin, xmax, ymax) per row group, from the footers."""
+def row_groups(con: "Any", files: list[str], geom: str) -> list[tuple]:
+    """(file, first row, rows, xmin, ymin, xmax, ymax, geometry bytes) per row group, from the footers."""
     with _cache_lock:
         known = {f: _footers[f] for f in files if f in _footers}
     missing = [f for f in files if f not in known]
@@ -394,24 +399,28 @@ def row_groups(con: "Any", files: list[str]) -> list[tuple]:
         for f, _, n, *bounds in con.execute(f"""
             SELECT file_name, row_group_id, any_value(row_group_num_rows),
                 {stat.format("xmin", "min")}, {stat.format("ymin", "min")},
-                {stat.format("xmax", "max")}, {stat.format("ymax", "max")}
+                {stat.format("xmax", "max")}, {stat.format("ymax", "max")},
+                sum(total_compressed_size) FILTER (
+                    WHERE split_part(path_in_schema, ', ', 1) = '{_quote(geom)}'
+                )
             FROM parquet_metadata([{listed}])
             GROUP BY file_name, row_group_id ORDER BY file_name, row_group_id
         """).fetchall():
             groups = fresh.setdefault(f, [])
             first = groups[-1][1] + groups[-1][2] if groups else 0
-            groups.append((f, first, int(n), *bounds))
+            groups.append((f, first, int(n), *bounds[:4], int(bounds[4] or 0)))
         with _cache_lock:
             _footers.update(fresh)
         known.update(fresh)
     return [g for f in files for g in known.get(f, [])]
 
 
-def _group_rows(groups: list[tuple], envelope: tuple) -> int:
-    """Features in the envelope: each row group's rows times its share inside."""
+def _group_rows(groups: list[tuple], envelope: tuple, column: int = 2) -> int:
+    """Features (or, with column 7, geometry bytes) in the envelope, by each row group's share inside."""
     xmin, ymin, xmax, ymax = envelope
     total = 0.0
-    for _, _, n, gx0, gy0, gx1, gy1 in groups:
+    for g in groups:
+        n, (gx0, gy0, gx1, gy1) = g[column], g[3:7]
         if gx0 is None:
             continue
         w = min(xmax, gx1) - max(xmin, gx0)
@@ -452,7 +461,9 @@ def _indexed(
             b and (b[0] > xmax or b[2] < xmin or b[1] > ymax or b[3] < ymin)
         ):
             continue
-        base = f"{source.mirror}/{unit}/{state['version']}"
+        # Overture's mirror puts the version on top and says where; OSM's is unit/version.
+        path = state.get("path") or f"{unit}/{state['version']}"
+        base = f"{source.mirror}/{path}"
         bases[f"{base}/_index.parquet"] = (unit, state["version"])
     if not bases:
         return {}, []
@@ -510,9 +521,9 @@ def area_boxes(con: "Any", area_table: str) -> list[tuple]:
     ]
 
 
-def _area_rows(groups: list[tuple], boxes: list[tuple]) -> int:
-    """Features in the area, part by part."""
-    return sum(_group_rows(groups, b) for b in boxes)
+def _area_rows(groups: list[tuple], boxes: list[tuple], column: int = 2) -> int:
+    """Features (or geometry bytes) in the area, part by part."""
+    return sum(_group_rows(groups, b, column) for b in boxes)
 
 
 def area_envelope(con: "Any", area_table: str) -> tuple:
@@ -912,14 +923,20 @@ def _big_view_keys(
     }
 
 
-def check_read_size(con: "Any", files: list[str], boxes: list[tuple]) -> None:
-    """Refuse an area holding more features than a fetch reads in reasonable time."""
-    held = _area_rows(row_groups(con, files), boxes)
-    if held > MAX_READ:
-        raise ValueError(
-            f"The area is too large to read: about {held:,} features, more than "
-            f"{MAX_READ:,}. Choose a smaller area."
-        )
+def _too_large(
+    groups: list[tuple], boxes: list[tuple], rows: int | None = None
+) -> bool:
+    """More features or more geometry in the area than one fetch reads."""
+    rows = _area_rows(groups, boxes) if rows is None else rows
+    return rows > MAX_READ_FEATURES or _area_rows(groups, boxes, 7) > MAX_READ_BYTES
+
+
+def check_read_size(
+    con: "Any", files: list[str], boxes: list[tuple], geom: str
+) -> None:
+    """Refuse an area holding more than a fetch reads, before reading it."""
+    if _too_large(row_groups(con, files, geom), boxes):
+        raise ValueError("This area is too large. Zoom in or choose a smaller area.")
 
 
 def _key_column(con: "Any", files: list[str], key: str) -> bool:
@@ -988,14 +1005,18 @@ def mirror_values(
                 for bx0, by0, bx1, by1 in boxes
             )
         )
-        estimate = (
-            inside if inside > MAX_READ else _area_rows(row_groups(con, files), boxes)
-        )
+        if inside > MAX_READ_FEATURES:
+            estimate, too_large = inside, True
+        else:
+            groups = row_groups(con, files, src.geom)
+            estimate = _area_rows(groups, boxes)
+            too_large = _too_large(groups, boxes, estimate)
         return {
             "key": None,
             "total": 0,
             "complete": True,
             "estimate": estimate,
+            "too_large": too_large,
             "values": [],
         }
     if quick and (src.tagged or key is not None):
@@ -1004,7 +1025,7 @@ def mirror_values(
             built = [(t, n) for t, n in built if t not in IDENTIFIER_TAGS]
         if built is not None:
             # Per-country counts: shown without numbers, exact ones follow under the cap.
-            in_view = _area_rows(row_groups(con, files), boxes)
+            in_view = _area_rows(row_groups(con, files, src.geom), boxes)
             big = in_view > SUGGESTION_ROWS
             values = [{"value": str(v), "count": 0} for v, _ in built[: int(limit)]]
             return {
@@ -1018,7 +1039,7 @@ def mirror_values(
     # With the key list: lets the form refuse an area over the cap before a fetch.
     estimate = None
     if key is None:
-        groups = row_groups(con, files)
+        groups = row_groups(con, files, src.geom)
         estimate = _area_rows(groups, boxes)
         if src.tagged and estimate > SUGGESTION_ROWS:
             return _big_view_keys(con, groups, envelope, estimate)
@@ -1347,10 +1368,13 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
         area = area_table(con, params.area)
         envelope = area_envelope(con, area)
         area_geom = area_geom_column(con, area)
-        files, parts = covering(con, pointer(con, src), src, type_key, envelope)
+        indexed = _indexed(con, pointer(con, src), src, type_key, envelope)
+        files, parts = _files_of(*indexed)
+        # Which unit and version each file belongs to, as its index says.
+        origin = {f: indexed[0][row[0]] for f, row in zip(files, indexed[1])}
         if not files:
             raise ValueError("The mirror holds no data for this area.")
-        check_read_size(con, files, area_boxes(con, area))
+        check_read_size(con, files, area_boxes(con, area), src.geom)
 
         columns = mirror_columns(con, files)
         storage = tag_storage(columns)
@@ -1383,27 +1407,43 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
             )
         else:
             plain = overture_plain_columns(columns)
-            # Right after the id, so they are the first thing a popup shows; the
-            # nested originals stay for a download's full records.
+
+            def kept(name: str, kind: str) -> str:
+                # Nested records as JSON text: the table and the tiles show
+                # nothing readable for a struct or a list.
+                if kind.upper().startswith(("STRUCT", "MAP", "UNION")) or kind.endswith(
+                    "]"
+                ):
+                    return f'CAST(to_json(c."{name}") AS VARCHAR) AS "{name}"'
+                return f'c."{name}"'
+
+            # Right after the id, so they are the first thing a popup shows.
             selected = ", ".join(
                 [
                     f'c."{src.id_column}"',
                     *plain,
-                    f'c.* EXCLUDE ("{src.id_column}", bbox, filename)',
+                    *(
+                        kept(name, kind)
+                        for name, kind in columns.items()
+                        if name not in (src.id_column, "bbox", "filename")
+                    ),
                 ]
             )
         # Two spatial tests, not one: the envelope prunes row groups before
-        # anything is read, the area itself is what the user asked for. The
-        # dedup is for a feature at a continent seam, which both continents carry.
+        # anything is read, the area itself is what the user asked for.
+        # The area as a constant, so the test streams: joined as a table with a
+        # country's outline, DuckDB indexed every candidate and ran out of memory.
+        (shape,) = con.execute(
+            f'SELECT ST_AsHEXWKB(ST_Union_Agg("{area_geom}")) FROM {area}'
+        ).fetchone()
+        geom, inside = f'c."{src.geom}"', f"ST_GeomFromHEXWKB('{shape}')"
         con.execute(f"""
             COPY (
-                WITH area AS (SELECT ST_Union_Agg("{area_geom}") AS g FROM {area}),
-                candidates AS ({candidates_sql(files, src, envelope, prefilter, storage)})
+                WITH candidates AS ({candidates_sql(files, src, envelope, prefilter, storage)})
                 SELECT {selected}, c.filename AS _mirror_file
-                FROM candidates c, area
-                WHERE {exact} AND ST_Intersects(c."{src.geom}", area.g)
-                QUALIFY row_number() OVER (PARTITION BY {identity} ORDER BY {identity}) = 1
-                LIMIT {MAX_FEATURES + 1}
+                FROM candidates c
+                WHERE {exact} AND ST_Intersects({geom}, {inside})
+                LIMIT {2 * MAX_FEATURES + 1}
             ) TO '{staged}' (FORMAT PARQUET)
         """)
         # Which files supplied rows, so the lineage names only those: a unit's
@@ -1415,15 +1455,23 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
                 f"SELECT DISTINCT _mirror_file FROM read_parquet('{staged}')"
             ).fetchall()
         }
-        parts = [
-            (unit, version)
-            for unit, version in parts
-            if any(f.startswith(f"{src.mirror}/{unit}/{version}/") for f in supplied)
-        ]
-        con.execute(
-            f"COPY (SELECT * EXCLUDE (_mirror_file) FROM read_parquet('{staged}')) "
-            f"TO '{out}' (FORMAT PARQUET)"
-        )
+        parts = [part for part in parts if part in {origin.get(f) for f in supplied}]
+        # A feature at a seam comes from both units: kept once, decided on the ids
+        # alone, since a window over whole rows held them all and ran out of memory.
+        rows = f"read_parquet('{staged}', file_row_number = true)"
+        con.execute(f"""
+            COPY (
+                SELECT * EXCLUDE (_mirror_file, file_row_number) FROM {rows}
+                WHERE file_row_number IN (
+                    SELECT min(file_row_number) FROM {rows}
+                    GROUP BY {identity.replace("c.", "")}
+                )
+            ) TO '{out}' (FORMAT PARQUET, ROW_GROUP_SIZE {OUTPUT_ROW_GROUP})
+        """)
+        # The staged read stops at its limit: reaching it means rows were left out.
+        (staged_rows,) = con.execute(
+            f"SELECT count(*) FROM read_parquet('{staged}')"
+        ).fetchone()
         staged.unlink(missing_ok=True)
         count = con.execute(f"SELECT count(*) FROM read_parquet('{out}')").fetchone()
         features = int(count[0]) if count else 0
@@ -1432,7 +1480,7 @@ class DataIntegrationRunner(BaseToolRunner[DataIntegrationParams]):
             raise ValueError(
                 "No features match in this area. Pick another area or loosen the filters."
             )
-        if features > MAX_FEATURES:
+        if features > MAX_FEATURES or staged_rows > 2 * MAX_FEATURES:
             raise ValueError(
                 f"The area holds more than {MAX_FEATURES:,} matching features. "
                 "Pick a smaller area or add filters."

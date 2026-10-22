@@ -97,6 +97,9 @@ class MirrorValuesResult(BaseModel):
     estimate: int | None = Field(
         None, description="Features in the area, guessed from the mirror's index"
     )
+    too_large: bool = Field(
+        False, description="More in the area than one fetch reads: a fetch is refused"
+    )
     values: list[MirrorValue] = Field(default_factory=list)
 
 

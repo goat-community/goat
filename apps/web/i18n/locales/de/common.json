@@ -3459,6 +3459,7 @@
   "fetch_features_reduce_area": "Zu viele Features für einen Layer. Wählen Sie Werte für einen Filter oder ein kleineres Gebiet.",
   "fetch_features_area_too_large": "Dieses Gebiet ist zu groß. Zoomen Sie hinein oder wählen Sie ein kleineres Gebiet.",
   "fetch_features_osm_wiki": "„{{key}}“ im OpenStreetMap-Wiki",
+  "fetch_features_overture_docs": "„{{key}}“ und die anderen Attribute in der Overture-Maps-Dokumentation",
   "fetch_features_checking_area": "Gebiet wird geprüft…",
   "fetch_features_save_to_heading": "Ordner oder Team",
   "fetch_features_team_root": "Team-Hauptordner",

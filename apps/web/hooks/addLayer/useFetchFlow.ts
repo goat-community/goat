@@ -29,8 +29,6 @@ export const OSM_TYPES = ["points", "lines", "multipolygons"] as const;
 
 /** The tool's own cap: a fetch over it stops, so the form refuses one far above it. */
 export const MAX_FEATURES = 1_000_000;
-/** Above this many features in the area a fetch is refused whatever its filters: all are read. */
-export const MAX_READ = 5_000_000;
 
 export type Geometry = "point" | "line" | "polygon";
 
@@ -251,27 +249,35 @@ export const useFetchFlow = ({
     (next: number | undefined) => setSized({ for: sizedFor, estimate: next }),
     [sizedFor]
   );
+  // Kept apart from the estimate, which the lists also set: only the size check ends the wait.
+  const [checked, setChecked] = useState<{ for: string; tooLarge: boolean }>();
   // Asked on its own so the size is known before any list; nothing is added until then.
   const [sizeFailedFor, setSizeFailedFor] = useState<string>();
   useEffect(() => {
     const [askedArea, askedSource, askedType] = JSON.parse(sizedFor);
     if (!askedArea) return;
     // The map view changes on every pan; wait until it rests before asking.
+    // An answer for an area left behind is dropped, so it cannot replace the current one.
+    let current = true;
     const timer = setTimeout(() => {
       getMirrorSize(askedArea, askedType, askedSource)
-        .then((n) =>
-          setSized((current) => ({
+        .then(({ estimate: n, tooLarge: large }) => {
+          if (!current) return;
+          setSized((last) => ({
             for: sizedFor,
-            estimate:
-              current?.for === sizedFor && current.estimate != null ? Math.max(current.estimate, n ?? 0) : n,
-          }))
-        )
+            estimate: last?.for === sizedFor && last.estimate != null ? Math.max(last.estimate, n ?? 0) : n,
+          }));
+          setChecked({ for: sizedFor, tooLarge: large });
+        })
         // The tool checks the size itself, so a failed check does not block.
-        .catch(() => setSizeFailedFor(sizedFor));
+        .catch(() => current && setSizeFailedFor(sizedFor));
     }, 400);
-    return () => clearTimeout(timer);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
   }, [sizedFor]);
-  const sizePending = !!area && sized?.for !== sizedFor && sizeFailedFor !== sizedFor;
+  const sizePending = !!area && checked?.for !== sizedFor && sizeFailedFor !== sizedFor;
   // Only values narrow: a tag alone (highway) over a large area still passes the
   // cap. With "any", one tag without values keeps the result that broad. A SQL
   // condition is taken as narrowing: only the fetch can tell.
@@ -280,7 +286,8 @@ export const useFetchFlow = ({
     filterMode === "sql"
       ? !!sql.trim()
       : withValues.length > 0 && (match === "all" || withValues.length === usedFilters.length);
-  const tooLarge = (estimate ?? 0) > MAX_READ;
+  // Decided by the size check, which knows both limits: features and geometry.
+  const tooLarge = checked?.for === sizedFor && checked.tooLarge;
   const tooBig = tooLarge || (!narrowed && (estimate ?? 0) > MAX_FEATURES);
 
   const submit = useCallback(async () => {

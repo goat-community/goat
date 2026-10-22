@@ -353,6 +353,15 @@ const GeometrySwitch = ({ flow }: { flow: FetchFlow["fetch"] }) => {
   );
 };
 
+/** GOAT's themes that Overture keeps together in its base theme, with one guide. */
+const OVERTURE_BASE = ["land_use", "land", "water", "infrastructure"];
+
+/** The Overture guide of a layer option, e.g. land_use_lines → base. */
+const overtureGuide = (type: string) => {
+  const theme = OVERTURE_THEMES.find((entry) => Object.values(entry.types).includes(type))?.id ?? "base";
+  return OVERTURE_BASE.includes(theme) ? "base" : theme;
+};
+
 const FilterRow = ({
   flow,
   filter,
@@ -376,6 +385,18 @@ const FilterRow = ({
     [keys.options]
   );
   const keyLabel = t(flow.source === "osm" ? "fetch_features_tag" : "fetch_features_attribute");
+  const key = filter.key.trim();
+  // What a tag or attribute and its values mean, e.g. building=yes, is the source's to say.
+  const info =
+    flow.source === "osm"
+      ? {
+          label: t("fetch_features_osm_wiki", { key }),
+          href: `https://wiki.openstreetmap.org/wiki/Key:${encodeURIComponent(key)}`,
+        }
+      : {
+          label: t("fetch_features_overture_docs", { key }),
+          href: `https://docs.overturemaps.org/guides/${overtureGuide(flow.overtureType)}/`,
+        };
 
   return (
     <Stack direction="row" spacing={1.5} alignItems="flex-start">
@@ -469,15 +490,14 @@ const FilterRow = ({
         <IconButton aria-label={t("delete")} onClick={() => flow.removeFilter(filter.id)}>
           <Icon iconName={ICON_NAME.TRASH} style={{ fontSize: 14 }} />
         </IconButton>
-        {/* What a tag and its values mean, e.g. building=yes, is the wiki's to say. */}
-        {flow.source === "osm" && filter.key.trim() && (
-          <Tooltip title={t("fetch_features_osm_wiki", { key: filter.key.trim() })} placement="left">
+        {key && (
+          <Tooltip title={info.label} placement="left">
             <IconButton
               component="a"
-              href={`https://wiki.openstreetmap.org/wiki/Key:${encodeURIComponent(filter.key.trim())}`}
+              href={info.href}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={t("fetch_features_osm_wiki", { key: filter.key.trim() })}>
+              aria-label={info.label}>
               <Icon iconName={ICON_NAME.CIRCLEINFO} style={{ fontSize: 14 }} />
             </IconButton>
           </Tooltip>

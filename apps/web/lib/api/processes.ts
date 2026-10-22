@@ -541,6 +541,8 @@ export type MirrorValuesOutput = {
   complete?: boolean;
   /** Features in the area, guessed from the mirror's index; with the attribute list only. */
   estimate?: number | null;
+  /** More in the area than one fetch reads: a fetch would be refused. */
+  too_large?: boolean;
   values: MirrorValue[];
 };
 
@@ -549,14 +551,14 @@ export async function getMirrorSize(
   area: GeoJSON.Polygon | GeoJSON.MultiPolygon,
   featureType: string,
   source: string
-): Promise<number | undefined> {
+): Promise<{ estimate?: number; tooLarge: boolean }> {
   const result = await executeProcess<Record<string, unknown>, MirrorValuesOutput>("mirror-values", {
     area,
     source,
     feature_type: featureType,
     size_only: true,
   });
-  return result.estimate ?? undefined;
+  return { estimate: result.estimate ?? undefined, tooLarge: !!result.too_large };
 }
 
 /** Attributes, or the values of one attribute, in the mirror for an area: OSM tags or Overture columns. */

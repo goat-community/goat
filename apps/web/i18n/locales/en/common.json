@@ -3459,6 +3459,7 @@
   "fetch_features_reduce_area": "Too many features for one layer. Choose values for a filter, or a smaller area.",
   "fetch_features_area_too_large": "This area is too large. Zoom in or choose a smaller area.",
   "fetch_features_osm_wiki": "About “{{key}}” in the OpenStreetMap wiki",
+  "fetch_features_overture_docs": "“{{key}}” and the other attributes in the Overture Maps documentation",
   "fetch_features_checking_area": "Checking the area…",
   "fetch_features_save_to_heading": "Folder or team",
   "fetch_features_team_root": "Team root",

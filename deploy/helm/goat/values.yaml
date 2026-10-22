@@ -180,24 +180,6 @@ odoo:
     existingSecret: ""
     existingSecretKey: api-key
 
-# OpenStreetMap and Overture mirror read by Add layer › Connect service
-# (GeoParquet, made outside GOAT). processes and the print, tools and
-# workflows workers get OSM_MIRROR_URI / OVERTURE_MIRROR_URI and, with
-# `s3.bucket` set, MIRROR_S3_*. Empty URIs = those two panes find no data.
-openData:
-  mirror:
-    osmUri: ""                     # e.g. s3://my-bucket/mirror/osm
-    overtureUri: ""                # e.g. s3://my-bucket/mirror/overture
-    # Only when the mirror is in another store than global.s3; the keys are
-    # used for that bucket alone.
-    s3:
-      bucket: ""
-      endpointUrl: ""
-      region: "us-east-1"
-      existingSecret: ""           # K8s Secret holding the two keys below
-      accessKeyIdKey: access_key
-      secretAccessKeyKey: secret_key
-
 # ─── Shared data volume ────────────────────────────────────────────────────
 # ONE volume, mounted by seven components. The windmill tools and workflows
 # workers WRITE to it (the catalog mirror via sync_catalog, the geoip database
@@ -738,7 +720,10 @@ catalog:
   # styles) are the only routes that read the catalog bucket rather than the
   # local mirror. Leave `bucket` unset and those routes answer 404 — by
   # design: an endpoint this deployment does not offer simply is not there.
-  # The rest of the STAC API is unaffected.
+  # The rest of the STAC API is unaffected. processes and the print, tools and
+  # workflows workers get the same settings: goat-data publishes the
+  # OpenStreetMap and Overture mirror for Add layer › Connect service into this
+  # bucket (mirror/osm, mirror/overture). Unset, those two panes find no data.
   #
   # If you set `bucket` but leave `existingSecret` empty, the chart still
   # emits CATALOG_S3_BUCKET/ENDPOINT_URL/REGION (so `catalog.extraEnv` can

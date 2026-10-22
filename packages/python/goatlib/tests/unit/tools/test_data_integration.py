@@ -129,6 +129,15 @@ def test_only_indexed_files_touching_the_area(tmp_path) -> None:
     assert ov.geometry_filter("waterways", ["s3://m/base/v/austria/water_line.parquet"]) == "TRUE"
     assert src.geometry_filter("points") == "TRUE"
 
+    # Overture's mirror puts the version on top: the pointer's path says where.
+    first = tmp_path / "v2" / "europe"
+    first.mkdir(parents=True)
+    con.execute(f"""COPY (SELECT 'points/germany.parquet' AS path, 'points' AS layer, 'europe' AS continent,
+        11.0 AS xmin, 48.0 AS ymin, 12.0 AS xmax, 49.0 AS ymax, 10 AS rows, 1 AS bytes)
+        TO '{first}/_index.parquet' (FORMAT PARQUET)""")
+    files, read = module.covering(con, {"europe": {"version": "v2", "path": "v2/europe"}}, src, "points", env)
+    assert files == [f"{first}/points/germany.parquet"] and read == [("europe", "v2")]
+
     # No pointer yet means no data here, not a crash.
     assert module.pointer(con, module.Source(str(tmp_path / "nowhere"), "geom", "osm_id", True)) == {}
     assert module.pointer(con, module.Source("", "geom", "osm_id", True)) == {}
@@ -222,7 +231,7 @@ def test_a_big_view(tmp_path, monkeypatch) -> None:
     files = [str(base / "points.parquet")]
 
     # The size from row-group bounds: the whole square holds all 40,000.
-    assert abs(module._group_rows(module.row_groups(con, files), (11.0, 48.0, 11.3, 48.3)) - 40_000) < 2_100
+    assert abs(module._group_rows(module.row_groups(con, files, "geom"), (11.0, 48.0, 11.3, 48.3)) - 40_000) < 2_100
     sized = module.mirror_values(con, area=square, feature_type="points", source_name="osm", size_only=True)
     assert sized["values"] == [] and abs(sized["estimate"] - 40_000) < 2_100
 
@@ -246,11 +255,17 @@ def test_a_big_view(tmp_path, monkeypatch) -> None:
     assert not small["complete"]
 
     # Over the read limit a fetch is refused before reading, whatever its filters.
-    monkeypatch.setattr(module, "MAX_READ", 30_000)
-    with pytest.raises(ValueError, match="too large to read"):
-        module.check_read_size(con, files, [(11.0, 48.0, 11.3, 48.3)])
-    module.check_read_size(con, files, [(11.0, 48.0, 11.1, 48.1)])
+    monkeypatch.setattr(module, "MAX_READ_FEATURES", 30_000)
+    with pytest.raises(ValueError, match="too large"):
+        module.check_read_size(con, files, [(11.0, 48.0, 11.3, 48.3)], "geom")
+    module.check_read_size(con, files, [(11.0, 48.0, 11.1, 48.1)], "geom")
     # Two small parts far apart count as two small boxes, not the box around both.
     two = {"type": "MultiPolygon", "coordinates": [[[[11.0, 48.0], [11.02, 48.0], [11.02, 48.02], [11.0, 48.02], [11.0, 48.0]]],
                                                    [[[11.28, 48.28], [11.3, 48.28], [11.3, 48.3], [11.28, 48.3], [11.28, 48.28]]]]}
-    module.check_read_size(con, files, module.area_boxes(con, module.area_table(con, two)))
+    module.check_read_size(con, files, module.area_boxes(con, module.area_table(con, two)), "geom")
+    # Heavy geometry is refused too, before reading: features few, bytes many.
+    monkeypatch.setattr(module, "MAX_READ_FEATURES", 10**9)
+    monkeypatch.setattr(module, "MAX_READ_BYTES", 1_000)
+    with pytest.raises(ValueError, match="too large"):
+        module.check_read_size(con, files, [(11.0, 48.0, 11.3, 48.3)], "geom")
+    assert module.mirror_values(con, area=square, feature_type="points", source_name="osm", size_only=True)["too_large"]

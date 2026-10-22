@@ -6,10 +6,9 @@ description: |
 
   v0.8.0:
 
-  - `openData.mirror`: the OpenStreetMap and Overture mirror read by Add
-    layer › Connect service (OSM_MIRROR_URI, OVERTURE_MIRROR_URI and, for a
-    mirror in another store, MIRROR_S3_*), for processes and the print,
-    tools and workflows workers. Empty by default; nothing else changes.
+  - processes gets the catalog bucket (`catalog.s3`, CATALOG_S3_*): it reads
+    the OpenStreetMap and Overture mirror that goat-data publishes there for
+    Add layer › Connect service. No values change needed.
 
   v0.7.0:
 

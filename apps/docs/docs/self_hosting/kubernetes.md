@@ -89,7 +89,7 @@ Ticket messages can carry attachments of up to 55 MiB in one request. The Ingres
 
 ### OpenStreetMap and Overture Maps {#open-data-mirror}
 
-Optional. The OpenStreetMap and Overture Maps panes under *Add layer › Connect service* read from a mirror of both datasets in an S3 bucket, which a separate pipeline builds; it is not part of the chart. Point `openData.mirror.osmUri` and `openData.mirror.overtureUri` at the root of each mirror, for example `s3://my-bucket/mirror/osm` (`OSM_MIRROR_URI`, `OVERTURE_MIRROR_URI`). If the mirror sits in another store than `global.s3`, also set `openData.mirror.s3.bucket`, `.endpointUrl`, `.region` (default `us-east-1`) and a Secret with its key pair (`openData.mirror.s3.existingSecret`, keys `access_key` and `secret_key`, renamed with `.accessKeyIdKey` and `.secretAccessKeyKey`). These credentials are used for that bucket only. The chart hands the settings to processes and the `tools`, `workflows` and `print` workers. Left empty, the two panes find no data; see [OpenStreetMap and Overture Maps](./docker_compose/external_services.md#open-data-mirror).
+Optional. The OpenStreetMap and Overture Maps panes under *Add layer › Connect service* read from a mirror of both datasets that a separate pipeline publishes in the catalog bucket, under `mirror/osm` and `mirror/overture`; it is not part of the chart. The chart hands `catalog.s3` to processes and the `tools`, `workflows` and `print` workers, so nothing else needs setting. Without `catalog.s3.bucket`, the two panes find no data; see [OpenStreetMap and Overture Maps](./docker_compose/external_services.md#open-data-mirror).
 
 ### Analysis workers {#workers}
 
@@ -97,7 +97,7 @@ The default Windmill worker only handles small jobs. **Analysis tools, dataset i
 
 - Enable them with `windmill.workers.tools.enabled`, `windmill.workers.workflows.enabled` and `windmill.workers.print.enabled`.
 - The `tools` and `workflows` workers are pinned to nodes labelled `node.kubernetes.io/server-usage: geodata` with the toleration `geodata=true:NoSchedule`. Prepare such nodes, or override `nodeSelector` and `tolerations` for these workers. Otherwise their pods stay `Pending` and `helm install --wait` times out.
-- The chart gives these workers what GOAT's jobs need: the GOAT database, the S3 store, the catalog bucket, the OpenStreetMap and Overture mirror, the address of the web app for printing and, with login on, the Keycloak client the print worker signs in with. Windmill passes only the variables listed in `WHITELIST_ENVS` on to the jobs; the chart builds that list, including every variable you add to a worker's `config` or `extraEnv`.
+- The chart gives these workers what GOAT's jobs need: the GOAT database, the S3 store, the catalog bucket (which also holds the OpenStreetMap and Overture mirror), the address of the web app for printing and, with login on, the Keycloak client the print worker signs in with. Windmill passes only the variables listed in `WHITELIST_ENVS` on to the jobs; the chart builds that list, including every variable you add to a worker's `config` or `extraEnv`.
 - Enable `windmill.scriptSync.enabled` to register GOAT's analysis tools and tasks in Windmill after the install. It is off by default.
 - Each Windmill container holds at most a few connections to its database: the server 10 and every worker 3 (`windmill.server.config.DATABASE_CONNECTIONS`, `windmill.workers.databaseConnections`). Upgrading to a GOAT release with a newer Windmill migrates the Windmill database on start, one way: back it up first.
 
