@@ -5,12 +5,13 @@ import json
 from collections.abc import Iterator
 
 import pytest
+from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
 
 from assistant.config import AssistantSettings
 from assistant.tools.testing import ScriptedModel
 from evals.backends import PROJECT_ID, Backends, write_eval_catalog
 from evals.graders import grade
-from evals.harness import run_task
+from evals.harness import answered_by, run_task
 from evals.tasks import EvalTask, load_tasks
 
 
@@ -368,3 +369,28 @@ async def test_restricted_refuses_excluding_one_feature_to_read_the_runner_up(
     transcript = await run_task(_task("proj-17"), model.model, backends, settings)
     [call] = transcript.tool_calls
     assert call.failed and "at least 5 features share" in str(call.result)
+
+
+def test_the_answering_providers_and_their_cost_come_from_the_responses() -> None:
+    """A gateway such as OpenRouter names the provider that answered and what it
+    billed on each response; requests and responses without them add nothing."""
+    responses = [
+        ModelRequest(parts=[UserPromptPart(content="Where are the schools?")]),
+        ModelResponse(
+            parts=[TextPart(content="a")],
+            provider_details={"downstream_provider": "DeepInfra", "cost": 0.002},
+        ),
+        ModelResponse(
+            parts=[TextPart(content="b")],
+            provider_details={"downstream_provider": "DeepInfra", "cost": 0.001},
+        ),
+        ModelResponse(
+            parts=[TextPart(content="c")],
+            provider_details={"downstream_provider": "Together"},
+        ),
+        ModelResponse(parts=[TextPart(content="d")]),
+    ]
+    providers, cost = answered_by(responses)
+    assert providers == {"DeepInfra": 2, "Together": 1}
+    assert cost == pytest.approx(0.003)
+    assert answered_by([ModelResponse(parts=[TextPart(content="d")])]) == ({}, None)

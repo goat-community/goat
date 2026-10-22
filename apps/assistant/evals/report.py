@@ -29,6 +29,20 @@ ANSWER_CHARS = 2000
 DETAIL_CHARS = 500
 
 
+def _added(counts: Iterable[dict[str, int]]) -> dict[str, int]:
+    total: dict[str, int] = {}
+    for count in counts:
+        for name, calls in count.items():
+            total[name] = total.get(name, 0) + calls
+    return total
+
+
+def _cost(costs: list[float | None]) -> float | None:
+    """The run's billed cost; None when no task's provider reported one."""
+    known = [cost for cost in costs if cost is not None]
+    return round(sum(known), 6) if known else None
+
+
 def _median(values: list[float]) -> float | None:
     return statistics.median(values) if values else None
 
@@ -73,6 +87,10 @@ def build_report(
                 "input_tokens": transcript.input_tokens,
                 "output_tokens": transcript.output_tokens,
                 "cache_read_tokens": transcript.cache_read_tokens,
+                # Which providers answered (a gateway routes one model to many)
+                # and what they billed, where the gateway reports it.
+                "providers": transcript.providers,
+                "cost": None if transcript.cost is None else round(transcript.cost, 6),
                 "error": scrub(transcript.error, known),
                 "tools": [call.name for call in transcript.tool_calls],
                 # The workflows core saved in the task, as `python -m evals
@@ -126,6 +144,8 @@ def build_report(
             "input_tokens": sum(t["input_tokens"] for t in tasks),
             "output_tokens": sum(t["output_tokens"] for t in tasks),
             "cache_read_tokens": sum(t.get("cache_read_tokens", 0) for t in tasks),
+            "providers": _added(t.get("providers") or {} for t in tasks),
+            "cost": _cost([t.get("cost") for t in tasks]),
             "judge_input_tokens": judge_tokens[0],
             "judge_output_tokens": judge_tokens[1],
         },

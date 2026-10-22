@@ -637,6 +637,38 @@ def test_the_report_scrubs_and_truncates_errors() -> None:
     assert summary["total_seconds"] == 1.0 and "wall_seconds" in summary
 
 
+def test_the_report_names_the_providers_that_answered_and_what_they_billed() -> None:
+    tasks = [task for task in load_tasks() if task.suite == "catalog"][:3]
+    transcripts = [
+        _transcript(tasks[0], providers={"DeepInfra": 3}, cost=0.002),
+        _transcript(tasks[1], providers={"DeepInfra": 1, "Together": 2}, cost=0.001),
+        _transcript(tasks[2]),
+    ]
+    report = build_report(
+        {"provider": "p", "model": "m"},
+        None,
+        [(task, transcript, []) for task, transcript in zip(tasks, transcripts)],
+        datetime.now(UTC),
+    )
+    records = report["tasks"]
+    assert [record["providers"] for record in records] == [
+        {"DeepInfra": 3},
+        {"DeepInfra": 1, "Together": 2},
+        {},
+    ]
+    assert [record["cost"] for record in records] == [0.002, 0.001, None]
+    summary = report["summary"]
+    assert summary["providers"] == {"DeepInfra": 4, "Together": 2}
+    assert summary["cost"] == pytest.approx(0.003)
+    alone = build_report(
+        {"provider": "p", "model": "m"},
+        None,
+        [(tasks[2], transcripts[2], [])],
+        datetime.now(UTC),
+    )
+    assert (alone["summary"]["providers"], alone["summary"]["cost"]) == ({}, None)
+
+
 async def test_the_judge_counts_its_tokens_and_needs_a_real_bool() -> None:
     task = _judge_task()
     judge = ModelJudge(TestModel(custom_output_args={"passed": False, "reason": "No."}))

@@ -8,6 +8,7 @@ way the app renders it (``assistant.asks.answer_lines``)."""
 import asyncio
 import json
 import time
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any
 from uuid import UUID, uuid4
@@ -79,6 +80,32 @@ class Transcript:
     cache_read_tokens: int = 0
     #: The workflows core saved during the run, as it stored them.
     saved: list[dict[str, Any]] = field(default_factory=list)
+    #: The providers that answered the model calls, with how many each, and
+    #: what they billed, where a gateway such as OpenRouter reports them.
+    providers: dict[str, int] = field(default_factory=dict)
+    cost: float | None = None
+
+
+def answered_by(
+    messages: Iterable[ModelMessage],
+) -> tuple[dict[str, int], float | None]:
+    """The providers that answered a run's model calls and what they billed in
+    all, as a gateway reports them on each response (``provider_details``:
+    OpenRouter routes one model to many providers). The cost is None when no
+    response carried one."""
+    providers: dict[str, int] = {}
+    cost: float | None = None
+    for message in messages:
+        if not isinstance(message, ModelResponse):
+            continue
+        details = message.provider_details or {}
+        name = details.get("downstream_provider")
+        if name:
+            providers[str(name)] = providers.get(str(name), 0) + 1
+        billed = details.get("cost")
+        if isinstance(billed, int | float) and not isinstance(billed, bool):
+            cost = (cost or 0.0) + float(billed)
+    return providers, cost
 
 
 def _content(value: Any) -> Any:
@@ -224,6 +251,8 @@ async def run_task(
     log = _ToolLog()
     #: One per turn, as each run of the app has its own limits.
     usages: list[RunUsage] = []
+    #: Each turn's own messages, for the providers that answered them.
+    answered: list[ModelMessage] = []
 
     async def turn(
         prompt: str,
@@ -275,6 +304,7 @@ async def run_task(
                     if isinstance(event, AgentRunResultEvent):
                         output = str(event.result.output)
                         messages = event.result.all_messages()
+                        answered.extend(event.result.new_messages())
                     elif first_text is None and _is_text(event):
                         first_text = time.monotonic() - started
         return messages
@@ -305,6 +335,7 @@ async def run_task(
         error = f"{type(exc).__name__}: {exc}"
     finally:
         await services.aclose()
+    providers, cost = answered_by(answered)
     return Transcript(
         task_id=task.id,
         answer=output,
@@ -320,4 +351,6 @@ async def run_task(
         first_text_seconds=first_text,
         cache_read_tokens=sum(usage.cache_read_tokens for usage in usages),
         saved=saved,
+        providers=providers,
+        cost=cost,
     )
