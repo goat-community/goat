@@ -669,6 +669,24 @@ def test_the_report_names_the_providers_that_answered_and_what_they_billed() -> 
     assert (alone["summary"]["providers"], alone["summary"]["cost"]) == ({}, None)
 
 
+def test_the_report_counts_responses_without_text_or_a_call_and_the_retries() -> None:
+    tasks = [task for task in load_tasks() if task.suite == "catalog"][:2]
+    report = build_report(
+        {"provider": "p", "model": "m"},
+        None,
+        [
+            (tasks[0], _transcript(tasks[0], reasoning_only=2, retries=2), []),
+            (tasks[1], _transcript(tasks[1]), []),
+        ],
+        datetime.now(UTC),
+    )
+    assert [(t["reasoning_only"], t["retries"]) for t in report["tasks"]] == [
+        (2, 2),
+        (0, 0),
+    ]
+    assert (report["summary"]["reasoning_only"], report["summary"]["retries"]) == (2, 2)
+
+
 async def test_the_judge_counts_its_tokens_and_needs_a_real_bool() -> None:
     task = _judge_task()
     judge = ModelJudge(TestModel(custom_output_args={"passed": False, "reason": "No."}))

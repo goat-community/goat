@@ -5,13 +5,20 @@ import json
 from collections.abc import Iterator
 
 import pytest
-from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
+from pydantic_ai.messages import (
+    ModelRequest,
+    ModelResponse,
+    RetryPromptPart,
+    TextPart,
+    ThinkingPart,
+    UserPromptPart,
+)
 
 from assistant.config import AssistantSettings
 from assistant.tools.testing import ScriptedModel
 from evals.backends import PROJECT_ID, Backends, write_eval_catalog
 from evals.graders import grade
-from evals.harness import answered_by, run_task
+from evals.harness import answered_by, run_task, stalls
 from evals.tasks import EvalTask, load_tasks
 
 
@@ -394,3 +401,19 @@ def test_the_answering_providers_and_their_cost_come_from_the_responses() -> Non
     assert providers == {"DeepInfra": 2, "Together": 1}
     assert cost == pytest.approx(0.003)
     assert answered_by([ModelResponse(parts=[TextPart(content="d")])]) == ({}, None)
+
+
+def test_responses_without_text_or_a_call_and_the_retries_are_counted() -> None:
+    """A response of reasoning only gives the agent nothing to show or run, so it
+    asks the model again: both cost a model call and time without failing a task."""
+    messages = [
+        ModelRequest(parts=[UserPromptPart(content="Build the workflow.")]),
+        ModelResponse(parts=[ThinkingPart(content="I should create it.")]),
+        ModelRequest(
+            parts=[RetryPromptPart(content="Please return text or call a tool.")]
+        ),
+        ModelResponse(parts=[ThinkingPart(content="Now."), TextPart(content="Done.")]),
+        ModelResponse(parts=[]),
+    ]
+    assert stalls(messages) == (2, 1)
+    assert stalls([ModelResponse(parts=[TextPart(content="Done.")])]) == (0, 0)

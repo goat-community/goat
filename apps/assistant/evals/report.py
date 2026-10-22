@@ -91,6 +91,9 @@ def build_report(
                 # and what they billed, where the gateway reports it.
                 "providers": transcript.providers,
                 "cost": None if transcript.cost is None else round(transcript.cost, 6),
+                # Model calls that gave nothing to show or run, and the retries.
+                "reasoning_only": transcript.reasoning_only,
+                "retries": transcript.retries,
                 "error": scrub(transcript.error, known),
                 "tools": [call.name for call in transcript.tool_calls],
                 # The workflows core saved in the task, as `python -m evals
@@ -146,6 +149,8 @@ def build_report(
             "cache_read_tokens": sum(t.get("cache_read_tokens", 0) for t in tasks),
             "providers": _added(t.get("providers") or {} for t in tasks),
             "cost": _cost([t.get("cost") for t in tasks]),
+            "reasoning_only": sum(t.get("reasoning_only", 0) for t in tasks),
+            "retries": sum(t.get("retries", 0) for t in tasks),
             "judge_input_tokens": judge_tokens[0],
             "judge_output_tokens": judge_tokens[1],
         },

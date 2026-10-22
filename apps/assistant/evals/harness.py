@@ -27,6 +27,7 @@ from pydantic_ai.messages import (
     RetryPromptPart,
     TextPart,
     TextPartDelta,
+    ThinkingPart,
     UserPromptPart,
 )
 from pydantic_ai.models import Model
@@ -84,6 +85,24 @@ class Transcript:
     #: what they billed, where a gateway such as OpenRouter reports them.
     providers: dict[str, int] = field(default_factory=dict)
     cost: float | None = None
+    #: Model responses of reasoning only (no text, no tool call), and the times
+    #: the agent asked the model again: each costs a model call and time
+    #: without failing the task.
+    reasoning_only: int = 0
+    retries: int = 0
+
+
+def stalls(messages: Iterable[ModelMessage]) -> tuple[int, int]:
+    """How many of a run's model responses held reasoning only (nothing to show
+    or run), and how many times the agent asked the model again (a reply it
+    could not use, or a tool call with invalid arguments)."""
+    reasoning_only = retries = 0
+    for message in messages:
+        if isinstance(message, ModelResponse):
+            reasoning_only += all(isinstance(p, ThinkingPart) for p in message.parts)
+        else:
+            retries += sum(isinstance(p, RetryPromptPart) for p in message.parts)
+    return reasoning_only, retries
 
 
 def answered_by(
@@ -336,6 +355,7 @@ async def run_task(
     finally:
         await services.aclose()
     providers, cost = answered_by(answered)
+    reasoning_only, retries = stalls(answered)
     return Transcript(
         task_id=task.id,
         answer=output,
@@ -353,4 +373,6 @@ async def run_task(
         saved=saved,
         providers=providers,
         cost=cost,
+        reasoning_only=reasoning_only,
+        retries=retries,
     )
