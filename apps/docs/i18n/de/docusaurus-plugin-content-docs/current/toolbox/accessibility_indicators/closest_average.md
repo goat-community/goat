@@ -106,6 +106,22 @@ Optional können Sie <code>Erweiterte Optionen</code> aktivieren, um weitere Ein
   <div class="content">Konfigurieren Sie verschiedene Routing-Optionen für das gewählte Verkehrsmittel, etwa Reisegeschwindigkeit, maximale Anzahl an Umstiegen, Zu- und Abgangslimits und mehr. Weitere Informationen zu verkehrsmittelspezifischen Optionen finden Sie im Abschnitt [Routing](../../category/routing).</div>
 </div>
 
+#### Thermischer Komfort beim Zu Fuß
+
+Wenn das Verkehrsmittel **Zu Fuß** ist, können Sie mit drei optionalen Gewichten die Heatmap auf Straßen lenken, die für Fußgängerinnen und Fußgänger angenehmer sind. Alle drei stehen standardmäßig auf `0`, was das Ergebnis nicht verändert.
+
+- **Verschattungsgewicht** bestraft Straßenabschnitte, die direkter Sonne ausgesetzt sind und wenig Baumkronen haben.
+- **Hitzgewicht** bestraft Straßenabschnitte mit hoher Oberflächentemperatur.
+- **Steigungsgewicht** bestraft das Gehen bergauf. Es zählt nur der Anstieg, das Gehen bergab wird also nicht günstiger.
+
+Jedes Gewicht reicht von `0` bis `5`. Je höher das Gewicht, desto stärker fließt der Faktor in das Ergebnis ein, und ein Gewicht von `0` deaktiviert den Faktor vollständig. Die drei Faktoren summieren sich, eine Straße kann also sowohl wegen fehlender Beschattung als auch wegen Hitze bestraft werden.
+
+Die Gewichte erfordern ein Straßennetz mit den passenden Attributen. Fehlen in einem Netz die Daten zu Verschattung oder Oberflächentemperatur, fällt der jeweilige Faktor auf `0` zurück und es wirken nur die übrigen Faktoren. GOAT protokolliert eine Warnung, wenn es ein Netz ohne die angeforderten Attribute findet.
+
+:::info
+Die Gewichte gelten nur für das Verkehrsmittel `Zu Fuß` und für Analysen auf Basis der Fahrzeit. Distanzen und die übrigen Verkehrsmittel sind nicht betroffen.
+:::
+
 ### Gelegenheiten
 
 <div class="step">
