@@ -5,7 +5,7 @@ requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115",
   "uvicorn[standard]>=0.30",
-  "duckdb>=1.5.4",
+  "duckdb>=2.0.0",
   "pydantic-settings>=2.4",
   # goatlib's base deps are minimal and its pygeofilter/etc. live in the `full`
   # extra, so -- like geoapi and processes -- this app declares the libraries it
