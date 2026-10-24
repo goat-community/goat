@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-namespace duckdb { class Connection; }
+namespace routing::duck { class Connection; }
 
 namespace routing
 {
@@ -36,7 +36,7 @@ struct RadialNetworkPrep
 //
 // PT mode is NOT handled here — callers branch on cfg.mode beforehand.
 RadialNetworkPrep prepare_radial_network(
-    duckdb::Connection &con,
+    duck::Connection &con,
     RequestConfig const &cfg,
     bool load_geometry = false);
 
@@ -69,7 +69,7 @@ struct StreetMatrixPrepInput
 // for large extents), builds a SubNetwork + adjacency list once, and snaps both
 // point sets. PT mode is NOT handled here.
 StreetMatrixPrep prepare_street_matrix_network(
-    duckdb::Connection &con,
+    duck::Connection &con,
     StreetMatrixPrepInput const &in);
 
 // ---------------------------------------------------------------------------
@@ -108,7 +108,7 @@ struct HeatmapNetworkPrepInput
 // opportunities), or loads over `area_cells` when set, then builds both forward and
 // reverse adjacency lists.
 HeatmapNetworkPrep prepare_radial_street_network(
-    duckdb::Connection &con,
+    duck::Connection &con,
     HeatmapNetworkPrepInput const &in);
 
 } // namespace routing::network

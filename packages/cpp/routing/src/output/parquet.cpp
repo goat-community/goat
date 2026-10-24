@@ -12,7 +12,7 @@
 
 #include <chrono>
 #include <cstdio>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -26,7 +26,7 @@ namespace
 
 void write_network_parquet(ReachabilityField const &field,
                            RequestConfig const &cfg,
-                           duckdb::Connection &con,
+                           duck::Connection &con,
                            std::string const &output_path)
 {
     auto const feature_count = materialize_network_features_table(field, cfg, con);
@@ -45,7 +45,7 @@ void write_network_parquet(ReachabilityField const &field,
 
 void write_hexagonal_grid_parquet(ReachabilityField const &field,
                                   RequestConfig const &cfg,
-                                  duckdb::Connection &con,
+                                  duck::Connection &con,
                                   std::string const &output_path)
 {
     auto const feature_count = materialize_hexagon_features_table(field, cfg, con);
@@ -66,7 +66,7 @@ void write_hexagonal_grid_parquet(ReachabilityField const &field,
 
 void write_polygon_parquet(std::vector<ReachabilityField> const &fields,
                            RequestConfig const &cfg,
-                           duckdb::Connection &con,
+                           duck::Connection &con,
                            std::string const &output_path)
 {
     auto const feature_count = materialize_polygon_features_table(fields, cfg, con);
@@ -90,7 +90,7 @@ void write_polygon_parquet(std::vector<ReachabilityField> const &fields,
 void write_grid_contour_parquet_from_features(
     std::vector<TaggedFeature> const &all_features,
     RequestConfig const &cfg,
-    duckdb::Connection &con,
+    duck::Connection &con,
     std::string const &output_path)
 {
     if (all_features.empty())
@@ -122,8 +122,8 @@ void write_grid_contour_parquet_from_features(
 
     auto run_step = [&](std::string const &q, char const *what) {
         auto r = con.Query(q);
-        if (r->HasError())
-            throw std::runtime_error(std::string(what) + " failed: " + r->GetError());
+        if (r.HasError())
+            throw std::runtime_error(std::string(what) + " failed: " + r.GetError());
     };
 
     // Materialize each step into its own temp table so ST_MakeValid runs
@@ -182,7 +182,7 @@ namespace
 void write_grid_contour_parquet(
     std::vector<ReachabilityField> const &fields,
     RequestConfig const &cfg,
-    duckdb::Connection &con,
+    duck::Connection &con,
     std::string const &output_path)
 {
     if (fields.empty())
@@ -198,7 +198,7 @@ void write_grid_contour_parquet(
 
 void write_point_grid_parquet(ReachabilityField const &field,
                               RequestConfig const &cfg,
-                              duckdb::Connection &con,
+                              duck::Connection &con,
                               std::string const &output_path)
 {
     auto const feature_count = materialize_point_grid_features_table(field, cfg, con);
@@ -220,7 +220,7 @@ void write_point_grid_parquet(ReachabilityField const &field,
 }
 
 void write_empty_parquet(std::string const &output_path,
-                         duckdb::Connection &con)
+                         duck::Connection &con)
 {
     write_query_to_parquet(
         con,
@@ -236,7 +236,7 @@ void write_empty_parquet(std::string const &output_path,
 
 void write_parquet_output(std::vector<ReachabilityField> const &fields,
                           RequestConfig const &cfg,
-                          duckdb::Connection &con)
+                          duck::Connection &con)
 {
     if (fields.empty())
     {

@@ -18,7 +18,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <filesystem>
 #include <iomanip>
 #include <memory>
@@ -124,7 +124,7 @@ inline double merc_y_to_lat(double y)
 // reverse-Dijkstra + reachability-field sampling, projected to H3 cells →
 // `out_table`(cell BIGINT, opp_idx INTEGER, min_cost DOUBLE). Used by both the
 // street heatmap and the PT direct-leg (which calls it with the access mode).
-void build_reach_per_opp(duckdb::Connection &con,
+void build_reach_per_opp(duck::Connection &con,
                          std::vector<Point3857> const &opp_points,
                          RoutingMode mode, CostType cost_type, double max_cost,
                          double speed_km_h, std::string const &edge_dir,
@@ -176,8 +176,8 @@ void build_reach_per_opp(duckdb::Connection &con,
     kernel::DijkstraScratch scratch(static_cast<size_t>(net.node_count));
 
     // Per-opportunity reverse-Dijkstra; sample the reachability field; stream
-    // (lng, lat, opp_idx, cost) rows via Appender::AppendDataChunk with a
-    // STANDARD_VECTOR_SIZE buffer (the row-at-a-time API dominated wall time).
+    // (lng, lat, opp_idx, cost) rows via Appender::append_chunk with a
+    // vector-size buffer (the row-at-a-time API dominated wall time).
     // Aggregate incrementally: an opportunity's samples are folded into
     // <out_table> in batches, flushed only at opportunity boundaries. The flat
     // _hm_samples scratch therefore never holds more than one batch. Because a
@@ -199,32 +199,31 @@ void build_reach_per_opp(duckdb::Connection &con,
         ")::BIGINT AS cell, opp_idx, GREATEST(ROUND(MIN(cost)), 1) AS min_cost"
         " FROM _hm_samples GROUP BY 1, opp_idx";
     {
-        auto appender = std::make_unique<duckdb::Appender>(con, "_hm_samples");
-        duckdb::vector<duckdb::LogicalType> chunk_types{
-            duckdb::LogicalType::DOUBLE,
-            duckdb::LogicalType::DOUBLE,
-            duckdb::LogicalType::INTEGER,
-            duckdb::LogicalType::DOUBLE,
-        };
-        duckdb::DataChunk chunk;
-        chunk.Initialize(duckdb::Allocator::DefaultAllocator(), chunk_types);
+        auto appender = std::make_unique<duck::Appender>(con, "_hm_samples");
+        size_t const vec_size = duck::vector_size();
+        auto chunk = duck::DataChunk::create({
+            DUCKDB_TYPE_DOUBLE,
+            DUCKDB_TYPE_DOUBLE,
+            DUCKDB_TYPE_INTEGER,
+            DUCKDB_TYPE_DOUBLE,
+        });
         double *lng_col = nullptr;
         double *lat_col = nullptr;
         int32_t *opp_col = nullptr;
         double *cost_col = nullptr;
         auto refresh_pointers = [&]() {
-            lng_col = duckdb::FlatVector::GetData<double>(chunk.data[0]);
-            lat_col = duckdb::FlatVector::GetData<double>(chunk.data[1]);
-            opp_col = duckdb::FlatVector::GetData<int32_t>(chunk.data[2]);
-            cost_col = duckdb::FlatVector::GetData<double>(chunk.data[3]);
+            lng_col = chunk.column(0).data<double>();
+            lat_col = chunk.column(1).data<double>();
+            opp_col = chunk.column(2).data<int32_t>();
+            cost_col = chunk.column(3).data<double>();
         };
         refresh_pointers();
         size_t chunk_pos = 0;
         auto flush_chunk = [&]() {
             if (chunk_pos == 0) return;
-            chunk.SetCardinality(chunk_pos);
-            appender->AppendDataChunk(chunk);
-            chunk.Reset();
+            chunk.set_size(chunk_pos);
+            appender->append_chunk(chunk);
+            chunk.reset();
             refresh_pointers();
             chunk_pos = 0;
         };
@@ -273,7 +272,7 @@ void build_reach_per_opp(duckdb::Connection &con,
                     lat_col[chunk_pos] = merc_y_to_lat(pts[j - 1].y + segfrac * ey);
                     opp_col[chunk_pos] = opp_idx;
                     cost_col[chunk_pos] = cost;
-                    if (++chunk_pos == STANDARD_VECTOR_SIZE) flush_chunk();
+                    if (++chunk_pos == vec_size) flush_chunk();
                     ++total_samples;
                 }
                 acc += seg;
@@ -284,14 +283,15 @@ void build_reach_per_opp(duckdb::Connection &con,
         // above). Recreating the table avoids MVCC bloat from repeated DELETEs.
         auto drain = [&]() {
             flush_chunk();
+            appender->close();  // a failed flush must not pass for an empty batch
             appender.reset();  // destroy -> flushed rows become visible
             auto rr = con.Query(agg_sql);
-            if (rr->HasError())
+            if (rr.HasError())
                 throw std::runtime_error(
-                    "Heatmap per-(cell, opp) cost failed: " + rr->GetError());
+                    "Heatmap per-(cell, opp) cost failed: " + rr.GetError());
             con.Query("DROP TABLE IF EXISTS _hm_samples");
             con.Query(samples_ddl);
-            appender = std::make_unique<duckdb::Appender>(con, "_hm_samples");
+            appender = std::make_unique<duck::Appender>(con, "_hm_samples");
             last_drain_at = total_samples;
         };
         // ------------------------------------------------------------------
@@ -341,7 +341,7 @@ void build_reach_per_opp(duckdb::Connection &con,
                     lat_col[chunk_pos] = lat;
                     opp_col[chunk_pos] = k_scratch.group[b + i];
                     cost_col[chunk_pos] = k_scratch.cost[b + i];
-                    if (++chunk_pos == STANDARD_VECTOR_SIZE) flush_chunk();
+                    if (++chunk_pos == vec_size) flush_chunk();
                     ++total_samples;
                 }
             }
@@ -413,7 +413,7 @@ void build_reach_per_opp(duckdb::Connection &con,
                 lat_col[chunk_pos] = merc_y_to_lat(c.y);
                 opp_col[chunk_pos] = opp_idx;
                 cost_col[chunk_pos] = scratch.cost[u];
-                if (++chunk_pos == STANDARD_VECTOR_SIZE) flush_chunk();
+                if (++chunk_pos == vec_size) flush_chunk();
                 ++total_samples;
             }
             for (int32_t u : reached)
@@ -440,9 +440,9 @@ void build_reach_per_opp(duckdb::Connection &con,
                 "CREATE OR REPLACE TEMP TABLE " + out_table + " AS SELECT cell,"
                 " opp_idx, MIN(min_cost) AS min_cost FROM " + out_table +
                 " GROUP BY cell, opp_idx");
-            if (cc->HasError())
+            if (cc.HasError())
                 throw std::runtime_error("k-nearest consolidation failed: " +
-                                         cc->GetError());
+                                         cc.GetError());
         }
         std::fprintf(stderr,
                      "[Pipeline] Dijkstras + sampling (%zu opps, %zu unsnapped, "
@@ -457,7 +457,7 @@ void build_reach_per_opp(duckdb::Connection &con,
 }
 
 // Shared: _hm_opp_meta(opp_idx, opp_cell, weight) from the opportunity points.
-void build_opp_meta(duckdb::Connection &con,
+void build_opp_meta(duck::Connection &con,
                     std::vector<Opportunity> const &opportunities,
                     int32_t h3_resolution)
 {
@@ -482,15 +482,15 @@ void build_opp_meta(duckdb::Connection &con,
     }
     sql << ") v(opp_idx, opp_cell, weight, opp_count, x_3857, y_3857)";
     auto r = con.Query(sql.str());
-    if (r->HasError())
+    if (r.HasError())
         throw std::runtime_error("Heatmap opp-meta build failed: " +
-                                 r->GetError());
+                                 r.GetError());
 }
 
 // Shared: gravity / closest-average / connectivity reducer over
 // _hm_per_opp(cell, opp_idx, min_cost) + _hm_opp_meta(opp_idx, opp_cell,
 // weight) → parquet (h3_index, score) at cfg.output_path.
-void reduce_and_export(HeatmapConfig const &cfg, duckdb::Connection &con,
+void reduce_and_export(HeatmapConfig const &cfg, duck::Connection &con,
                        PhaseTimer &timer)
 {
     {
@@ -551,9 +551,9 @@ void reduce_and_export(HeatmapConfig const &cfg, duckdb::Connection &con,
                 "CREATE OR REPLACE TEMP TABLE _hm_demand AS "
                 "SELECT cell::BIGINT AS cell, demand::DOUBLE AS demand "
                 "FROM read_parquet('" + cfg.demand_path + "')");
-            if (rd->HasError())
+            if (rd.HasError())
                 throw std::runtime_error("2SFCA demand load failed: " +
-                                         rd->GetError());
+                                         rd.GetError());
 
             // Step 1: R_j = capacity_j / SUM(demand * W) over reached cells.
             std::ostringstream s1;
@@ -568,9 +568,9 @@ void reduce_and_export(HeatmapConfig const &cfg, duckdb::Connection &con,
                << "WHERE po.min_cost <= " << cfg.max_cost << " "
                << "GROUP BY po.opp_idx";
             auto r1 = con.Query(s1.str());
-            if (r1->HasError())
+            if (r1.HasError())
                 throw std::runtime_error("2SFCA step 1 failed: " +
-                                         r1->GetError());
+                                         r1.GetError());
 
             // Step 2: A_cell = SUM(R_j * W2) over supplies reaching the cell.
             std::ostringstream s2;
@@ -583,9 +583,9 @@ void reduce_and_export(HeatmapConfig const &cfg, duckdb::Connection &con,
                << "WHERE po.min_cost <= " << cfg.max_cost << " "
                << "GROUP BY po.cell";
             auto r2 = con.Query(s2.str());
-            if (r2->HasError())
+            if (r2.HasError())
                 throw std::runtime_error("2SFCA step 2 failed: " +
-                                         r2->GetError());
+                                         r2.GetError());
         }
         else
         {
@@ -643,9 +643,9 @@ void reduce_and_export(HeatmapConfig const &cfg, duckdb::Connection &con,
         }
 
         auto r = con.Query(sql.str());
-        if (r->HasError())
+        if (r.HasError())
             throw std::runtime_error("Heatmap reducer SQL failed: " +
-                                     r->GetError());
+                                     r.GetError());
         }
     }
     std::fprintf(stderr, "[Pipeline] Reducer: %.0f ms\n", timer.elapsed_ms());
@@ -677,7 +677,7 @@ double default_mode_speed(RoutingMode m)
 //   from the group → _hm_per_opp → shared reducer. Access/egress legs come
 //   from precomputed per-mode lookup tables; transit from nigiri; the direct
 //   leg is an on-the-fly reverse Dijkstra bounded by the access time limit.
-void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
+void run_pt(HeatmapConfig const &cfg, duck::Connection &con,
             PhaseTimer &timer)
 {
     if (cfg.opportunities.empty())
@@ -704,15 +704,15 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
         auto a = con.Query(
             "CREATE OR REPLACE TEMP VIEW _access AS SELECT * FROM read_parquet('"
             + sql_escape(cfg.access_table_path) + "')");
-        if (a->HasError())
+        if (a.HasError())
             throw std::runtime_error("PT: load access table failed: " +
-                                     a->GetError());
+                                     a.GetError());
         auto e = con.Query(
             "CREATE OR REPLACE TEMP VIEW _egress AS SELECT * FROM read_parquet('"
             + sql_escape(cfg.egress_table_path) + "')");
-        if (e->HasError())
+        if (e.HasError())
             throw std::runtime_error("PT: load egress table failed: " +
-                                     e->GetError());
+                                     e.GetError());
     }
 
     // 3. Opportunity metadata, then group opportunities by egress cell.
@@ -731,13 +731,13 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
             "       COUNT(*) AS opp_count, "
             "       AVG(x_3857) AS rep_x, AVG(y_3857) AS rep_y "
             "FROM _hm_opp_meta GROUP BY opp_cell");
-        if (r->HasError())
-            throw std::runtime_error("PT: group build failed: " + r->GetError());
+        if (r.HasError())
+            throw std::runtime_error("PT: group build failed: " + r.GetError());
     }
     size_t n_grps = 0;
     {
         auto r = con.Query("SELECT COUNT(*) FROM _grp");
-        n_grps = static_cast<size_t>(r->GetValue(0, 0).GetValue<int64_t>());
+        n_grps = static_cast<size_t>(r.scalar<int64_t>());
     }
 
     // 4. Egress stops per group (group cell → stops within egress budget).
@@ -749,9 +749,9 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
             << "WHERE e.cost_minutes <= " << cfg.egress_max_time << " "
             << "ORDER BY g.grp_idx";
         auto r = con.Query(sql.str());
-        if (r->HasError())
+        if (r.HasError())
             throw std::runtime_error("PT: egress lookup failed: " +
-                                     r->GetError());
+                                     r.GetError());
     }
 
     // 5. Per-group reverse RAPTOR seeded from each group's egress stops →
@@ -777,24 +777,28 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
             auto rows = con.Query(
                 "SELECT grp_idx, stop_idx, egress_min FROM _egress_stops "
                 "ORDER BY grp_idx");
-            if (rows->HasError())
+            if (rows.HasError())
                 throw std::runtime_error("PT: read egress stops failed: " +
-                                         rows->GetError());
-            size_t const n = rows->RowCount();
+                                         rows.GetError());
             int cur_grp = -1;
-            for (size_t i = 0; i < n; ++i)
+            while (auto chunk = rows.Fetch())
             {
-                int const grp = rows->GetValue(0, i).GetValue<int32_t>();
-                uint32_t const stop = rows->GetValue(1, i).GetValue<uint32_t>();
-                double const egress_min =
-                    rows->GetValue(2, i).GetValue<double>();
-                if (grp != cur_grp) { groups.push_back({grp, {}}); cur_grp = grp; }
-                double const seed_min = egress_min + cfg.transfer_cost;
-                groups.back().seeds.push_back(nigiri::routing::offset{
-                    nigiri::location_idx_t{stop},
-                    nigiri::duration_t{
-                        static_cast<int16_t>(std::lround(seed_min))},
-                    0U});
+                auto const grp_col = chunk.column(0);
+                auto const stop_col = chunk.column(1);
+                auto const egress_col = chunk.column(2);
+                for (duck::idx_t i = 0; i < chunk.size(); ++i)
+                {
+                    int const grp = grp_col.get<int32_t>(i);
+                    uint32_t const stop = stop_col.get<uint32_t>(i);
+                    double const egress_min = egress_col.get<double>(i);
+                    if (grp != cur_grp) { groups.push_back({grp, {}}); cur_grp = grp; }
+                    double const seed_min = egress_min + cfg.transfer_cost;
+                    groups.back().seeds.push_back(nigiri::routing::offset{
+                        nigiri::location_idx_t{stop},
+                        nigiri::duration_t{
+                            static_cast<int16_t>(std::lround(seed_min))},
+                        0U});
+                }
             }
         }
 
@@ -842,17 +846,17 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
 
         // Serial append of all per-thread results.
         {
-            duckdb::Appender appender(con, "_pt_reach");
+            duck::Appender appender(con, "_pt_reach");
             for (auto const &buf : out)
                 for (auto const &r : buf)
                 {
-                    appender.BeginRow();
-                    appender.Append<int32_t>(r.grp);
-                    appender.Append<uint32_t>(r.stop);
-                    appender.Append<double>(r.cost);
-                    appender.EndRow();
+                    appender.begin_row();
+                    appender.append(r.grp);
+                    appender.append(r.stop);
+                    appender.append(r.cost);
+                    appender.end_row();
                 }
-            appender.Close();
+            appender.close();
         }
         total_reach = reach_count.load();
         std::fprintf(
@@ -869,14 +873,17 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
     std::vector<Point3857> grp_points;
     {
         auto rows = con.Query("SELECT rep_x, rep_y FROM _grp ORDER BY grp_idx");
-        if (rows->HasError())
+        if (rows.HasError())
             throw std::runtime_error("PT: read group points failed: " +
-                                     rows->GetError());
-        grp_points.reserve(rows->RowCount());
-        for (size_t i = 0; i < rows->RowCount(); ++i)
-            grp_points.push_back(Point3857{
-                rows->GetValue(0, i).GetValue<double>(),
-                rows->GetValue(1, i).GetValue<double>()});
+                                     rows.GetError());
+        while (auto chunk = rows.Fetch())
+        {
+            auto const x_col = chunk.column(0);
+            auto const y_col = chunk.column(1);
+            for (duck::idx_t i = 0; i < chunk.size(); ++i)
+                grp_points.push_back(
+                    Point3857{x_col.get<double>(i), y_col.get<double>(i)});
+        }
     }
     // One seed per group: identity offsets.
     std::vector<std::pair<int32_t, int32_t>> direct_offsets;
@@ -908,9 +915,9 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
              << "WHERE a.cost_minutes <= " << cfg.access_max_time << " "
              << "  AND a.stop_idx IN (SELECT DISTINCT stop_idx FROM _pt_reach)";
         auto ru = con.Query(used.str());
-        if (ru->HasError())
+        if (ru.HasError())
             throw std::runtime_error("PT: access-used build failed: " +
-                                     ru->GetError());
+                                     ru.GetError());
 
         con.Query("DROP TABLE IF EXISTS _pt_per_opp");
         con.Query("CREATE TEMP TABLE _pt_per_opp "
@@ -948,9 +955,9 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
                 << "WHERE pr.grp_idx >= " << lo << " AND pr.grp_idx < " << hi
                 << " GROUP BY 1, 2";
             auto r = con.Query(sql.str());
-            if (r->HasError())
+            if (r.HasError())
                 throw std::runtime_error("PT: access join failed: " +
-                                         r->GetError());
+                                         r.GetError());
         }
     }
 
@@ -966,9 +973,9 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
             << "  SELECT cell, opp_idx, min_cost FROM _pt_per_opp"
             << ") WHERE min_cost <= " << cfg.max_cost << " GROUP BY 1, 2";
         auto r = con.Query(sql.str());
-        if (r->HasError())
+        if (r.HasError())
             throw std::runtime_error("PT: combine direct+PT failed: " +
-                                     r->GetError());
+                                     r.GetError());
     }
     std::fprintf(stderr, "[Pipeline] Access join + direct + combine: %.0f ms\n",
                  timer.elapsed_ms());
@@ -991,16 +998,16 @@ void run_pt(HeatmapConfig const &cfg, duckdb::Connection &con,
             "CREATE OR REPLACE TEMP TABLE _hm_opp_meta AS "
             "SELECT grp_idx AS opp_idx, " + opp_cell_expr + " AS opp_cell, "
             "       weight, opp_count FROM _grp");
-        if (r->HasError())
+        if (r.HasError())
             throw std::runtime_error("PT: group meta build failed: " +
-                                     r->GetError());
+                                     r.GetError());
     }
 
     // _hm_per_opp + _hm_opp_meta are now built; build_reachability_relation's
     // emit callback decides whether to reduce (heatmap) or export (OD matrix).
 }
 
-void run_street(HeatmapConfig const &cfg, duckdb::Connection &con,
+void run_street(HeatmapConfig const &cfg, duck::Connection &con,
                 PhaseTimer &timer)
 {
     if (cfg.opportunities.empty())
@@ -1074,7 +1081,7 @@ void run_street(HeatmapConfig const &cfg, duckdb::Connection &con,
 // Configure the DuckDB connection: extensions + a spill directory (the PT
 // intermediates can otherwise exhaust RAM). The memory limit is DuckDB's own
 // default, a share of the container's memory.
-void configure_connection(HeatmapConfig const &cfg, duckdb::Connection &con,
+void configure_connection(HeatmapConfig const &cfg, duck::Connection &con,
                           PhaseTimer &timer)
 {
     data::ensure_required_extensions_loaded(con);
@@ -1092,7 +1099,7 @@ void configure_connection(HeatmapConfig const &cfg, duckdb::Connection &con,
 
 // Build the per-(cell, opportunity) reachability cost tables (_hm_per_opp +
 // _hm_opp_meta). Shared by the heatmap reducer and the OD-cost emitter.
-void run_reachability(HeatmapConfig const &cfg, duckdb::Connection &con,
+void run_reachability(HeatmapConfig const &cfg, duck::Connection &con,
                       PhaseTimer &timer)
 {
     if (cfg.mode == RoutingMode::PublicTransport)
@@ -1105,7 +1112,7 @@ void run_reachability(HeatmapConfig const &cfg, duckdb::Connection &con,
 // (orig_cell, dest_cell, cost), one row per reachable (cell, opportunity)
 // pair. dest_cell is the opportunity's cell from _hm_opp_meta. `con` holds the
 // temp tables built by the shared reachability engine.
-void export_od_costs(HeatmapConfig const &cfg, duckdb::Connection &con)
+void export_od_costs(HeatmapConfig const &cfg, duck::Connection &con)
 {
     std::ostringstream sql;
     sql << "COPY (SELECT p.cell AS orig_cell, om.opp_cell AS dest_cell, "
@@ -1113,20 +1120,20 @@ void export_od_costs(HeatmapConfig const &cfg, duckdb::Connection &con)
         << "FROM _hm_per_opp p JOIN _hm_opp_meta om USING (opp_idx)) "
         << "TO '" << sql_escape(cfg.output_path) << "' (FORMAT PARQUET)";
     auto r = con.Query(sql.str());
-    if (r->HasError())
-        throw std::runtime_error("OD cost export failed: " + r->GetError());
+    if (r.HasError())
+        throw std::runtime_error("OD cost export failed: " + r.GetError());
 }
 
 } // namespace
 
 void build_reachability_relation(
     HeatmapConfig const &cfg,
-    std::function<void(duckdb::Connection &)> const &emit)
+    std::function<void(duck::Connection &)> const &emit)
 {
     validate(cfg);
     PhaseTimer timer;
-    duckdb::DuckDB db(nullptr);
-    duckdb::Connection con(db);
+    duck::Database db;
+    duck::Connection con(db);
     configure_connection(cfg, con, timer);
     run_reachability(cfg, con, timer);
     emit(con);
@@ -1134,7 +1141,7 @@ void build_reachability_relation(
 
 void compute(HeatmapConfig const &cfg)
 {
-    build_reachability_relation(cfg, [&](duckdb::Connection &con) {
+    build_reachability_relation(cfg, [&](duck::Connection &con) {
         PhaseTimer timer;
         reduce_and_export(cfg, con, timer);
     });
@@ -1142,7 +1149,7 @@ void compute(HeatmapConfig const &cfg)
 
 void compute_od_costs(HeatmapConfig const &cfg)
 {
-    build_reachability_relation(cfg, [&](duckdb::Connection &con) {
+    build_reachability_relation(cfg, [&](duck::Connection &con) {
         export_od_costs(cfg, con);
     });
 }

@@ -1,7 +1,7 @@
 #include "polygon_builder.h"
 
 #include <algorithm>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <cmath>
 #include <numeric>
 #include <stdexcept>
@@ -16,15 +16,15 @@ namespace
 static constexpr char kPolygonFeaturesTempTable[] = "routing_polygon_features_tmp";
 static constexpr double kConcaveHullRatio = 0.2;
 
-int64_t count_rows(duckdb::Connection &con, std::string const &table)
+int64_t count_rows(duck::Connection &con, std::string const &table)
 {
     auto result = con.Query("SELECT count(*) FROM " + table);
-    if (result->HasError())
+    if (result.HasError())
     {
         throw std::runtime_error("Failed to count rows in " + table + ": " +
-                                 result->GetError());
+                                 result.GetError());
     }
-    return result->GetValue(0, 0).GetValue<int64_t>();
+    return result.scalar<int64_t>();
 }
 
 // Union-find: assign a contiguous component ID to every node whose cost is
@@ -120,42 +120,42 @@ std::string const &polygon_features_table_name()
 int64_t materialize_polygon_features_table(
     std::vector<ReachabilityField> const &fields,
     RequestConfig const &cfg,
-    duckdb::Connection &con)
+    duck::Connection &con)
 {
     if (fields.empty())
         return 0;
 
     auto drop_features = con.Query(std::string("DROP TABLE IF EXISTS ") +
                                    kPolygonFeaturesTempTable);
-    if (drop_features->HasError())
+    if (drop_features.HasError())
         throw std::runtime_error("Failed to drop polygon features temp table: " +
-                                 drop_features->GetError());
+                                 drop_features.GetError());
 
     // reached_nodes: one row per reachable node per origin.
     auto drop_nodes = con.Query("DROP TABLE IF EXISTS reached_nodes");
-    if (drop_nodes->HasError())
+    if (drop_nodes.HasError())
         throw std::runtime_error("Failed to drop reached_nodes: " +
-                                 drop_nodes->GetError());
+                                 drop_nodes.GetError());
     auto create_nodes = con.Query(
         "CREATE TEMP TABLE reached_nodes ("
         "  origin_idx INTEGER, node_id INTEGER, cost DOUBLE, x DOUBLE, y DOUBLE"
         ")");
-    if (create_nodes->HasError())
+    if (create_nodes.HasError())
         throw std::runtime_error("Failed to create reached_nodes: " +
-                                 create_nodes->GetError());
+                                 create_nodes.GetError());
 
     // node_step_components: component ID per (origin, step, node).
     auto drop_comp = con.Query("DROP TABLE IF EXISTS node_step_components");
-    if (drop_comp->HasError())
+    if (drop_comp.HasError())
         throw std::runtime_error("Failed to drop node_step_components: " +
-                                 drop_comp->GetError());
+                                 drop_comp.GetError());
     auto create_comp = con.Query(
         "CREATE TEMP TABLE node_step_components ("
         "  origin_idx INTEGER, step_cost DOUBLE, node_id INTEGER, component_id INTEGER"
         ")");
-    if (create_comp->HasError())
+    if (create_comp.HasError())
         throw std::runtime_error("Failed to create node_step_components: " +
-                                 create_comp->GetError());
+                                 create_comp.GetError());
 
     // Downsample interior nodes for concave hull performance.
     // Only applied for large networks; small catchments keep all nodes.
@@ -168,7 +168,7 @@ int64_t materialize_polygon_features_table(
     int64_t reached_node_total = 0;
 
     {
-        duckdb::Appender nodes_appender(con, "reached_nodes");
+        duck::Appender nodes_appender(con, "reached_nodes");
         for (size_t oi = 0; oi < fields.size(); ++oi)
         {
             auto const &field = fields[oi];
@@ -208,25 +208,26 @@ int64_t materialize_polygon_features_table(
                 }
 
                 auto const &coord = field.network->node_coords[static_cast<std::size_t>(nid)];
-                nodes_appender.BeginRow();
-                nodes_appender.Append(static_cast<int32_t>(oi));
-                nodes_appender.Append(nid);
-                nodes_appender.Append(cost);
-                nodes_appender.Append(coord.x);
-                nodes_appender.Append(coord.y);
-                nodes_appender.EndRow();
+                nodes_appender.begin_row();
+                nodes_appender.append(static_cast<int32_t>(oi));
+                nodes_appender.append(nid);
+                nodes_appender.append(cost);
+                nodes_appender.append(coord.x);
+                nodes_appender.append(coord.y);
+                nodes_appender.end_row();
                 ++reached_node_total;
             }
 
             total_reached_across_fields += total_reachable;
         }
+        nodes_appender.close();
     }
 
     if (reached_node_total == 0)
         return 0;
 
     {
-        duckdb::Appender comp_appender(con, "node_step_components");
+        duck::Appender comp_appender(con, "node_step_components");
         for (size_t oi = 0; oi < fields.size(); ++oi)
         {
             auto const &field = fields[oi];
@@ -237,15 +238,16 @@ int64_t materialize_polygon_features_table(
                 {
                     if (comps[static_cast<std::size_t>(nid)] < 0)
                         continue;
-                    comp_appender.BeginRow();
-                    comp_appender.Append(static_cast<int32_t>(oi));
-                    comp_appender.Append(step);
-                    comp_appender.Append(nid);
-                    comp_appender.Append(comps[static_cast<std::size_t>(nid)]);
-                    comp_appender.EndRow();
+                    comp_appender.begin_row();
+                    comp_appender.append(static_cast<int32_t>(oi));
+                    comp_appender.append(step);
+                    comp_appender.append(nid);
+                    comp_appender.append(comps[static_cast<std::size_t>(nid)]);
+                    comp_appender.end_row();
                 }
             }
         }
+        comp_appender.close();
     }
 
     // One concave hull per (origin_idx, step_cost, component_id).
@@ -272,9 +274,9 @@ int64_t materialize_polygon_features_table(
             "  ON n.origin_idx = c.origin_idx AND n.node_id = c.node_id "
             "GROUP BY c.origin_idx, c.step_cost, c.component_id "
             "HAVING count(*) >= 3");
-        if (r->HasError())
+        if (r.HasError())
             throw std::runtime_error("Polygon hulls materialization failed: " +
-                                     r->GetError());
+                                     r.GetError());
     }
 
     std::string create_sql;
@@ -350,9 +352,9 @@ int64_t materialize_polygon_features_table(
     }
 
     auto create_features = con.Query(create_sql);
-    if (create_features->HasError())
+    if (create_features.HasError())
         throw std::runtime_error("Polygon features materialization failed: " +
-                                 create_features->GetError());
+                                 create_features.GetError());
 
     return count_rows(con, kPolygonFeaturesTempTable);
 }

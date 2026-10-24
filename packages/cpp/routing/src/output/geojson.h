@@ -7,10 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace duckdb
-{
-    class Connection;
-}
+namespace routing::duck { class Connection; }
 
 namespace routing::output
 {
@@ -18,7 +15,7 @@ namespace routing::output
 // Build GeoJSON output from a reachability field according to catchment type.
 std::string build_geojson_output(std::vector<ReachabilityField> const &fields,
                                  RequestConfig const &cfg,
-                                 duckdb::Connection &con);
+                                 duck::Connection &con);
 
 // SQL/encoding step of the grid-contour pipeline. Lets a caller stream
 // per-origin features (built via `append_field_grid_features`) without
@@ -26,6 +23,6 @@ std::string build_geojson_output(std::vector<ReachabilityField> const &fields,
 std::string build_grid_contour_geojson_from_features(
     std::vector<TaggedFeature> const &features,
     RequestConfig const &cfg,
-    duckdb::Connection &con);
+    duck::Connection &con);
 
 } // namespace routing::output

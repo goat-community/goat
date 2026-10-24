@@ -4,10 +4,7 @@
 
 #include <functional>
 
-namespace duckdb
-{
-    class Connection;
-}
+namespace routing::duck { class Connection; }
 
 namespace routing::heatmap
 {
@@ -39,7 +36,7 @@ namespace routing::heatmap
     // build on, so neither reimplements the routing machinery.
     void build_reachability_relation(
         HeatmapConfig const &cfg,
-        std::function<void(duckdb::Connection &)> const &emit);
+        std::function<void(duck::Connection &)> const &emit);
 
     // OD cost matrix: run the shared reachability engine, then export the raw
     // per-(cell, opportunity) relation as (orig_cell, dest_cell, cost) parquet

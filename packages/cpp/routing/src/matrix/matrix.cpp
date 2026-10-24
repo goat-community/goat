@@ -9,7 +9,7 @@
 
 #include <cmath>
 #include <cstdint>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <filesystem>
 #include <limits>
 #include <stdexcept>
@@ -69,8 +69,8 @@ namespace routing::matrix
         size_t n_origins = cfg.origins.size();
         size_t n_dests = cfg.destinations.size();
 
-        duckdb::DuckDB db(nullptr);
-        duckdb::Connection con(db);
+        duck::Database db;
+        duck::Connection con(db);
         data::ensure_required_extensions_loaded(con);
 
         std::vector<double> matrix(n_origins * n_dests,
@@ -180,7 +180,7 @@ namespace routing::matrix
                       "(origin VARCHAR, destination VARCHAR, travel_cost INTEGER)");
 
             {
-                duckdb::Appender appender(con, "_matrix_tmp");
+                duck::Appender appender(con, "_matrix_tmp");
                 for (size_t oi = 0; oi < n_origins; ++oi)
                 {
                     std::string const &o_id = has_origin_ids
@@ -196,16 +196,17 @@ namespace routing::matrix
                             ? cfg.destination_ids[di]
                             : std::to_string(di);
 
-                        appender.BeginRow();
-                        appender.Append(duckdb::Value(o_id));
-                        appender.Append(duckdb::Value(d_id));
+                        appender.begin_row();
+                        appender.append(o_id);
+                        appender.append(d_id);
                         if (std::isnan(c))
-                            appender.Append(duckdb::Value());
+                            appender.append_null();
                         else
-                            appender.Append(static_cast<int32_t>(std::round(c)));
-                        appender.EndRow();
+                            appender.append(static_cast<int32_t>(std::round(c)));
+                        appender.end_row();
                     }
                 }
+                appender.close();
             }
 
             output::write_query_to_parquet(

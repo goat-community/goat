@@ -3,7 +3,7 @@
 
 #include "../geometry/field_sampler.h"
 
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <sstream>
 #include <stdexcept>
 
@@ -14,13 +14,13 @@ namespace
 {
 static constexpr char kHexagonFeaturesTempTable[] = "routing_hexagon_features_tmp";
 
-int64_t count_rows(duckdb::Connection &con, std::string const &table)
+int64_t count_rows(duck::Connection &con, std::string const &table)
 {
     auto result = con.Query("SELECT count(*) FROM " + table);
-    if (result->HasError())
+    if (result.HasError())
         throw std::runtime_error("Failed to count rows in " + table + ": " +
-                                 result->GetError());
-    return result->GetValue(0, 0).GetValue<int64_t>();
+                                 result.GetError());
+    return result.scalar<int64_t>();
 }
 
 } // namespace
@@ -33,15 +33,15 @@ std::string const &hexagon_features_table_name()
 
 int64_t materialize_hexagon_features_table(ReachabilityField const &field,
                                            RequestConfig const &cfg,
-                                           duckdb::Connection &con)
+                                           duck::Connection &con)
 {
     double budget = cfg.cost_budget();
 
     auto drop_features = con.Query(std::string("DROP TABLE IF EXISTS ") +
                                    kHexagonFeaturesTempTable);
-    if (drop_features->HasError())
+    if (drop_features.HasError())
         throw std::runtime_error("Failed to drop hexagon features temp table: " +
-                                 drop_features->GetError());
+                                 drop_features.GetError());
 
     if (!field.network)
         return 0;
@@ -52,15 +52,16 @@ int64_t materialize_hexagon_features_table(ReachabilityField const &field,
     con.Query("DROP TABLE IF EXISTS hex_sample_points");
     con.Query("CREATE TEMP TABLE hex_sample_points (x DOUBLE, y DOUBLE, cost DOUBLE)");
     {
-        duckdb::Appender appender(con, "hex_sample_points");
+        duck::Appender appender(con, "hex_sample_points");
         for (auto const &s : samples)
         {
-            appender.BeginRow();
-            appender.Append(s.x_3857);
-            appender.Append(s.y_3857);
-            appender.Append(s.cost);
-            appender.EndRow();
+            appender.begin_row();
+            appender.append(s.x_3857);
+            appender.append(s.y_3857);
+            appender.append(s.cost);
+            appender.end_row();
         }
+        appender.close();
     }
 
     // Build step_cost expression
@@ -117,9 +118,9 @@ int64_t materialize_hexagon_features_table(ReachabilityField const &field,
                << "FROM enriched";
 
     auto create_features = con.Query(create_sql.str());
-    if (create_features->HasError())
+    if (create_features.HasError())
         throw std::runtime_error("Hexagon features materialization failed: " +
-                                 create_features->GetError());
+                                 create_features.GetError());
 
     con.Query("DROP TABLE IF EXISTS hex_sample_points");
 

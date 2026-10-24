@@ -7,11 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-# --- DuckDB (pre-built release binary) ---
+# --- DuckDB (pre-built release binary, C API only) ---
 # MUST match the Python `duckdb` pin in goatlib/pyproject.toml — the routing
 # module and the Python process share one address space, so two different
 # libduckdb versions collide (symbol/ABI clash → memory corruption, crashes).
-set(DUCKDB_VERSION "v1.5.4")
+#
+# The module talks to DuckDB through the stable C API (duckdb.h) only, wrapped
+# in src/data/duck.h. DuckDB 2.0 ships no C++ headers, and DuckDB's bundled fmt
+# would clash with nigiri's.
+set(DUCKDB_VERSION "v2.0.0")
 
 # Detect platform for pre-built binary
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
@@ -20,17 +24,32 @@ else()
     set(DUCKDB_PLATFORM "linux-amd64")
 endif()
 
+# DuckDB 2.0 renamed the release archive (libduckdb-<platform>.zip before).
+string(REGEX REPLACE "^v" "" DUCKDB_VERSION_NUMBER "${DUCKDB_VERSION}")
+if(DUCKDB_VERSION_NUMBER VERSION_LESS "2.0.0")
+    set(DUCKDB_ARCHIVE "libduckdb-${DUCKDB_PLATFORM}.zip")
+else()
+    set(DUCKDB_ARCHIVE "duckdb-shared-libs-${DUCKDB_PLATFORM}.tar.gz")
+endif()
+
 FetchContent_Declare(
     duckdb
-    URL https://github.com/duckdb/duckdb/releases/download/${DUCKDB_VERSION}/libduckdb-${DUCKDB_PLATFORM}.zip
+    URL https://github.com/duckdb/duckdb/releases/download/${DUCKDB_VERSION}/${DUCKDB_ARCHIVE}
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(duckdb)
 
+# Expose the C headers only, so nothing can pick up the C++ ones by accident.
+set(DUCKDB_INCLUDE_DIR "${CMAKE_BINARY_DIR}/duckdb_include")
+file(COPY "${duckdb_SOURCE_DIR}/duckdb.h" DESTINATION "${DUCKDB_INCLUDE_DIR}")
+if(EXISTS "${duckdb_SOURCE_DIR}/duckdb_v2.h")
+    file(COPY "${duckdb_SOURCE_DIR}/duckdb_v2.h" DESTINATION "${DUCKDB_INCLUDE_DIR}")
+endif()
+
 add_library(duckdb SHARED IMPORTED GLOBAL)
 set_target_properties(duckdb PROPERTIES
     IMPORTED_LOCATION "${duckdb_SOURCE_DIR}/libduckdb.so"
-    INTERFACE_INCLUDE_DIRECTORIES "${duckdb_SOURCE_DIR}"
+    INTERFACE_INCLUDE_DIRECTORIES "${DUCKDB_INCLUDE_DIR}"
 )
 # Install libduckdb.so alongside our module so it can be found at runtime
 install(FILES "${duckdb_SOURCE_DIR}/libduckdb.so" DESTINATION routing)

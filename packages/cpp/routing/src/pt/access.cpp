@@ -16,7 +16,7 @@ namespace routing::pt
 
     AccessResult compute_access(
         RequestConfig const &cfg,
-        duckdb::Connection &con,
+        duck::Connection &con,
         nigiri::timetable const &tt)
     {
         RequestConfig access_cfg = cfg;

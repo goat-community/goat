@@ -5,7 +5,7 @@
 #include "../kernel/kdtree.h"
 
 #include <cmath>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -26,13 +26,13 @@ struct SamplePoint
     double cost;
 };
 
-int64_t count_rows(duckdb::Connection &con, std::string const &table)
+int64_t count_rows(duck::Connection &con, std::string const &table)
 {
     auto result = con.Query("SELECT count(*) FROM " + table);
-    if (result->HasError())
+    if (result.HasError())
         throw std::runtime_error("Failed to count rows in " + table + ": " +
-                                 result->GetError());
-    return result->GetValue(0, 0).GetValue<int64_t>();
+                                 result.GetError());
+    return result.scalar<int64_t>();
 }
 
 } // namespace
@@ -45,7 +45,7 @@ std::string const &point_grid_features_table_name()
 
 int64_t materialize_point_grid_features_table(ReachabilityField const &field,
                                               RequestConfig const &cfg,
-                                              duckdb::Connection &con)
+                                              duck::Connection &con)
 {
     if (!field.network)
         return 0;
@@ -123,9 +123,9 @@ int64_t materialize_point_grid_features_table(ReachabilityField const &field,
         "SELECT id, CAST(x_3857 AS DOUBLE) AS x, CAST(y_3857 AS DOUBLE) AS y "
         "FROM read_parquet('" + points_path + "')");
 
-    if (grid_result->HasError())
+    if (grid_result.HasError())
         throw std::runtime_error("Failed to read grid points: " +
-                                 grid_result->GetError());
+                                 grid_result.GetError());
 
     // Build step_cost expression
     std::string step_cost_expr;
@@ -159,18 +159,23 @@ int64_t materialize_point_grid_features_table(ReachabilityField const &field,
               " (id INTEGER, cost DOUBLE, step_cost DOUBLE, x DOUBLE, y DOUBLE)");
 
     {
-        duckdb::Appender appender(con, kPointGridFeaturesTempTable);
+        duck::Appender appender(con, kPointGridFeaturesTempTable);
         while (true)
         {
-            auto chunk = grid_result->Fetch();
-            if (!chunk || chunk->size() == 0)
+            auto chunk = grid_result.Fetch();
+            if (!chunk)
                 break;
+            if (chunk.size() == 0)
+                continue;
 
-            for (size_t row = 0; row < chunk->size(); ++row)
+            auto const id_col = chunk.column(0);
+            auto const x_col = chunk.column(1);
+            auto const y_col = chunk.column(2);
+            for (size_t row = 0; row < chunk.size(); ++row)
             {
-                int64_t id = chunk->GetValue(0, row).GetValue<int64_t>();
-                double gx = chunk->GetValue(1, row).GetValue<double>();
-                double gy = chunk->GetValue(2, row).GetValue<double>();
+                int64_t id = id_col.get<int64_t>(row);
+                double gx = x_col.get<double>(row);
+                double gy = y_col.get<double>(row);
 
                 auto [idx, dist] = tree.nearest_within({gx, gy}, snap_dist);
                 if (idx < 0)
@@ -184,15 +189,16 @@ int64_t materialize_point_grid_features_table(ReachabilityField const &field,
                 if (total > budget)
                     continue;
 
-                appender.BeginRow();
-                appender.Append(static_cast<int32_t>(id));
-                appender.Append(std::round(total));
-                appender.Append(0.0); // placeholder, computed below
-                appender.Append(gx);
-                appender.Append(gy);
-                appender.EndRow();
+                appender.begin_row();
+                appender.append(static_cast<int32_t>(id));
+                appender.append(std::round(total));
+                appender.append(0.0); // placeholder, computed below
+                appender.append(gx);
+                appender.append(gy);
+                appender.end_row();
             }
         }
+        appender.close();
     }
 
     // 5. Update step_cost and add geometry
@@ -205,9 +211,9 @@ int64_t materialize_point_grid_features_table(ReachabilityField const &field,
 
     con.Query(std::string("DROP TABLE IF EXISTS routing_point_grid_final"));
     auto final_result = con.Query(final_sql);
-    if (final_result->HasError())
+    if (final_result.HasError())
         throw std::runtime_error("Point grid final table failed: " +
-                                 final_result->GetError());
+                                 final_result.GetError());
 
     // Swap tables
     con.Query(std::string("DROP TABLE IF EXISTS ") + kPointGridFeaturesTempTable);

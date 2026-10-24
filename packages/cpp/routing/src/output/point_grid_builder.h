@@ -5,10 +5,7 @@
 #include <cstdint>
 #include <string>
 
-namespace duckdb
-{
-class Connection;
-}
+namespace routing::duck { class Connection; }
 
 namespace routing::output
 {
@@ -22,6 +19,6 @@ std::string const &point_grid_features_table_name();
 // id, x_3857, y_3857).
 int64_t materialize_point_grid_features_table(ReachabilityField const &field,
                                               RequestConfig const &cfg,
-                                              duckdb::Connection &con);
+                                              duck::Connection &con);
 
 } // namespace routing::output

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <duckdb.hpp>
+#include "duck.h"
 #include <iomanip>
 #include <set>
 #include <sstream>
@@ -36,7 +36,7 @@ namespace routing::data
 
     // ── H3 cell resolver ───────────────────────────────────────────────────
 
-    SpatialFilter compute_spatial_filter(duckdb::Connection &con,
+    SpatialFilter compute_spatial_filter(duck::Connection &con,
                                    std::vector<Point3857> const &points,
                                    double buffer_meters)
     {
@@ -99,22 +99,25 @@ namespace routing::data
             << "FROM cells";
 
         auto result = con.Query(sql.str());
-        if (result->HasError())
+        if (result.HasError())
         {
             throw std::runtime_error(
-                "H3 cell computation failed: " + result->GetError() +
+                "H3 cell computation failed: " + result.GetError() +
                 " | SQL: " + sql.str());
         }
 
         SpatialFilter filter;
         std::set<int32_t> h3_3_set, h3_6_set;
 
-        for (size_t row = 0; row < result->RowCount(); ++row)
+        while (auto chunk = result.Fetch())
         {
-            auto v3 = result->GetValue(0, row).GetValue<int32_t>();
-            auto v6 = result->GetValue(1, row).GetValue<int32_t>();
-            h3_3_set.insert(v3);
-            h3_6_set.insert(v6);
+            auto const c3 = chunk.column(0);
+            auto const c6 = chunk.column(1);
+            for (duck::idx_t row = 0; row < chunk.size(); ++row)
+            {
+                h3_3_set.insert(c3.get<int32_t>(row));
+                h3_6_set.insert(c6.get<int32_t>(row));
+            }
         }
 
         filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
@@ -125,7 +128,7 @@ namespace routing::data
     }
 
     std::vector<std::vector<size_t>> group_points_by_extent(
-        duckdb::Connection &con,
+        duck::Connection &con,
         std::vector<Point3857> const &points,
         double max_span_m)
     {
@@ -143,21 +146,26 @@ namespace routing::data
         con.Query("CREATE OR REPLACE TEMP TABLE _group_pts "
                   "(k UBIGINT, lat DOUBLE, lng DOUBLE)");
         {
-            duckdb::Appender appender(con, "_group_pts");
+            duck::Appender appender(con, "_group_pts");
             for (size_t i = 0; i < points.size(); ++i)
-                appender.AppendRow(static_cast<uint64_t>(i),
+                appender.append_row(static_cast<uint64_t>(i),
                                    to_latitude(points[i].y),
                                    to_longitude(points[i].x));
+            appender.close();
         }
         auto bins = con.Query(
             "SELECT k, h3_latlng_to_cell(lat, lng, 6)::UBIGINT FROM _group_pts");
         con.Query("DROP TABLE IF EXISTS _group_pts");
-        if (bins->HasError())
-            throw std::runtime_error("Point binning failed: " + bins->GetError());
+        if (bins.HasError())
+            throw std::runtime_error("Point binning failed: " + bins.GetError());
         std::vector<uint64_t> cell_of(points.size());
-        for (size_t row = 0; row < bins->RowCount(); ++row)
-            cell_of[bins->GetValue(0, row).GetValue<uint64_t>()] =
-                bins->GetValue(1, row).GetValue<uint64_t>();
+        while (auto chunk = bins.Fetch())
+        {
+            auto const ck = chunk.column(0);
+            auto const cc = chunk.column(1);
+            for (duck::idx_t row = 0; row < chunk.size(); ++row)
+                cell_of[ck.get<uint64_t>(row)] = cc.get<uint64_t>(row);
+        }
 
         std::vector<size_t> order(points.size());
         for (size_t i = 0; i < order.size(); ++i)
@@ -225,7 +233,7 @@ namespace routing::data
         return sql.str();
     }
 
-    SpatialFilter compute_spatial_filter_bbox(duckdb::Connection &con,
+    SpatialFilter compute_spatial_filter_bbox(duck::Connection &con,
                                               double min_x, double min_y,
                                               double max_x, double max_y,
                                               double margin_meters)
@@ -270,21 +278,24 @@ namespace routing::data
             << "FROM cells";
 
         auto result = con.Query(sql.str());
-        if (result->HasError())
+        if (result.HasError())
         {
             throw std::runtime_error(
-                "H3 bbox cell computation failed: " + result->GetError());
+                "H3 bbox cell computation failed: " + result.GetError());
         }
 
         SpatialFilter filter;
         std::set<int32_t> h3_3_set, h3_6_set;
 
-        for (size_t row = 0; row < result->RowCount(); ++row)
+        while (auto chunk = result.Fetch())
         {
-            auto v3 = result->GetValue(0, row).GetValue<int32_t>();
-            auto v6 = result->GetValue(1, row).GetValue<int32_t>();
-            h3_3_set.insert(v3);
-            h3_6_set.insert(v6);
+            auto const c3 = chunk.column(0);
+            auto const c6 = chunk.column(1);
+            for (duck::idx_t row = 0; row < chunk.size(); ++row)
+            {
+                h3_3_set.insert(c3.get<int32_t>(row));
+                h3_6_set.insert(c6.get<int32_t>(row));
+            }
         }
 
         filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
@@ -293,7 +304,7 @@ namespace routing::data
         return filter;
     }
 
-    SpatialFilter compute_spatial_filter_polygon(duckdb::Connection &con,
+    SpatialFilter compute_spatial_filter_polygon(duck::Connection &con,
                                                  std::vector<Point3857> const &ring,
                                                  int ring_k)
     {
@@ -341,16 +352,21 @@ namespace routing::data
             << "FROM cells";
 
         auto result = con.Query(sql.str());
-        if (result->HasError())
+        if (result.HasError())
             throw std::runtime_error(
-                "H3 polygon cell computation failed: " + result->GetError());
+                "H3 polygon cell computation failed: " + result.GetError());
 
         SpatialFilter filter;
         std::set<int32_t> h3_3_set, h3_6_set;
-        for (size_t row = 0; row < result->RowCount(); ++row)
+        while (auto chunk = result.Fetch())
         {
-            h3_3_set.insert(result->GetValue(0, row).GetValue<int32_t>());
-            h3_6_set.insert(result->GetValue(1, row).GetValue<int32_t>());
+            auto const c3 = chunk.column(0);
+            auto const c6 = chunk.column(1);
+            for (duck::idx_t row = 0; row < chunk.size(); ++row)
+            {
+                h3_3_set.insert(c3.get<int32_t>(row));
+                h3_6_set.insert(c6.get<int32_t>(row));
+            }
         }
         filter.h3_3_cells.assign(h3_3_set.begin(), h3_3_set.end());
         filter.h3_6_cells.assign(h3_6_set.begin(), h3_6_set.end());

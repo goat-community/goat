@@ -47,7 +47,7 @@ namespace routing::pt
     // When pre_tt is provided, skips timetable loading.
     PtPipelineResult run_pt_pipeline_impl(
         RequestConfig const &cfg,
-        duckdb::Connection &con,
+        duck::Connection &con,
         std::vector<Point3857> const &extra_points,
         nigiri::timetable const *pre_tt = nullptr)
     {
@@ -254,14 +254,14 @@ namespace routing::pt
     }
 
     ReachabilityField run_pt_pipeline(RequestConfig const &cfg,
-                                      duckdb::Connection &con)
+                                      duck::Connection &con)
     {
         return run_pt_pipeline_impl(cfg, con, {}).field;
     }
 
     PtPipelineResult run_pt_pipeline_with_destinations(
         RequestConfig const &cfg,
-        duckdb::Connection &con,
+        duck::Connection &con,
         std::vector<Point3857> const &extra_points,
         nigiri::timetable const *pre_tt)
     {

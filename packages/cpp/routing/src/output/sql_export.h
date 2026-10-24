@@ -2,10 +2,7 @@
 
 #include <string>
 
-namespace duckdb
-{
-    class Connection;
-}
+namespace routing::duck { class Connection; }
 
 namespace routing::output
 {
@@ -18,7 +15,7 @@ std::string sql_escape(std::string const &s);
 // escapes the path. `copy_body` is whatever goes inside `COPY ( ... )` — a
 // SELECT statement or a bare table name. On failure, throws std::runtime_error
 // prefixed with `error_label`.
-void write_query_to_parquet(duckdb::Connection &con,
+void write_query_to_parquet(duck::Connection &con,
                             std::string const &copy_body,
                             std::string const &output_path,
                             std::string const &error_label);

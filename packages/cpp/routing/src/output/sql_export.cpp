@@ -1,6 +1,6 @@
 #include "sql_export.h"
 
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <filesystem>
 #include <sstream>
 #include <stdexcept>
@@ -22,7 +22,7 @@ std::string sql_escape(std::string const &s)
     return out;
 }
 
-void write_query_to_parquet(duckdb::Connection &con,
+void write_query_to_parquet(duck::Connection &con,
                             std::string const &copy_body,
                             std::string const &output_path,
                             std::string const &error_label)
@@ -37,8 +37,8 @@ void write_query_to_parquet(duckdb::Connection &con,
         << "' (FORMAT PARQUET, COMPRESSION ZSTD)";
 
     auto r = con.Query(sql.str());
-    if (r->HasError())
-        throw std::runtime_error(error_label + ": " + r->GetError());
+    if (r.HasError())
+        throw std::runtime_error(error_label + ": " + r.GetError());
 }
 
 } // namespace routing::output

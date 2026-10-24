@@ -6,7 +6,7 @@
 #include <nigiri/routing/query.h>
 #include <nigiri/timetable.h>
 
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <vector>
 
 namespace routing::pt
@@ -25,7 +25,7 @@ namespace routing::pt
     // and produce RAPTOR seed stops — everything before the transit search.
     AccessResult compute_access(
         RequestConfig const &cfg,
-        duckdb::Connection &con,
+        duck::Connection &con,
         nigiri::timetable const &tt);
 
 } // namespace routing::pt

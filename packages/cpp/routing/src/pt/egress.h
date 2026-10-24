@@ -4,7 +4,7 @@
 
 #include <nigiri/timetable.h>
 
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <optional>
 #include <vector>
 
@@ -17,7 +17,7 @@ namespace routing::pt
     // maximum remaining budget across all reachable stops.
     std::vector<Edge> load_egress_edges(
         RequestConfig const &cfg,
-        duckdb::Connection &con,
+        duck::Connection &con,
         nigiri::timetable const &tt,
         std::vector<std::optional<double>> const &transit_costs);
 

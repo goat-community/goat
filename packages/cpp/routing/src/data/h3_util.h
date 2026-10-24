@@ -7,10 +7,7 @@
 #include <string>
 #include <vector>
 
-namespace duckdb
-{
-    class Connection;
-}
+namespace routing::duck { class Connection; }
 
 namespace routing::data
 {
@@ -49,7 +46,7 @@ namespace routing::data
     // Cover all starting points within the given buffer distance: the short H3
     // cell IDs (res 3 + res 6) plus the equivalent bbox. Uses the DuckDB H3
     // community extension (INSTALL + LOAD is the caller's responsibility).
-    SpatialFilter compute_spatial_filter(duckdb::Connection &con,
+    SpatialFilter compute_spatial_filter(duck::Connection &con,
                                          std::vector<Point3857> const &points,
                                          double buffer_meters);
 
@@ -74,19 +71,19 @@ namespace routing::data
     // the input order is kept. Uses the DuckDB H3 community extension (INSTALL
     // + LOAD is the caller's responsibility).
     std::vector<std::vector<size_t>> group_points_by_extent(
-        duckdb::Connection &con,
+        duck::Connection &con,
         std::vector<Point3857> const &points,
         double max_span_m);
 
     // Cover a bounding box (EPSG:3857) expanded by margin.
-    SpatialFilter compute_spatial_filter_bbox(duckdb::Connection &con,
+    SpatialFilter compute_spatial_filter_bbox(duck::Connection &con,
                                               double min_x, double min_y,
                                               double max_x, double max_y,
                                               double margin_meters);
 
     // Cover a polygon (EPSG:3857 ring, open): the res-6 cells overlapping it
     // or holding a vertex, grown by `ring_k` rings, plus the equivalent bbox.
-    SpatialFilter compute_spatial_filter_polygon(duckdb::Connection &con,
+    SpatialFilter compute_spatial_filter_polygon(duck::Connection &con,
                                                  std::vector<Point3857> const &ring,
                                                  int ring_k);
 

@@ -13,7 +13,7 @@
 
 #include <chrono>
 #include <cstdio>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <functional>
 #include <memory>
 #include <stdexcept>
@@ -45,7 +45,7 @@ namespace routing::catchment
         // core (edges → costs → SubNetwork → snap) and applies catchment's
         // policy of keeping only the snapped (connected) starting points.
         PreparedNetwork prepare_catchment_network(RequestConfig const &cfg,
-                                                  duckdb::Connection &con,
+                                                  duck::Connection &con,
                                                   bool load_geometry = false)
         {
             auto prep = network::prepare_radial_network(con, cfg, load_geometry);
@@ -85,14 +85,14 @@ namespace routing::catchment
 
         std::string dispatch_geojson_output(std::vector<ReachabilityField> const &fields,
                                             RequestConfig const &cfg,
-                                            duckdb::Connection &con)
+                                            duck::Connection &con)
         {
             return output::build_geojson_output(fields, cfg, con);
         }
 
         std::string dispatch_parquet_output(std::vector<ReachabilityField> const &fields,
                                             RequestConfig const &cfg,
-                                            duckdb::Connection &con)
+                                            duck::Connection &con)
         {
             output::write_parquet_output(fields, cfg, con);
             return "";
@@ -100,7 +100,7 @@ namespace routing::catchment
 
         ReachabilityField build_reachability_field(
             RequestConfig &cfg,
-            duckdb::Connection &con)
+            duck::Connection &con)
         {
             validate_request(cfg);
 
@@ -138,7 +138,7 @@ namespace routing::catchment
         // memory at 1× node_count instead of N× node_count.
         std::string compute_catchment_separated_streaming(
             RequestConfig &cfg,
-            duckdb::Connection &con,
+            duck::Connection &con,
             std::function<double()> const &elapsed)
         {
             validate_request(cfg);
@@ -206,8 +206,8 @@ namespace routing::catchment
             return ms;
         };
 
-        duckdb::DuckDB db(nullptr);
-        duckdb::Connection con(db);
+        duck::Database db;
+        duck::Connection con(db);
         data::ensure_required_extensions_loaded(con);
         std::fprintf(stderr, "[Pipeline] DuckDB init: %.0f ms\n", elapsed());
 

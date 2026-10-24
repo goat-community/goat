@@ -15,7 +15,7 @@ namespace routing::pt
 
     std::vector<Edge> load_egress_edges(
         RequestConfig const &cfg,
-        duckdb::Connection &con,
+        duck::Connection &con,
         nigiri::timetable const &tt,
         std::vector<std::optional<double>> const &transit_costs)
     {

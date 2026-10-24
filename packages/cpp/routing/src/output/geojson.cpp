@@ -9,7 +9,7 @@
 #include "../geometry/grid_surface_builder.h"
 #include "../geometry/jsolines_processor.h"
 
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -25,23 +25,24 @@ std::string empty_feature_collection()
     return "{\"type\":\"FeatureCollection\",\"features\":[]}";
 }
 
-std::string run_single_value_query(duckdb::Connection &con,
+std::string run_single_value_query(duck::Connection &con,
                                    std::string const &sql,
                                    std::string const &error_prefix)
 {
     auto result = con.Query(sql);
-    if (result->HasError())
+    if (result.HasError())
     {
-        throw std::runtime_error(error_prefix + result->GetError());
+        throw std::runtime_error(error_prefix + result.GetError());
     }
-    if (result->RowCount() == 0 || result->GetValue(0, 0).IsNull())
+    auto chunk = result.Fetch();
+    if (!chunk || chunk.size() == 0 || !chunk.column(0).is_valid(0))
     {
         return empty_feature_collection();
     }
-    return result->GetValue(0, 0).GetValue<std::string>();
+    return chunk.column(0).get<std::string>(0);
 }
 
-std::string build_network_geojson(duckdb::Connection &con)
+std::string build_network_geojson(duck::Connection &con)
 {
     std::ostringstream sql;
     sql << "SELECT CAST(json_object("
@@ -60,7 +61,7 @@ std::string build_network_geojson(duckdb::Connection &con)
     return run_single_value_query(con, sql.str(), "Network GeoJSON export failed: ");
 }
 
-std::string build_hexagon_geojson(duckdb::Connection &con)
+std::string build_hexagon_geojson(duck::Connection &con)
 {
     std::ostringstream sql;
     sql << "SELECT CAST(json_object("
@@ -84,7 +85,7 @@ std::string build_hexagon_geojson(duckdb::Connection &con)
     return run_single_value_query(con, sql.str(), "Hexagon GeoJSON export failed: ");
 }
 
-std::string build_point_grid_geojson(duckdb::Connection &con)
+std::string build_point_grid_geojson(duck::Connection &con)
 {
     std::ostringstream sql;
     sql << "SELECT CAST(json_object("
@@ -107,7 +108,7 @@ std::string build_point_grid_geojson(duckdb::Connection &con)
     return run_single_value_query(con, sql.str(), "Point grid GeoJSON export failed: ");
 }
 
-std::string build_polygon_geojson(duckdb::Connection &con)
+std::string build_polygon_geojson(duck::Connection &con)
 {
     std::ostringstream sql;
     sql << "SELECT CAST(json_object("
@@ -131,7 +132,7 @@ std::string build_polygon_geojson(duckdb::Connection &con)
 std::string build_grid_contour_geojson_from_features(
     std::vector<TaggedFeature> const &all_features,
     RequestConfig const &cfg,
-    duckdb::Connection &con)
+    duck::Connection &con)
 {
     if (all_features.empty())
         return empty_feature_collection();
@@ -151,8 +152,8 @@ std::string build_grid_contour_geojson_from_features(
 
     auto run_step = [&](std::string const &q, char const *what) {
         auto r = con.Query(q);
-        if (r->HasError())
-            throw std::runtime_error(std::string(what) + " failed: " + r->GetError());
+        if (r.HasError())
+            throw std::runtime_error(std::string(what) + " failed: " + r.GetError());
     };
 
     // Materialize each step so ST_MakeValid runs once (see parquet.cpp).
@@ -202,11 +203,12 @@ std::string build_grid_contour_geojson_from_features(
         << ") t";
 
     auto result = con.Query(sql.str());
-    if (result->HasError())
-        throw std::runtime_error("Grid contour GeoJSON failed: " + result->GetError());
-    if (result->RowCount() == 0 || result->GetValue(0, 0).IsNull())
+    if (result.HasError())
+        throw std::runtime_error("Grid contour GeoJSON failed: " + result.GetError());
+    auto chunk = result.Fetch();
+    if (!chunk || chunk.size() == 0 || !chunk.column(0).is_valid(0))
         return empty_feature_collection();
-    return result->GetValue(0, 0).GetValue<std::string>();
+    return chunk.column(0).get<std::string>(0);
 }
 
 namespace
@@ -215,7 +217,7 @@ namespace
 std::string build_grid_contour_geojson(
     std::vector<ReachabilityField> const &fields,
     RequestConfig const &cfg,
-    duckdb::Connection &con)
+    duck::Connection &con)
 {
     auto const cutoffs = compute_step_cutoffs(cfg);
     int const zoom = geometry::grid_zoom_for_mode(cfg.mode);
@@ -230,7 +232,7 @@ std::string build_grid_contour_geojson(
 
 std::string build_geojson_output(std::vector<ReachabilityField> const &fields,
                                  RequestConfig const &cfg,
-                                 duckdb::Connection &con)
+                                 duck::Connection &con)
 {
     if (fields.empty())
         return empty_feature_collection();

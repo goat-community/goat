@@ -10,7 +10,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <stdexcept>
 #include <unordered_set>
 
@@ -96,7 +96,7 @@ RadialNetworkPrep finish_radial_network(std::vector<Edge> edges,
 } // namespace
 
 RadialNetworkPrep prepare_radial_network(
-    duckdb::Connection &con,
+    duck::Connection &con,
     RequestConfig const &cfg,
     bool load_geometry)
 {
@@ -113,7 +113,7 @@ RadialNetworkPrep prepare_radial_network(
 }
 
 StreetMatrixPrep prepare_street_matrix_network(
-    duckdb::Connection &con,
+    duck::Connection &con,
     StreetMatrixPrepInput const &in)
 {
     if (in.origins.empty())
@@ -203,7 +203,7 @@ StreetMatrixPrep prepare_street_matrix_network(
 }
 
 HeatmapNetworkPrep prepare_radial_street_network(
-    duckdb::Connection &con,
+    duck::Connection &con,
     HeatmapNetworkPrepInput const &in)
 {
     if (in.opportunities.empty())

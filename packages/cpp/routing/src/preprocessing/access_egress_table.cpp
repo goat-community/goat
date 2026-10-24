@@ -17,7 +17,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <filesystem>
 #include <limits>
 #include <optional>
@@ -80,7 +80,7 @@ using Chunks = std::vector<std::pair<size_t, size_t>>;
 // (`max_span_m <= 0`) the stops form one group in grid order, cut into runs of
 // `chunk_size` as before that bound existed. Reorders `stops` group by group
 // and returns ranges into it covering every stop once.
-Chunks plan_chunks(duckdb::Connection &con, std::vector<uint32_t> &stops,
+Chunks plan_chunks(duck::Connection &con, std::vector<uint32_t> &stops,
                      std::vector<Point3857> const &coords, size_t chunk_size,
                      double max_span_m)
 {
@@ -156,10 +156,10 @@ std::string build_access_egress_table(AccessEgressConfig const &cfg)
                  "buffer=%.0fm chunk=%d\n",
                  stops.size(), budget, buffer_m, chunk_size);
 
-    duckdb::DuckDB db(nullptr);
-    duckdb::Connection con(db);
-    if (con.Query("INSTALL h3 FROM community")->HasError() ||
-        con.Query("LOAD h3")->HasError())
+    duck::Database db;
+    duck::Connection con(db);
+    if (con.Query("INSTALL h3 FROM community").HasError() ||
+        con.Query("LOAD h3").HasError())
         throw std::runtime_error("Failed to load DuckDB H3 extension");
     {
         std::filesystem::path spill =
@@ -197,9 +197,7 @@ std::string build_access_egress_table(AccessEgressConfig const &cfg)
     rc.node_dir = cfg.node_dir;
     auto const classes = input::valid_classes(cfg.mode);
 
-    duckdb::vector<duckdb::LogicalType> const chunk_types{
-        duckdb::LogicalType::UINTEGER, duckdb::LogicalType::DOUBLE,
-        duckdb::LogicalType::DOUBLE, duckdb::LogicalType::DOUBLE};
+    size_t const vec_size = duck::vector_size();
 
     auto run_t0 = std::chrono::steady_clock::now();
     size_t unsnapped = 0, processed = 0;
@@ -264,28 +262,29 @@ std::string build_access_egress_table(AccessEgressConfig const &cfg)
         // with the hexagon-catchment binning.
         size_t chunk_samples = 0, block_samples = 0;
         double chunk_fold_ms = 0.0;
-        std::optional<duckdb::Appender> appender;
+        std::optional<duck::Appender> appender;
         auto open_block = [&]() {
             con.Query("CREATE OR REPLACE TEMP TABLE _samples "
                       "(stop_idx UINTEGER, lat DOUBLE, lng DOUBLE, cost DOUBLE)");
             appender.emplace(con, "_samples");
         };
-        duckdb::DataChunk dchunk;
-        dchunk.Initialize(duckdb::Allocator::DefaultAllocator(), chunk_types);
+        auto dchunk = duck::DataChunk::create(
+            {DUCKDB_TYPE_UINTEGER, DUCKDB_TYPE_DOUBLE, DUCKDB_TYPE_DOUBLE,
+             DUCKDB_TYPE_DOUBLE});
         uint32_t *c_stop = nullptr;
         double *c_lat = nullptr, *c_lng = nullptr, *c_cost = nullptr;
         size_t pos = 0;
         auto refresh = [&]() {
-            c_stop = duckdb::FlatVector::GetData<uint32_t>(dchunk.data[0]);
-            c_lat = duckdb::FlatVector::GetData<double>(dchunk.data[1]);
-            c_lng = duckdb::FlatVector::GetData<double>(dchunk.data[2]);
-            c_cost = duckdb::FlatVector::GetData<double>(dchunk.data[3]);
+            c_stop = dchunk.column(0).data<uint32_t>();
+            c_lat = dchunk.column(1).data<double>();
+            c_lng = dchunk.column(2).data<double>();
+            c_cost = dchunk.column(3).data<double>();
         };
         auto flush = [&]() {
             if (pos == 0) return;
-            dchunk.SetCardinality(pos);
-            appender->AppendDataChunk(dchunk);
-            dchunk.Reset();
+            dchunk.set_size(pos);
+            appender->append_chunk(dchunk);
+            dchunk.reset();
             refresh();
             pos = 0;
         };
@@ -293,6 +292,7 @@ std::string build_access_egress_table(AccessEgressConfig const &cfg)
         // start the next one. Only ever called between stops.
         auto fold_block = [&]() {
             flush();
+            appender->close();  // a failed flush must not pass for an empty block
             appender.reset();
             auto const fold_t0 = std::chrono::steady_clock::now();
             auto agg = con.Query(
@@ -300,9 +300,9 @@ std::string build_access_egress_table(AccessEgressConfig const &cfg)
                 "h3_latlng_to_cell(lat, lng, 9)::UBIGINT AS h3_index, "
                 "CAST(ROUND(MIN(cost)) AS UTINYINT) AS cost_minutes "  // cost is minutes
                 "FROM _samples GROUP BY 1, 2");
-            if (agg->HasError())
+            if (agg.HasError())
                 throw std::runtime_error("Chunk aggregate failed: " +
-                                         agg->GetError());
+                                         agg.GetError());
             chunk_fold_ms += now_ms(fold_t0);
             max_block_samples = std::max(max_block_samples, block_samples);
             block_samples = 0;
@@ -318,7 +318,7 @@ std::string build_access_egress_table(AccessEgressConfig const &cfg)
             c_cost[pos] = cost;
             ++chunk_samples;
             ++block_samples;
-            if (++pos == STANDARD_VECTOR_SIZE) flush();
+            if (++pos == vec_size) flush();
         };
 
         for (size_t i = base; i < end; ++i)
@@ -434,14 +434,14 @@ std::string build_access_egress_table(AccessEgressConfig const &cfg)
     std::string sql = "COPY _result TO '" + cfg.output_path +
                       "' (FORMAT PARQUET, COMPRESSION ZSTD)";
     auto r = con.Query(sql);
-    if (r->HasError())
-        throw std::runtime_error("Aggregate/export failed: " + r->GetError());
+    if (r.HasError())
+        throw std::runtime_error("Aggregate/export failed: " + r.GetError());
 
     auto cnt =
         con.Query("SELECT count(*) FROM read_parquet('" + cfg.output_path + "')");
     std::fprintf(stderr, "[Preprocessing] Wrote %s (%s rows), aggregate %.1f s\n",
                  cfg.output_path.c_str(),
-                 cnt->HasError() ? "?" : cnt->GetValue(0, 0).ToString().c_str(),
+                 cnt.HasError() ? "?" : std::to_string(cnt.scalar<int64_t>()).c_str(),
                  now_ms(agg_t0) / 1000.0);
     return cfg.output_path;
 }

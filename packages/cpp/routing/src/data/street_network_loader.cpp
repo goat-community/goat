@@ -5,7 +5,7 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <duckdb.hpp>
+#include "duck.h"
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
@@ -15,6 +15,19 @@ namespace routing::data
 {
 
     using routing::output::sql_escape;
+
+    // First column of a DESCRIBE result: the column names of the relation.
+    static std::vector<std::string> column_names(duck::Result &describe)
+    {
+        std::vector<std::string> names;
+        while (auto chunk = describe.Fetch())
+        {
+            auto const col = chunk.column(0);
+            for (duck::idx_t row = 0; row < chunk.size(); ++row)
+                names.push_back(col.get<std::string>(row));
+        }
+        return names;
+    }
 
     static bool is_glob_or_file_path(std::string const &path)
     {
@@ -98,7 +111,7 @@ namespace routing::data
     }
 
     static std::vector<Edge> load_edges_impl(
-        duckdb::Connection &con,
+        duck::Connection &con,
         std::string const &edge_dir,
         std::string const &node_dir,
         SpatialFilter const &filter,
@@ -119,14 +132,13 @@ namespace routing::data
         bool has_node_h3_3 = false;
         bool has_node_h3_6 = false;
         auto node_schema = con.Query("DESCRIBE SELECT * FROM " + node_scan + " LIMIT 0");
-        if (node_schema->HasError())
+        if (node_schema.HasError())
         {
             throw std::runtime_error(
-                "Failed to read node dataset schema: " + node_schema->GetError());
+                "Failed to read node dataset schema: " + node_schema.GetError());
         }
-        for (size_t row = 0; row < node_schema->RowCount(); ++row)
+        for (auto const &col_name : column_names(node_schema))
         {
-            auto col_name = node_schema->GetValue(0, row).GetValue<std::string>();
             if (col_name == "x_3857")
             {
                 has_node_x_3857 = true;
@@ -152,14 +164,13 @@ namespace routing::data
         bool has_edge_h3_6 = false;
         auto edge_schema =
             con.Query("DESCRIBE SELECT * FROM " + parquet_scan + " LIMIT 0");
-        if (edge_schema->HasError())
+        if (edge_schema.HasError())
         {
             throw std::runtime_error(
-                "Failed to read edge dataset schema: " + edge_schema->GetError());
+                "Failed to read edge dataset schema: " + edge_schema.GetError());
         }
-        for (size_t row = 0; row < edge_schema->RowCount(); ++row)
+        for (auto const &col_name : column_names(edge_schema))
         {
-            auto col_name = edge_schema->GetValue(0, row).GetValue<std::string>();
             if (col_name == "h3_3")
             {
                 has_edge_h3_3 = true;
@@ -268,150 +279,133 @@ namespace routing::data
         }
 
         auto result = con.Query(sql.str());
-        if (result->HasError())
+        if (result.HasError())
         {
             throw std::runtime_error("DuckDB query failed: " +
-                                     result->GetError());
+                                     result.GetError());
         }
 
-        edges.reserve(result->RowCount());
         while (true)
         {
-            auto chunk = result->Fetch();
-            if (!chunk || chunk->size() == 0)
-            {
+            auto chunk = result.Fetch();
+            if (!chunk)
                 break;
-            }
+            if (chunk.size() == 0)
+                continue;
 
-            auto const count = chunk->size();
-            duckdb::UnifiedVectorFormat id_vec;
-            duckdb::UnifiedVectorFormat source_vec;
-            duckdb::UnifiedVectorFormat target_vec;
-            duckdb::UnifiedVectorFormat length_m_vec;
-            duckdb::UnifiedVectorFormat length_3857_vec;
-            duckdb::UnifiedVectorFormat class_vec;
-            duckdb::UnifiedVectorFormat slope_vec;
-            duckdb::UnifiedVectorFormat slope_reverse_vec;
-            duckdb::UnifiedVectorFormat surface_vec;
-            duckdb::UnifiedVectorFormat speed_fwd_vec;
-            duckdb::UnifiedVectorFormat speed_back_vec;
-            duckdb::UnifiedVectorFormat source_x_vec;
-            duckdb::UnifiedVectorFormat source_y_vec;
-            duckdb::UnifiedVectorFormat target_x_vec;
-            duckdb::UnifiedVectorFormat target_y_vec;
-
-            chunk->data[0].ToUnifiedFormat(count, id_vec);
-            chunk->data[1].ToUnifiedFormat(count, source_vec);
-            chunk->data[2].ToUnifiedFormat(count, target_vec);
-            chunk->data[3].ToUnifiedFormat(count, length_m_vec);
-            chunk->data[4].ToUnifiedFormat(count, length_3857_vec);
-            chunk->data[5].ToUnifiedFormat(count, class_vec);
-            chunk->data[6].ToUnifiedFormat(count, slope_vec);
-            chunk->data[7].ToUnifiedFormat(count, slope_reverse_vec);
-            chunk->data[8].ToUnifiedFormat(count, surface_vec);
-            chunk->data[9].ToUnifiedFormat(count, speed_fwd_vec);
-            chunk->data[10].ToUnifiedFormat(count, speed_back_vec);
+            auto const count = chunk.size();
+            auto const id_col = chunk.column(0);
+            auto const source_col = chunk.column(1);
+            auto const target_col = chunk.column(2);
+            auto const length_m_col = chunk.column(3);
+            auto const length_3857_col = chunk.column(4);
+            auto const class_col = chunk.column(5);
+            auto const slope_col = chunk.column(6);
+            auto const slope_reverse_col = chunk.column(7);
+            auto const surface_col = chunk.column(8);
+            auto const speed_fwd_col = chunk.column(9);
+            auto const speed_back_col = chunk.column(10);
             // coordinates_3857 occupies column 11 when requested, shifting the
             // node coordinates that follow it.
             int col_offset = load_geometry ? 1 : 0;
-            chunk->data[11 + col_offset].ToUnifiedFormat(count, source_x_vec);
-            chunk->data[12 + col_offset].ToUnifiedFormat(count, source_y_vec);
-            chunk->data[13 + col_offset].ToUnifiedFormat(count, target_x_vec);
-            chunk->data[14 + col_offset].ToUnifiedFormat(count, target_y_vec);
+            auto const source_x_col = chunk.column(11 + col_offset);
+            auto const source_y_col = chunk.column(12 + col_offset);
+            auto const target_x_col = chunk.column(13 + col_offset);
+            auto const target_y_col = chunk.column(14 + col_offset);
 
-            auto const *id_data = reinterpret_cast<int64_t const *>(id_vec.data);
-            auto const *source_data = reinterpret_cast<int64_t const *>(source_vec.data);
-            auto const *target_data = reinterpret_cast<int64_t const *>(target_vec.data);
-            auto const *length_m_data = reinterpret_cast<double const *>(length_m_vec.data);
-            auto const *length_3857_data = reinterpret_cast<double const *>(length_3857_vec.data);
-            auto const *class_data = reinterpret_cast<duckdb::string_t const *>(class_vec.data);
-            auto const *slope_data = reinterpret_cast<double const *>(slope_vec.data);
-            auto const *slope_reverse_data = reinterpret_cast<double const *>(slope_reverse_vec.data);
-            auto const *surface_data = reinterpret_cast<float const *>(surface_vec.data);
-            auto const *speed_fwd_data = reinterpret_cast<int16_t const *>(speed_fwd_vec.data);
-            auto const *speed_back_data = reinterpret_cast<int16_t const *>(speed_back_vec.data);
-            auto const *source_x_data = reinterpret_cast<double const *>(source_x_vec.data);
-            auto const *source_y_data = reinterpret_cast<double const *>(source_y_vec.data);
-            auto const *target_x_data = reinterpret_cast<double const *>(target_x_vec.data);
-            auto const *target_y_data = reinterpret_cast<double const *>(target_y_vec.data);
+            // Typed column pointers (checked against the column's physical type)
+            auto const *id_data = id_col.data<int64_t const>();
+            auto const *source_data = source_col.data<int64_t const>();
+            auto const *target_data = target_col.data<int64_t const>();
+            auto const *length_m_data = length_m_col.data<double const>();
+            auto const *length_3857_data = length_3857_col.data<double const>();
+            auto const *slope_data = slope_col.data<double const>();
+            auto const *slope_reverse_data = slope_reverse_col.data<double const>();
+            auto const *surface_data = surface_col.data<float const>();
+            auto const *speed_fwd_data = speed_fwd_col.data<int16_t const>();
+            auto const *speed_back_data = speed_back_col.data<int16_t const>();
+            auto const *source_x_data = source_x_col.data<double const>();
+            auto const *source_y_data = source_y_col.data<double const>();
+            auto const *target_x_data = target_x_col.data<double const>();
+            auto const *target_y_data = target_y_col.data<double const>();
 
-            for (duckdb::idx_t i = 0; i < count; ++i)
+            // Geometry: LIST(LIST(DOUBLE)); entries index into the child vector,
+            // whose entries index into the grandchild holding the ordinates.
+            duck::Vector geom_col;
+            duck::Vector geom_pt_col;
+            duck::Vector geom_ord_col;
+            duckdb_list_entry const *geom_entries = nullptr;
+            duckdb_list_entry const *geom_pt_entries = nullptr;
+            double const *geom_ord_data = nullptr;
+            if (load_geometry)
             {
-                auto rid_id = id_vec.sel->get_index(i);
-                auto rid_source = source_vec.sel->get_index(i);
-                auto rid_target = target_vec.sel->get_index(i);
-                auto rid_length_m = length_m_vec.sel->get_index(i);
-                auto rid_length_3857 = length_3857_vec.sel->get_index(i);
-                auto rid_class = class_vec.sel->get_index(i);
-                auto rid_slope = slope_vec.sel->get_index(i);
-                auto rid_slope_reverse = slope_reverse_vec.sel->get_index(i);
-                auto rid_surface = surface_vec.sel->get_index(i);
-                auto rid_speed_fwd = speed_fwd_vec.sel->get_index(i);
-                auto rid_speed_back = speed_back_vec.sel->get_index(i);
-                auto rid_source_x = source_x_vec.sel->get_index(i);
-                auto rid_source_y = source_y_vec.sel->get_index(i);
-                auto rid_target_x = target_x_vec.sel->get_index(i);
-                auto rid_target_y = target_y_vec.sel->get_index(i);
+                geom_col = chunk.column(11);
+                geom_entries = geom_col.list_entries();
+                geom_pt_col = geom_col.list_child();
+                geom_pt_entries = geom_pt_col.list_entries();
+                geom_ord_col = geom_pt_col.list_child();
+                geom_ord_data = geom_ord_col.data<double const>();
+            }
 
+            for (duck::idx_t i = 0; i < count; ++i)
+            {
                 // An unmeasurable edge is dropped rather than loaded: every
                 // cost derived from a non-finite length is non-finite too, and
                 // NaN never compares true, so such an edge cannot be traversed
                 // anyway — it would only spread NaN through the graph.
-                if (!length_m_vec.validity.RowIsValid(rid_length_m) ||
-                    !length_3857_vec.validity.RowIsValid(rid_length_3857) ||
-                    !std::isfinite(length_m_data[rid_length_m]) ||
-                    !std::isfinite(length_3857_data[rid_length_3857]))
+                if (!length_m_col.is_valid(i) ||
+                    !length_3857_col.is_valid(i) ||
+                    !std::isfinite(length_m_data[i]) ||
+                    !std::isfinite(length_3857_data[i]))
                     continue;
 
                 Edge e;
-                e.id = id_data[rid_id];
-                e.source = source_data[rid_source];
-                e.target = target_data[rid_target];
-                e.length_m = length_m_data[rid_length_m];
-                e.length_3857 = length_3857_data[rid_length_3857];
-                e.class_ = class_data[rid_class].GetString();
-                e.impedance_slope = slope_vec.validity.RowIsValid(rid_slope)
-                                        ? slope_data[rid_slope]
-                                        : 0.0;
-                e.impedance_slope_reverse = slope_reverse_vec.validity.RowIsValid(rid_slope_reverse)
-                                                ? slope_reverse_data[rid_slope_reverse]
+                e.id = id_data[i];
+                e.source = source_data[i];
+                e.target = target_data[i];
+                e.length_m = length_m_data[i];
+                e.length_3857 = length_3857_data[i];
+                e.class_ = std::string(class_col.string_at(i));
+                e.impedance_slope = slope_col.is_valid(i) ? slope_data[i] : 0.0;
+                e.impedance_slope_reverse = slope_reverse_col.is_valid(i)
+                                                ? slope_reverse_data[i]
                                                 : 0.0;
-                e.impedance_surface = surface_vec.validity.RowIsValid(rid_surface)
-                                         ? surface_data[rid_surface]
+                e.impedance_surface = surface_col.is_valid(i)
+                                         ? surface_data[i]
                                          : 0.0f;
-                e.maxspeed_forward = speed_fwd_vec.validity.RowIsValid(rid_speed_fwd)
-                                        ? speed_fwd_data[rid_speed_fwd]
+                e.maxspeed_forward = speed_fwd_col.is_valid(i)
+                                        ? speed_fwd_data[i]
                                         : static_cast<int16_t>(0);
-                e.maxspeed_backward = speed_back_vec.validity.RowIsValid(rid_speed_back)
-                                         ? speed_back_data[rid_speed_back]
+                e.maxspeed_backward = speed_back_col.is_valid(i)
+                                         ? speed_back_data[i]
                                          : static_cast<int16_t>(0);
-                e.source_coord = {source_x_data[rid_source_x], source_y_data[rid_source_y]};
-                e.target_coord = {target_x_data[rid_target_x], target_y_data[rid_target_y]};
+                e.source_coord = {source_x_data[i], source_y_data[i]};
+                e.target_coord = {target_x_data[i], target_y_data[i]};
 
                 // Parse geometry for active mobility (column 11 when present)
-                if (load_geometry)
+                if (load_geometry && geom_col.is_valid(i))
                 {
-                    auto geom_val = chunk->GetValue(11, i);
-                    if (!geom_val.IsNull())
+                    auto const coords = geom_entries[i];
+                    e.geometry.reserve(coords.length);
+                    for (duck::idx_t k = coords.offset;
+                         k < coords.offset + coords.length; ++k)
                     {
-                        auto &coord_list = duckdb::ListValue::GetChildren(geom_val);
-                        e.geometry.reserve(coord_list.size());
-                        for (auto &pt_val : coord_list)
-                        {
-                            auto &pt = duckdb::ListValue::GetChildren(pt_val);
-                            if (pt.size() < 2 || pt[0].IsNull() || pt[1].IsNull())
-                                continue;
-                            // A single unusable vertex must not fail every
-                            // route on the network. GetValue on a NULL raises
-                            // a DuckDB internal error naming neither the edge
-                            // nor the column, and non-finite ordinates poison
-                            // every cost computed from the geometry.
-                            auto const x = pt[0].GetValue<double>();
-                            auto const y = pt[1].GetValue<double>();
-                            if (!std::isfinite(x) || !std::isfinite(y))
-                                continue;
-                            e.geometry.push_back({x, y});
-                        }
+                        if (!geom_pt_col.is_valid(k))
+                            continue;
+                        auto const pt = geom_pt_entries[k];
+                        if (pt.length < 2 ||
+                            !geom_ord_col.is_valid(pt.offset) ||
+                            !geom_ord_col.is_valid(pt.offset + 1))
+                            continue;
+                        // A single unusable vertex must not fail every
+                        // route on the network. A NULL ordinate has no
+                        // value to read, and non-finite ordinates poison
+                        // every cost computed from the geometry.
+                        auto const x = geom_ord_data[pt.offset];
+                        auto const y = geom_ord_data[pt.offset + 1];
+                        if (!std::isfinite(x) || !std::isfinite(y))
+                            continue;
+                        e.geometry.push_back({x, y});
                     }
                 }
                 if (e.geometry.size() < 2)
@@ -428,7 +422,7 @@ namespace routing::data
 
 
     std::vector<Edge> load_edges(
-        duckdb::Connection &con,
+        duck::Connection &con,
         std::string const &edge_dir,
         std::string const &node_dir,
         std::vector<Point3857> const &starting_points,
@@ -443,7 +437,7 @@ namespace routing::data
     }
 
     std::vector<Edge> load_edges(
-        duckdb::Connection &con,
+        duck::Connection &con,
         std::string const &edge_dir,
         std::string const &node_dir,
         SpatialFilter const &filter,

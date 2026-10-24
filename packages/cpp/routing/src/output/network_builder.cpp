@@ -3,7 +3,7 @@
 #include "reached_edges.h"
 
 #include <cmath>
-#include <duckdb.hpp>
+#include "../data/duck.h"
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
@@ -15,13 +15,13 @@ namespace
 {
 static constexpr char kNetworkFeaturesTempTable[] = "routing_network_features_tmp";
 
-int64_t count_rows(duckdb::Connection &con, std::string const &table)
+int64_t count_rows(duck::Connection &con, std::string const &table)
 {
     auto result = con.Query("SELECT count(*) FROM " + table);
-    if (result->HasError())
+    if (result.HasError())
         throw std::runtime_error("Failed to count rows in " + table + ": " +
-                                 result->GetError());
-    return result->GetValue(0, 0).GetValue<int64_t>();
+                                 result.GetError());
+    return result.scalar<int64_t>();
 }
 
 // Clip geometry to budget fraction and build WGS84 WKT linestring.
@@ -149,7 +149,7 @@ std::string const &network_features_table_name()
 
 int64_t materialize_network_features_table(ReachabilityField const &field,
                                            RequestConfig const &cfg,
-                                           duckdb::Connection &con)
+                                           duck::Connection &con)
 {
     if (!field.network)
         return 0;
@@ -163,7 +163,7 @@ int64_t materialize_network_features_table(ReachabilityField const &field,
 
     int64_t count = 0;
     {
-        duckdb::Appender appender(con, kNetworkFeaturesTempTable);
+        duck::Appender appender(con, kNetworkFeaturesTempTable);
 
         for (size_t i = 0; i < net.source.size(); ++i)
         {
@@ -196,13 +196,14 @@ int64_t materialize_network_features_table(ReachabilityField const &field,
             if (wkt.empty())
                 continue;
 
-            appender.BeginRow();
-            appender.Append(net.edges[i].id);
-            appender.Append(step_cost);
-            appender.Append(duckdb::Value(wkt));
-            appender.EndRow();
+            appender.begin_row();
+            appender.append(net.edges[i].id);
+            appender.append(step_cost);
+            appender.append(wkt);
+            appender.end_row();
             ++count;
         }
+        appender.close();
     }
 
     if (count == 0)
@@ -217,9 +218,9 @@ int64_t materialize_network_features_table(ReachabilityField const &field,
 
     con.Query("DROP TABLE IF EXISTS routing_network_geom");
     auto result = con.Query(upgrade_sql);
-    if (result->HasError())
+    if (result.HasError())
         throw std::runtime_error("Network geometry conversion failed: " +
-                                 result->GetError());
+                                 result.GetError());
 
     con.Query(std::string("DROP TABLE ") + kNetworkFeaturesTempTable);
     con.Query(std::string("ALTER TABLE routing_network_geom RENAME TO ") +
