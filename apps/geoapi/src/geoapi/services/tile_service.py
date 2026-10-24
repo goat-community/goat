@@ -30,6 +30,7 @@ from io import BufferedReader
 from pathlib import Path
 from typing import Any, Optional
 
+import duckdb
 from cachetools import LRUCache, TTLCache
 from goatlib.storage import build_filters
 from pmtiles.reader import MmapSource
@@ -1486,6 +1487,12 @@ class TileService:
 
         # Note: Using LIMIT instead of ORDER BY random() - with Hilbert-ordered data,
         # this gives spatially coherent results and is much faster (no sort needed)
+        # Polygon layers get a second MVT layer of label anchors, aggregated from
+        # the same candidates: one scan instead of two halves the tile time.
+        is_polygon_layer = geometry_type and "polygon" in geometry_type.lower()
+        anchor_mvt = (
+            self._anchor_mvt(struct_pack_args, geom_col) if is_polygon_layer else ""
+        )
         query = f"""
             WITH bounds AS (
                 SELECT
@@ -1504,41 +1511,41 @@ class TileService:
                 4096,
                 'geometry',
                 '_rowid'
-            )
+            ){anchor_mvt}
             FROM candidates, bounds
         """
 
-        # Determine if we need to generate label anchor points for polygon layers
-        is_polygon_layer = geometry_type and "polygon" in geometry_type.lower()
-
-        try:
+        def run(sql: str) -> Any:
             # Use pool's execute_with_retry for automatic connection handling
             # Apply query timeout to prevent blocking other requests
-            result = ducklake_pool.execute_with_retry(
-                query,
+            return ducklake_pool.execute_with_retry(
+                sql,
                 params=params if params else None,
                 max_retries=3,
                 fetch_all=False,
                 timeout=settings.QUERY_TIMEOUT,
             )
 
+        try:
+            try:
+                result = run(query)
+            except duckdb.Error as e:
+                if not anchor_mvt:
+                    raise
+                # A polygon ST_PointOnSurface cannot handle fails the whole
+                # query: serve the tile without its labels rather than not at all.
+                logger.warning("Anchor layer generation failed: %s", e)
+                result = run(query.replace(anchor_mvt, ""))
+                anchor_mvt = ""
+
             if not result or not result[0]:
                 return None
 
             tile_data = bytes(result[0])
 
-            # For polygon layers, generate and append a label anchor layer
-            # using ST_PointOnSurface for optimal label placement
-            if is_polygon_layer:
-                anchor_data = self._generate_anchor_layer(
-                    query=query,
-                    struct_pack_args=struct_pack_args,
-                    geom_col=geom_col,
-                    params=params,
-                )
-                if anchor_data:
-                    # MVT is protobuf — multiple layers can be concatenated
-                    tile_data = tile_data + anchor_data
+            if anchor_mvt and result[1]:
+                # MVT is protobuf — multiple layers can be concatenated
+                tile_data = tile_data + bytes(result[1])
 
             # For line layers requesting decoration placement, generate and append
             # a per-line decoration points layer. The source geometry is read
@@ -1701,36 +1708,19 @@ class TileService:
             logger.warning("Decoration layer generation failed: %s", e)
         return None
 
-    def _generate_anchor_layer(
-        self,
-        query: str,
-        struct_pack_args: str,
-        geom_col: str,
-        params: list | None = None,
-    ) -> Optional[bytes]:
-        """Generate a label anchor MVT layer for polygon features.
+    def _anchor_mvt(self, struct_pack_args: str, geom_col: str) -> str:
+        """The label anchor layer of a polygon tile, as a second select item.
 
-        Creates point features using ST_PointOnSurface for optimal label
-        placement inside polygons. The result is a separate MVT layer named
-        'default_anchor' that can be concatenated with the main tile.
-
-        Args:
-            query: The original tile query (reused for the candidates CTE)
-            struct_pack_args: Original struct_pack arguments
-            geom_col: Geometry column name
-            params: Query parameters
-
-        Returns:
-            MVT bytes for the anchor layer, or None if empty
+        Point features from ST_PointOnSurface for label placement inside the
+        polygons, in a separate MVT layer named 'default_anchor' that is
+        concatenated with the main one. The original geometry field looks like:
+          geometry := ST_AsMVTGeom(ST_Transform(...), ST_Extent(bounds.bbox3857))
+        and becomes:
+          geometry := ST_AsMVTGeom(
+            ST_PointOnSurface(ST_Transform(...)),
+            ST_Extent(bounds.bbox3857)
+          )
         """
-        # Build anchor struct_pack by wrapping the transformed geometry with
-        # ST_PointOnSurface. The original geometry field looks like:
-        #   geometry := ST_AsMVTGeom(ST_Transform(...), ST_Extent(bounds.bbox3857))
-        # We need:
-        #   geometry := ST_AsMVTGeom(
-        #     ST_PointOnSurface(ST_Transform(...)),
-        #     ST_Extent(bounds.bbox3857)
-        #   )
         original_geom_expr = f'ST_AsMVTGeom(ST_Transform(candidates."{geom_col}"'
         anchor_geom_expr = (
             f'ST_AsMVTGeom(ST_PointOnSurface(ST_Transform(candidates."{geom_col}"'
@@ -1743,27 +1733,14 @@ class TileService:
         anchor_struct = struct_pack_args.replace(
             original_geom_expr, anchor_geom_expr
         ).replace(original_close, anchor_close)
-        anchor_query = query.replace(
-            f"struct_pack({struct_pack_args})",
-            f"struct_pack({anchor_struct})",
-        ).replace(
-            "'default',\n                4096,\n                'geometry',\n                '_rowid'",
-            "'default_anchor',\n                4096,\n                'geometry',\n                '_rowid'",
-        )
-
-        try:
-            result = ducklake_pool.execute_with_retry(
-                anchor_query,
-                params=params if params else None,
-                max_retries=1,
-                fetch_all=False,
-                timeout=settings.QUERY_TIMEOUT,
-            )
-            if result and result[0]:
-                return bytes(result[0])
-        except Exception as e:
-            logger.warning("Anchor layer generation failed: %s", e)
-        return None
+        return f""",
+            ST_AsMVT(
+                struct_pack({anchor_struct}),
+                'default_anchor',
+                4096,
+                'geometry',
+                '_rowid'
+            )"""
 
 
 # Singleton instance

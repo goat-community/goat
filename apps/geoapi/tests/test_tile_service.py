@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import duckdb
 import pytest
 
 from geoapi.config import settings
@@ -318,12 +319,31 @@ def test_a_table_without_bbox_columns_filters_on_the_geometry_alone() -> None:
     assert 'ST_Intersects("geometry"' in sql
 
 
-def test_a_polygon_tile_still_gets_its_label_anchor_layer() -> None:
+def test_a_polygon_tile_takes_its_label_anchors_from_the_same_scan() -> None:
+    """One query returns both MVT layers, which are concatenated."""
     with patch("geoapi.services.tile_service.ducklake_pool") as pool:
-        pool.execute_with_retry.return_value = (b"main",)
-        TileService()._generate_dynamic_tile(
+        pool.execute_with_retry.return_value = (b"main", b"anchors")
+        tile = TileService()._generate_dynamic_tile(
             _LAYER, 14, 0, 0, columns=_COLUMNS, geometry_type="polygon"
         )
 
-    main, anchors = (c.args[0] for c in pool.execute_with_retry.call_args_list)
-    assert "'default_anchor'" in anchors and "ST_PointOnSurface" in anchors
+    (call,) = pool.execute_with_retry.call_args_list
+    assert "'default_anchor'" in call.args[0]
+    assert tile == b"mainanchors"
+
+
+def test_a_polygon_tile_whose_anchors_fail_is_served_without_labels() -> None:
+    """ST_PointOnSurface failing on one polygon must not cost the whole tile."""
+
+    def execute(sql: str, **_: object) -> tuple[bytes]:
+        if "'default_anchor'" in sql:
+            raise duckdb.InvalidInputException("TopologyException")
+        return (b"main",)
+
+    with patch("geoapi.services.tile_service.ducklake_pool") as pool:
+        pool.execute_with_retry.side_effect = execute
+        tile = TileService()._generate_dynamic_tile(
+            _LAYER, 14, 0, 0, columns=_COLUMNS, geometry_type="polygon"
+        )
+
+    assert tile == b"main"
