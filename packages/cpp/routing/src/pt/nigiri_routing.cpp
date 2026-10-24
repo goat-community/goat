@@ -77,9 +77,18 @@ void run_single_departure(
     auto const start_time = nigiri::unixtime_t{
         nigiri::i32_minutes{departure_minute}};
 
+    // Only stops this departure reached: `best_` holds each location's best
+    // arrival over all rounds, as in the reverse search below, so the per-round
+    // scan of get_fastest runs for reached stops only instead of every location
+    // of the timetable, once per minute of the window.
+    auto const best = state.get_best<0>();
+    constexpr auto kInv =
+        nigiri::kInvalidDelta<nigiri::direction::kForward>;
     auto const n_locs = tt.n_locations();
     for (auto i = 0U; i < n_locs; ++i)
     {
+        if (best[i][0] == kInv)
+            continue;
         auto loc = nigiri::location_idx_t{i};
         auto fastest = nigiri::routing::get_fastest_one_to_all_offsets(
             tt, state,
