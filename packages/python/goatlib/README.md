@@ -109,6 +109,31 @@ cancelled Windmill job is killed without a SIGTERM first, so nothing in the
 run can clean up after it; the `ducklake_orphan_tables` task reports the
 tables left behind and, when asked to, drops those older than a day.
 
+## DuckDB connections
+
+Every DuckDB connection that may run spatial SQL is opened with
+`storage.ducklake.connect_duckdb`, which loads spatial and sets
+`geometry_always_xy = false`; one that only reads plain columns (catalog item
+lookups, row counts) stays a bare `duckdb.connect()` and skips loading spatial,
+~50 ms per connection. DuckDB 2.0 refuses
+axis-order sensitive functions (`ST_Transform`, `ST_*_Spheroid`, GDAL `COPY`
+with an SRS) until that setting is made, and `false` is the behaviour GOAT's
+SQL is written for: it flips coordinates before the spheroid functions. The
+setting belongs to the spatial extension, so it can only be set after `LOAD
+spatial`; the images turn extension autoloading off, which rules out a
+connect-time option.
+
+GeoParquet that stays inside GOAT (tool inputs and outputs) is written with the
+native Parquet geometry type (`GEOPARQUET_VERSION 'V2'`). It carries a bounding
+box per row group, which DuckDB uses to skip row groups in spatial filters.
+Files that leave GOAT stay GeoParquet 1.0, which every reader opens.
+
+DuckLake creates no indexes on its Postgres catalog tables. The bootstrap
+(`storage/ducklake_init.py`) adds the ones GOAT's catalog size needs
+(`CATALOG_INDEXES`): DuckLake updates the column statistics one column per
+statement, and a query that filters on a column reads that column's per-file
+statistics; without an index each of these scans the statistics of every table.
+
 ## DuckLake catalog connections
 
 Every DuckLake read runs a few catalog queries inside a Postgres transaction,
