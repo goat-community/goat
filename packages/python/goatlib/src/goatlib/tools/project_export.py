@@ -479,6 +479,8 @@ class ProjectExportRunner(SimpleToolRunner):
             source=table_path,
             output_path=str(output_path),
             geometry_column=geometry_col,
+            # the export leaves GOAT: classic GeoParquet that any reader opens
+            native_geometry=False,
         )
 
         logger.info(

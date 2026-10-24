@@ -68,6 +68,7 @@ def write_optimized_parquet(
     compression: str = DEFAULT_COMPRESSION,
     add_bbox: bool = True,
     hilbert_sort: bool = True,
+    native_geometry: bool = True,
 ) -> int:
     """Write an optimized Parquet file with V2 format and spatial optimizations.
 
@@ -85,6 +86,11 @@ def write_optimized_parquet(
         compression: Compression codec (default: "ZSTD")
         add_bbox: Whether to add bbox struct column for geo data (default: True)
         hilbert_sort: Whether to sort by Hilbert curve for geo data (default: True)
+        native_geometry: Write the geometry as Parquet's native GEOMETRY type
+            (GEOPARQUET_VERSION 'V2'), which carries a bounding box per row
+            group that DuckDB 2.0 uses to skip row groups in spatial filters.
+            False writes classic GeoParquet 1.0 (WKB) for files leaving GOAT,
+            which older GDAL/QGIS versions read (default: True)
 
     Returns:
         Number of rows written
@@ -128,10 +134,11 @@ def write_optimized_parquet(
 
     # Execute COPY with optimization
     # Use PARQUET_VERSION V2 for better compression (DELTA_BINARY_PACKED, etc.)
+    geoparquet = ", GEOPARQUET_VERSION 'V2'" if native_geometry else ""
     copy_sql = f"""
         COPY ({optimized_query})
         TO '{output_path}'
-        (FORMAT PARQUET, COMPRESSION {compression}, ROW_GROUP_SIZE {row_group_size}, PARQUET_VERSION V2)
+        (FORMAT PARQUET, COMPRESSION {compression}, ROW_GROUP_SIZE {row_group_size}, PARQUET_VERSION V2{geoparquet})
     """
 
     logger.debug("Writing optimized GeoParquet: %s", output_path)

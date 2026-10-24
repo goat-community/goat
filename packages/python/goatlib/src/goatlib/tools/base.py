@@ -733,7 +733,7 @@ class SimpleToolRunner:
         self._execute_with_retry(
             "export filtered catalog layer",
             f"COPY (SELECT * FROM read_parquet('{catalog_path}') {where}) "
-            f"TO '{tmp.name}' (FORMAT PARQUET, COMPRESSION ZSTD)",
+            f"TO '{tmp.name}' (FORMAT PARQUET, COMPRESSION ZSTD, GEOPARQUET_VERSION 'V2')",
             filters.params,
         )
         return tmp.name
@@ -1496,18 +1496,20 @@ class BaseToolRunner(SimpleToolRunner, ABC, Generic[TParams]):
                 where_clause = "WHERE " + " AND ".join(cql_filters.clauses)
                 params = cql_filters.params
 
+        # GEOPARQUET_VERSION 'V2' writes the native GEOMETRY type with a bbox per
+        # row group, which the tool's spatial filters use to skip row groups.
         if where_clause:
             # Use parameterized query
             query = f"SELECT * FROM {table_name} {where_clause}"
             self._execute_with_retry(
                 "export layer with filter",
-                f"COPY ({query}) TO '{temp_path}' (FORMAT PARQUET, COMPRESSION ZSTD)",
+                f"COPY ({query}) TO '{temp_path}' (FORMAT PARQUET, COMPRESSION ZSTD, GEOPARQUET_VERSION 'V2')",
                 params,
             )
         else:
             self._execute_with_retry(
                 "export layer",
-                f"COPY {table_name} TO '{temp_path}' (FORMAT PARQUET, COMPRESSION ZSTD)",
+                f"COPY {table_name} TO '{temp_path}' (FORMAT PARQUET, COMPRESSION ZSTD, GEOPARQUET_VERSION 'V2')",
             )
 
         logger.info("Exported layer %s to %s", layer_id, temp_path)

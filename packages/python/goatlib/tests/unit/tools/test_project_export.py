@@ -191,6 +191,7 @@ class TestProjectExportRunner:
                 source: str,
                 output_path: str,
                 geometry_column: str,
+                native_geometry: bool = True,
             ) -> int:
                 Path(output_path).touch()
                 return 10
@@ -488,6 +489,7 @@ class TestProjectExportRunner:
                 source: str,
                 output_path: str,
                 geometry_column: str,
+                native_geometry: bool = True,
             ) -> int:
                 Path(output_path).touch()
                 return 5
