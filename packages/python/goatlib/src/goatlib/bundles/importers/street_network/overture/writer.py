@@ -17,13 +17,13 @@ import logging
 import os
 from typing import Any, Dict, Iterable, List, Sequence
 
-import duckdb
 import pyarrow as pa
 import pyarrow.parquet as pq
 from shapely.geometry import LineString, Point
 
 from goatlib.computed_columns import COMPUTED_KIND_REGISTRY
 from goatlib.io.parquet import write_optimized_parquet
+from goatlib.storage.ducklake import connect_duckdb
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +119,7 @@ def _write(
     # has to, so the memory here is one batch whatever the city's size.
     staging = f"{path}.staging"
     written = 0
-    con = duckdb.connect()
+    con = connect_duckdb()
     try:
         with pq.ParquetWriter(staging, schema) as writer:
             batch: List[Dict[str, Any]] = []

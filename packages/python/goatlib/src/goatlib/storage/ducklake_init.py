@@ -34,6 +34,7 @@ from goatlib.config.postgres import (
 from goatlib.storage.ducklake import (
     REQUIRED_DUCKDB_EXTENSIONS,
     catalog_libpq,
+    connect_duckdb,
     load_extensions,
 )
 from goatlib.storage.s3_config import apply_duckdb_s3_settings, duckdb_s3_endpoint
@@ -92,7 +93,7 @@ def bootstrap_from_env() -> None:
     print(f"  Catalog schema: {catalog_schema}")
     print(f"  Data directory: {storage_path}")
 
-    con = duckdb.connect()
+    con = connect_duckdb()
 
     print("Loading DuckDB extensions...")
     load_extensions(con, *REQUIRED_DUCKDB_EXTENSIONS)

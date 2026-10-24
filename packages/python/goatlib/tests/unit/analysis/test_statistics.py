@@ -7,7 +7,6 @@ the correctness of the statistics calculation functions.
 import json
 import math
 
-import duckdb
 import pytest
 from goatlib.analysis.statistics import (
     AreaOperation,
@@ -22,12 +21,13 @@ from goatlib.analysis.statistics import (
     calculate_histogram,
     calculate_unique_values,
 )
+from goatlib.storage.ducklake import connect_duckdb
 
 
 @pytest.fixture
 def duckdb_connection():
     """Create an in-memory DuckDB connection with spatial extension."""
-    con = duckdb.connect(":memory:")
+    con = connect_duckdb(":memory:")
     con.execute("INSTALL spatial; LOAD spatial;")
     return con
 

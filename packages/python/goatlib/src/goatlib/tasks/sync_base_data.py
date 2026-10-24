@@ -344,7 +344,7 @@ def h3_3_cells_for_bbox(bbox: list[float], ring: int = 1) -> set[int]:
     nothing for an area smaller than one cell (~12,000 km²), so the cells of
     the corners and centre are added before growing the rings.
     """
-    import duckdb
+    from goatlib.storage.ducklake import connect_duckdb
 
     min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
     points = [
@@ -359,7 +359,7 @@ def h3_3_cells_for_bbox(bbox: list[float], ring: int = 1) -> set[int]:
         f"{min_lon} {max_lat}, {min_lon} {min_lat}))"
     )
     values = ", ".join(f"({lat}, {lon})" for lat, lon in points)
-    con = duckdb.connect()
+    con = connect_duckdb()
     try:
         # Baked into the GOAT images, so INSTALL is a no-op there.
         con.execute("INSTALL h3 FROM community; LOAD h3;")

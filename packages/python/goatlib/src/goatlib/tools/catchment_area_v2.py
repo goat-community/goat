@@ -10,7 +10,6 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any, Self
 
-import duckdb
 from pydantic import Field, model_validator
 
 from goatlib.analysis.accessibility import CatchmentAreaToolV2
@@ -48,6 +47,7 @@ from goatlib.bundles.artifacts.street_network import (
     fetch_routing_network,
 )
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.tools.catchment_area import CatchmentAreaToolRunner
 from goatlib.tools.pt_network import ensure_pt_date, pt_date_field
 from goatlib.tools.schemas import ToolInputBase, get_default_layer_name
@@ -990,7 +990,7 @@ class CatchmentAreaV2ToolRunner(CatchmentAreaToolRunner):
             grid_parquet = tempfile.NamedTemporaryFile(
                 suffix=".parquet", delete=False
             ).name
-            con = duckdb.connect()
+            con = connect_duckdb()
             con.execute("INSTALL spatial; LOAD spatial;")
             cols = con.execute(
                 f"DESCRIBE SELECT * FROM read_parquet('{raw_layer_path}')"

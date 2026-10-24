@@ -98,9 +98,9 @@ def _linkage_rows(table: Path) -> int:
     Read with DuckDB rather than pyarrow: it is already a dependency of the
     street-network builder next door, and this only needs a count.
     """
-    import duckdb
+    from goatlib.storage.ducklake import connect_duckdb
 
-    con = duckdb.connect()
+    con = connect_duckdb()
     try:
         # Interpolated, not bound: the path is this build's own — a temp workdir
         # plus `linkage_member` of a mode already checked against
@@ -188,16 +188,15 @@ def _write_feed_from_layers(layer_paths: Dict[str, str], feed_dir: str) -> List[
     and a `shapes.txt` of bare ids would be a broken file rather than a missing
     one.
     """
-    import duckdb
-
     from goatlib.bundles.importers.pt_network.gtfs import (
         _GTFS_FILE,
         _REQUIRED_COLUMNS,
     )
+    from goatlib.storage.ducklake import connect_duckdb
 
     spec = get_spec(BundleTypeName.pt_network_gtfs)
     written: List[str] = []
-    con = duckdb.connect()
+    con = connect_duckdb()
     try:
         con.execute("INSTALL spatial; LOAD spatial")
         for role, path in sorted(layer_paths.items()):
@@ -384,10 +383,10 @@ class GtfsArtifactBuilder(ArtifactBuilder):
     @classmethod
     def _window_from_layers(cls, layer_paths: Dict[str, str]) -> Tuple[str, int]:
         """The service window, read from the calendar layers."""
-        import duckdb
+        from goatlib.storage.ducklake import connect_duckdb
 
         raw: List[str] = []
-        con = duckdb.connect()
+        con = connect_duckdb()
         try:
             for role, columns in (
                 ("calendar", ("start_date", "end_date")),

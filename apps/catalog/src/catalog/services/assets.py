@@ -33,7 +33,7 @@ from dataclasses import dataclass
 from typing import Any
 
 import duckdb
-from goatlib.storage.ducklake import load_extensions
+from goatlib.storage.ducklake import connect_duckdb, load_extensions
 
 from catalog.config import CatalogSettings
 from catalog.errors import ApiError
@@ -120,7 +120,7 @@ class AssetReader:
         with self._lock:
             if self._con is not None:
                 return self._con
-            con = duckdb.connect()
+            con = connect_duckdb()
             load_extensions(con, "httpfs")
             # One-shot reads: DuckDB would otherwise keep each S3 object read
             # in memory for the life of this connection.

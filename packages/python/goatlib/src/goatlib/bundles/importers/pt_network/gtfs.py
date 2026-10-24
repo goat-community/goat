@@ -500,7 +500,7 @@ class GtfsImporter(BundleImporter):
         # Imported here, not at module scope: `core` depends on goatlib
         # without the `full` extra, so it must be able to import this module
         # (the registry does) without duckdb present. Only conversion needs it.
-        import duckdb
+        from goatlib.storage.ducklake import connect_duckdb
 
         src = txt_path.replace("'", "''")
         dst = out_path.replace("'", "''")
@@ -509,7 +509,7 @@ class GtfsImporter(BundleImporter):
             f"quote='\"', escape='\"', strict_mode=false)"
         )
         # Bounded, spilling next to the output: see bound_duckdb.
-        con = bound_duckdb(duckdb.connect(), os.path.dirname(os.path.abspath(out_path)))
+        con = bound_duckdb(connect_duckdb(), os.path.dirname(os.path.abspath(out_path)))
         try:
             select = f"SELECT * FROM {read}"
             if not point:
@@ -549,17 +549,17 @@ class GtfsImporter(BundleImporter):
         """
         import struct
 
-        import duckdb
         import pyarrow as pa
         import pyarrow.parquet as pq
 
         from goatlib.io.geoparquet import write_optimized_parquet
+        from goatlib.storage.ducklake import connect_duckdb
 
         src = shapes_path.replace("'", "''")
         lines_path = f"{out_path}.lines.parquet"
         schema = pa.schema([("shape_id", pa.string()), ("wkb", pa.binary())])
         # Bounded, spilling next to the output: see bound_duckdb.
-        con = bound_duckdb(duckdb.connect(), os.path.dirname(os.path.abspath(out_path)))
+        con = bound_duckdb(connect_duckdb(), os.path.dirname(os.path.abspath(out_path)))
         try:
             con.execute("INSTALL spatial; LOAD spatial")
             cursor = con.execute(

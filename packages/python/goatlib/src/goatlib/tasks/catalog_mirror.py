@@ -65,6 +65,8 @@ from pathlib import Path
 
 import duckdb
 
+from goatlib.storage.ducklake import connect_duckdb
+
 logger = logging.getLogger(__name__)
 
 __all__ = [
@@ -485,7 +487,7 @@ def build_mirror(
     """
     owns_connection = con is None
     if con is None:
-        con = duckdb.connect()
+        con = connect_duckdb()
         con.execute("INSTALL spatial; LOAD spatial;")
         con.execute("INSTALL json; LOAD json;")
     try:

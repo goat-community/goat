@@ -33,9 +33,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal, Self
 
-import duckdb
 from pydantic import Field
 
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.tools.base import SimpleToolRunner
 from goatlib.tools.schemas import ToolInputBase
 from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
@@ -191,7 +191,7 @@ class CatalogMaterializeRunner(SimpleToolRunner):
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{layer_id_to_table_name(layer_id)}.parquet"
 
-        con = duckdb.connect()
+        con = connect_duckdb()
         set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
@@ -279,7 +279,7 @@ class CatalogMaterializeRunner(SimpleToolRunner):
         # SQL, which also quotes it) stays a single identifier.
         geom_col_sql = geom_col.replace('"', '""')
 
-        con = duckdb.connect()
+        con = connect_duckdb()
         set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")

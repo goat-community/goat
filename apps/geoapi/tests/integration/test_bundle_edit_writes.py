@@ -10,6 +10,7 @@ from typing import Any, Generator
 
 import duckdb
 import pytest
+from goatlib.storage.ducklake import connect_duckdb
 
 from geoapi.dependencies import LayerInfo
 
@@ -38,7 +39,7 @@ def network(tmp_path: Any) -> Generator[tuple[Any, LayerInfo, LayerInfo], None, 
     """A one-street network: 'street' from (0,0) to (0.002,0), and its two
     connectors. Degrees ~ metres/111320 along the equator, where EPSG:3857 is
     the identity scale, so distances are easy to reason about."""
-    con = duckdb.connect(":memory:")
+    con = connect_duckdb(":memory:")
     con.execute("INSTALL spatial; LOAD spatial;")
     con.execute("INSTALL ducklake; LOAD ducklake;")
     con.execute(

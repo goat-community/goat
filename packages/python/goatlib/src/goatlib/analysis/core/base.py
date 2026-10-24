@@ -6,11 +6,10 @@ import uuid
 from pathlib import Path
 from typing import Any, List, Self, Tuple, final
 
-import duckdb
-
 from goatlib.analysis.schemas.base import GeometryType
 from goatlib.io.utils import Metadata, download_if_remote, get_metadata
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
@@ -46,7 +45,7 @@ class AnalysisTool:
             self._db_path = db_path
 
         # Connect to the file-backed database path
-        self.con = duckdb.connect(database=str(self._db_path))
+        self.con = connect_duckdb(database=str(self._db_path))
 
         self._setup_duckdb_extensions()
 

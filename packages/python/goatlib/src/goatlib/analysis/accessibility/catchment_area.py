@@ -39,6 +39,7 @@ from goatlib.analysis.schemas.catchment_area import (
 from goatlib.config.settings import settings
 from goatlib.io.parquet import write_optimized_parquet
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import connect_duckdb
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +97,7 @@ def get_r5_region_for_point(
     if not parquet_path.exists():
         raise FileNotFoundError(f"Region mapping parquet not found: {parquet_path}")
 
-    con = duckdb.connect(":memory:")
+    con = connect_duckdb(":memory:")
     con.install_extension("spatial")
     con.load_extension("spatial")
 
@@ -140,7 +141,7 @@ def compute_bounds_for_point(
     Returns:
         Dictionary with north, south, east, west bounds
     """
-    con = duckdb.connect(":memory:")
+    con = connect_duckdb(":memory:")
     con.install_extension("spatial")
     con.load_extension("spatial")
 
@@ -1352,7 +1353,7 @@ class CatchmentAreaTool(AnalysisTool):
             gdf["geometry"] = gdf["geometry"].apply(lambda g: g.wkt)
 
             # Use DuckDB to convert WKT to proper GEOMETRY and save as parquet
-            con = duckdb.connect()
+            con = connect_duckdb()
             con.execute("INSTALL spatial; LOAD spatial;")
 
             # Register the dataframe
@@ -1400,7 +1401,7 @@ class CatchmentAreaTool(AnalysisTool):
             f.write(data)
 
         # Use DuckDB to convert WKT string geometry to proper GEOMETRY type
-        con = duckdb.connect()
+        con = connect_duckdb()
         con.execute("INSTALL spatial; LOAD spatial;")
 
         try:

@@ -542,7 +542,7 @@ class FeatureService:
         """
         from pathlib import Path
 
-        import duckdb
+        from goatlib.storage.ducklake import connect_duckdb
 
         user_id_clean = user_id.replace("-", "")
         layer_uuid_clean = layer_uuid.replace("-", "")
@@ -565,7 +565,7 @@ class FeatureService:
             return [], 0
 
         try:
-            con = duckdb.connect(":memory:")
+            con = connect_duckdb(":memory:")
             con.execute("SET TimeZone='UTC'")
             con.execute("INSTALL spatial; LOAD spatial;")
 

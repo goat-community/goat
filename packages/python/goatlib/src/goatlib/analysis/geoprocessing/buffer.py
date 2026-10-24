@@ -104,11 +104,13 @@ class BufferTool(AnalysisTool):
             """
         )
 
+        # Positional: ST_Buffer has no named parameters. DuckDB 1.x silently
+        # dropped `name =>` labels, DuckDB 2.0 rejects them.
         opts = (
-            f"quad_segs => {params.num_triangles}, "
-            f"endcap_style => '{params.cap_style}', "
-            f"join_style => '{params.join_style}', "
-            f"mitre_limit => {params.mitre_limit}"
+            f"{params.num_triangles}, "
+            f"'{params.cap_style}', "
+            f"'{params.join_style}', "
+            f"{params.mitre_limit}"
         )
 
         # --- Geodesic Buffering Logic (Dynamic UTM)

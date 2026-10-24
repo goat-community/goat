@@ -10,8 +10,8 @@ Tests the layer export functionality including:
 
 from unittest.mock import MagicMock, patch
 
-import duckdb
 import pytest
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.tools.layer_export import (
     FORMAT_MAP,
     LayerExportOutput,
@@ -634,7 +634,7 @@ class TestGeoPackageWithFidColumn:
             )
             + "]}"
         )
-        con = duckdb.connect()
+        con = connect_duckdb()
         con.execute("INSTALL spatial; LOAD spatial")
         # The relation shape DuckLake layers have: lake.<schema>.<table>.
         con.execute("ATTACH ':memory:' AS lake")

@@ -77,6 +77,32 @@ def load_extensions(con: "duckdb.DuckDBPyConnection", *extensions: str) -> None:
         con.execute(f"LOAD {extension}")
 
 
+# DuckDB 2.0 refuses axis-order sensitive spatial functions (ST_Transform,
+# ST_*_Spheroid, GDAL COPY with an SRS) until this is set. False keeps the
+# pre-2.0 behaviour GOAT's SQL is written for: it flips coordinates before the
+# spheroid functions. DuckDB 2.1 makes true the default.
+GEOMETRY_ALWAYS_XY = False
+
+
+def connect_duckdb(
+    database: str = ":memory:",
+    *,
+    read_only: bool = False,
+    config: dict[str, Any] | None = None,
+) -> duckdb.DuckDBPyConnection:
+    """A DuckDB connection with spatial loaded and GOAT's spatial settings set.
+
+    The axis-order setting belongs to the spatial extension, so it can only be
+    set once spatial is loaded: with a baked extension directory autoload is
+    off and a connect-time config entry for it would be rejected. It is set
+    GLOBAL so cursors (``con.cursor()``, the pools' connections) inherit it.
+    """
+    con = duckdb.connect(database, read_only=read_only, config=config or {})
+    load_extensions(con, "spatial")
+    con.execute(f"SET GLOBAL geometry_always_xy = {str(GEOMETRY_ALWAYS_XY).lower()}")
+    return con
+
+
 # Connection error patterns that should trigger a retry/reconnect
 CONNECTION_ERROR_PATTERNS = [
     "ssl syscall error",
@@ -429,7 +455,7 @@ class BaseDuckLakeManager:
         self: "BaseDuckLakeManager", snapshot_version: int | None = None
     ) -> duckdb.DuckDBPyConnection:
         """Create and configure a DuckDB connection (does not assign it)."""
-        con = duckdb.connect()
+        con = connect_duckdb()
         if self._memory_limit:
             con.execute(f"SET memory_limit='{self._memory_limit}'")
         if self._threads:
@@ -1187,7 +1213,7 @@ class DuckLakePool:
         self, snapshot_version: int | None = None
     ) -> duckdb.DuckDBPyConnection:
         """Create a new DuckDB connection with DuckLake attached (read-only)."""
-        con = duckdb.connect()
+        con = connect_duckdb()
 
         # Apply memory limit if configured
         if self._memory_limit:

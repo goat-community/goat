@@ -75,7 +75,7 @@ def test_the_bootstrap_attaches_the_catalog_without_the_password(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Any
 ) -> None:
     con = _RecordingConnection()
-    monkeypatch.setattr(ducklake_init.duckdb, "connect", lambda: con)
+    monkeypatch.setattr(ducklake_init, "connect_duckdb", lambda: con)
     monkeypatch.setenv("DUCKDB_EXTENSION_DIRECTORY", str(tmp_path / "extensions"))
     monkeypatch.delenv("S3_ENDPOINT_URL", raising=False)
     monkeypatch.setenv("POSTGRES_PASSWORD", PASSWORD)

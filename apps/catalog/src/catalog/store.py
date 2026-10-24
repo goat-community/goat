@@ -50,7 +50,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 import duckdb
-from goatlib.storage.ducklake import load_extensions
+from goatlib.storage.ducklake import connect_duckdb, load_extensions
 
 from catalog.config import CatalogSettings
 from catalog.services.registry import QueryableRegistry, build_registry
@@ -295,7 +295,7 @@ class CatalogStore:
         with a concurrent build. The caller decides, under the lock,
         whether to swap this result in or discard it.
         """
-        con = duckdb.connect()
+        con = connect_duckdb()
         self._load_extensions(con)
         self._configure(con)
 

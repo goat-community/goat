@@ -212,7 +212,10 @@ def _check_tree(
         for entry in cte_map["map"]:
             name = str(entry.get("key", "")).lower()
             value = entry.get("value") or {}
-            query_node = (value.get("query") or {}).get("node") or {}
+            # DuckDB 2.0 serializes the CTE body as `query_node`, 1.x as `query.node`
+            query_node = (
+                value.get("query_node") or (value.get("query") or {}).get("node") or {}
+            )
             own = {name} if query_node.get("type") == "RECURSIVE_CTE_NODE" else set()
             keyed = frozenset(own) if query_node.get("key_targets") else frozenset()
             _check_tree(value, allowed, visible_ctes | defined | own, keyed)

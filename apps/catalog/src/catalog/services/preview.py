@@ -51,7 +51,7 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 import duckdb
-from goatlib.storage.ducklake import load_extensions
+from goatlib.storage.ducklake import connect_duckdb, load_extensions
 
 from catalog.config import CatalogSettings
 from catalog.errors import ApiError
@@ -252,7 +252,7 @@ class PreviewReader:
         with self._lock:
             if self._con is not None:
                 return self._con
-            con = duckdb.connect()
+            con = connect_duckdb()
             load_extensions(con, "spatial", "httpfs")
             # Previews are one-shot reads with their own disk cache. DuckDB
             # would otherwise keep each S3 row group read in memory for the

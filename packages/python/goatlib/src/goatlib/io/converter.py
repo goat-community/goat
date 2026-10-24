@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Iterator, Self
 from urllib.parse import urlparse
 
-import duckdb
 from pyproj import CRS
 from pyproj.exceptions import CRSError
 
@@ -19,6 +18,7 @@ from goatlib.io.formats import ALL_EXTS, FileFormat
 from goatlib.io.parquet import write_optimized_parquet
 from goatlib.io.utils import detect_path_type, download_if_remote
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.storage.s3_config import apply_duckdb_s3_settings
 
 if TYPE_CHECKING:
@@ -61,7 +61,7 @@ class IOConverter:
     """
 
     def __init__(self: Self) -> None:
-        self.con = duckdb.connect(database=":memory:")
+        self.con = connect_duckdb(database=":memory:")
         self._setup_duckdb_extensions()
 
     def _setup_duckdb_extensions(self: Self) -> None:

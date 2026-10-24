@@ -49,6 +49,7 @@ from goatlib.models.bundle import (
     BundleArtifactState,
     BundleTypeName,
 )
+from goatlib.storage.ducklake import connect_duckdb
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ class StreetNetworkArtifactBuilder(ArtifactBuilder):
         edges_out = os.path.join(out_dir, EDGES_MEMBER)
         nodes_out = os.path.join(out_dir, NODES_MEMBER)
 
-        con = duckdb.connect()
+        con = connect_duckdb()
         try:
             con.execute("INSTALL spatial; LOAD spatial")
             counts = _transform(con, edges_layer, nodes_layer, edges_out, nodes_out)
@@ -392,7 +393,7 @@ def _edge_query() -> str:
             coalesce(p.speed_limit_kph_backward, 0)::SMALLINT AS maxspeed_backward,
             list_transform(
                 ST_Dump(ST_Points(p.geom_3857)),
-                pt -> [ST_X(pt.geom)::DOUBLE, ST_Y(pt.geom)::DOUBLE]
+                lambda pt: [ST_X(pt.geom)::DOUBLE, ST_Y(pt.geom)::DOUBLE]
             ) AS coordinates_3857
         FROM projected p
         JOIN node_ids s ON s.gers_id = p.source_node

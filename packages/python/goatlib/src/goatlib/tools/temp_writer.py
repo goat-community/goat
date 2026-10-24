@@ -35,6 +35,7 @@ from typing import Any, Self
 import duckdb
 from pydantic import BaseModel, Field
 
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.utils.container_memory import JOB_WORK_MEMORY_SHARE, set_memory_share
 
 logger = logging.getLogger(__name__)
@@ -231,7 +232,7 @@ class TempLayerWriter:
         # Create a DuckDB connection if not provided
         con = duckdb_con
         if con is None:
-            con = duckdb.connect()
+            con = connect_duckdb()
             set_memory_share(con, JOB_WORK_MEMORY_SHARE)
             con.execute("INSTALL spatial; LOAD spatial;")
 
@@ -333,7 +334,7 @@ class TempLayerWriter:
             # Create a DuckDB connection if not provided
             con = duckdb_con
             if con is None:
-                con = duckdb.connect()
+                con = connect_duckdb()
                 set_memory_share(con, JOB_WORK_MEMORY_SHARE)
                 con.execute("INSTALL spatial; LOAD spatial;")
 

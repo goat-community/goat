@@ -913,10 +913,10 @@ class CatchmentAreaToolRunner(BaseToolRunner[CatchmentAreaWindmillParams]):
             longitudes: List of longitude values
             output_path: Path to write the parquet file
         """
-        import duckdb
+        from goatlib.storage.ducklake import connect_duckdb
 
         # Create a temporary DuckDB connection for geometry operations
-        con = duckdb.connect()
+        con = connect_duckdb()
         set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         con.execute("INSTALL spatial; LOAD spatial;")
 

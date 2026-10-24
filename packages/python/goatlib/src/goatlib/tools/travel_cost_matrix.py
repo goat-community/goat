@@ -13,7 +13,6 @@ import uuid as uuid_module
 from pathlib import Path
 from typing import Any, Self
 
-import duckdb
 from pydantic import Field, model_validator
 
 from goatlib.analysis.accessibility import TravelCostMatrixTool
@@ -41,6 +40,7 @@ from goatlib.bundles.artifacts.street_network import (
     fetch_routing_network,
 )
 from goatlib.models.io import DatasetMetadata
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.tools._routing_limits import (
     DEFAULT_MAX_TIME_ACTIVE_MIN,
     DEFAULT_MAX_TIME_PT_MIN,
@@ -785,7 +785,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
         id_column: str,
     ) -> tuple[list[float], list[float], list[str]]:
         """Extract lat/lon coordinates and IDs from a GeoParquet point layer."""
-        con = duckdb.connect()
+        con = connect_duckdb()
         set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
@@ -846,7 +846,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
         output_path: Path,
     ) -> None:
         """Compute geodesic distances (WGS84 ellipsoid) between all O-D pairs."""
-        con = duckdb.connect()
+        con = connect_duckdb()
         set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")
@@ -889,7 +889,7 @@ class TravelCostMatrixToolRunner(BaseToolRunner[TravelCostMatrixWindmillParams])
         output_path: Path,
     ) -> None:
         """Join min travel cost onto the original destination layer."""
-        con = duckdb.connect()
+        con = connect_duckdb()
         set_memory_share(con, JOB_WORK_MEMORY_SHARE)
         try:
             con.execute("INSTALL spatial; LOAD spatial;")

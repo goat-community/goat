@@ -31,6 +31,7 @@ from goatlib.analysis.statistics import (
     search_layer_features,
 )
 from goatlib.storage import build_cql_filter, load_extensions
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.utils.layer import (
     catalog_layer_parquet,
     catalog_layer_relation,
@@ -660,7 +661,7 @@ class AnalyticsService:
         if not table_schemas:
             return {"valid": True, "errors": [], "columns": {}}
 
-        con = duckdb.connect()
+        con = connect_duckdb()
         try:
             load_extensions(con, "spatial")
 

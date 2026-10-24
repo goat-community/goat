@@ -186,7 +186,7 @@ def test_length_m_matches_pyproj(artifact, con) -> None:
     edges, _ = artifact
     rows = con.execute(f"""
         SELECT length_m, list_transform(coordinates_3857,
-                   p -> [ST_X(ST_Transform(ST_Point(p[1], p[2]),
+                   lambda p: [ST_X(ST_Transform(ST_Point(p[1], p[2]),
                                            'EPSG:3857', 'EPSG:4326',
                                            always_xy := true)),
                          ST_Y(ST_Transform(ST_Point(p[1], p[2]),

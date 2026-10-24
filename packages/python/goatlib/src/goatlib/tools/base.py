@@ -68,6 +68,7 @@ from goatlib.models.bundle import BundleArtifactState, artifact_state
 from goatlib.models.io import DatasetMetadata
 from goatlib.storage.ducklake import (
     cap_catalog_connections,
+    connect_duckdb,
     fetch_one,
     uri_with_application_name,
 )
@@ -457,7 +458,7 @@ class SimpleToolRunner:
         if self.settings is None:
             raise RuntimeError("Settings not initialized. Call init_from_env() first.")
 
-        con = duckdb.connect()
+        con = connect_duckdb()
 
         for ext in ["spatial", "httpfs", "postgres", "ducklake"]:
             con.execute(f"INSTALL {ext}; LOAD {ext};")

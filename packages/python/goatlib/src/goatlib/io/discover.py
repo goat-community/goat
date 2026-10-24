@@ -13,10 +13,10 @@ from typing import Iterator
 from urllib.parse import urlparse
 
 import boto3
-import duckdb
 
 from goatlib.io.formats import ALL_EXTS, FileFormat
 from goatlib.io.utils import detect_path_type
+from goatlib.storage.ducklake import connect_duckdb
 
 logger = logging.getLogger(__name__)
 
@@ -99,7 +99,7 @@ def _discover_gpkg_layers(gpkg: Path) -> list[str]:
     """
     try:
         # Use context manager for proper resource cleanup
-        with duckdb.connect(database=":memory:") as con:
+        with connect_duckdb(database=":memory:") as con:
             con.execute("INSTALL spatial; LOAD spatial;")
 
             # Use parameterized query to prevent SQL injection

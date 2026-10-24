@@ -90,7 +90,7 @@ def write_optimized_parquet(
         Number of rows written
 
     Example:
-        >>> con = duckdb.connect()
+        >>> con = connect_duckdb()
         >>> con.execute("LOAD spatial")
         >>> write_optimized_parquet(
         ...     con,

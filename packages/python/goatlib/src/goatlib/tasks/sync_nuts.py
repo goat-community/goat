@@ -43,8 +43,9 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-import duckdb
 from pydantic import BaseModel, Field
+
+from goatlib.storage.ducklake import connect_duckdb
 
 logger = logging.getLogger(__name__)
 
@@ -119,7 +120,7 @@ def _download(url: str, target: Path) -> None:
 
 def build_nuts(source: Path, out: Path) -> int:
     """Convert a GISCO NUTS GeoJSON into the parquet the service reads."""
-    con = duckdb.connect()
+    con = connect_duckdb()
     try:
         con.execute("INSTALL spatial; LOAD spatial;")
         out.parent.mkdir(parents=True, exist_ok=True)
@@ -145,7 +146,7 @@ def build_nuts(source: Path, out: Path) -> int:
 
 def _validate(path: Path) -> int:
     """Reject a file the service could not serve, before it replaces a good one."""
-    con = duckdb.connect()
+    con = connect_duckdb()
     try:
         con.execute("INSTALL spatial; LOAD spatial;")
         described = con.execute(

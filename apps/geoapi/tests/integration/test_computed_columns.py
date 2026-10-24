@@ -25,6 +25,7 @@ from typing import Any, Generator
 from unittest.mock import patch
 
 import duckdb
+from goatlib.storage.ducklake import connect_duckdb
 from goatlib.utils.field_config import coerce_allowed_values
 
 from geoapi.dependencies import LayerInfo
@@ -118,7 +119,7 @@ def _setup_db() -> tuple[duckdb.DuckDBPyConnection, LayerInfo]:
     that structure by attaching a second in-memory database as 'lake' and
     creating the required schema + table inside it.
     """
-    con = duckdb.connect(":memory:")
+    con = connect_duckdb(":memory:")
     con.execute("INSTALL spatial; LOAD spatial;")
     con.execute("INSTALL ducklake; LOAD ducklake;")
     # Attach a file-backed DuckLake as the 'lake' catalog so that
@@ -464,7 +465,7 @@ FORMULA_COLUMN_NAMES = ["geometry", "name", "has_entry", "has_surface", "score"]
 
 
 def _setup_formula_db() -> tuple[duckdb.DuckDBPyConnection, LayerInfo]:
-    con = duckdb.connect(":memory:")
+    con = connect_duckdb(":memory:")
     con.execute("INSTALL spatial; LOAD spatial;")
     con.execute("INSTALL ducklake; LOAD ducklake;")
     tmpdir = tempfile.mkdtemp(prefix="goat_test_lake_")

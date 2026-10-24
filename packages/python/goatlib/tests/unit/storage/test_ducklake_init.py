@@ -27,7 +27,7 @@ class _RecordingConnection:
 @pytest.fixture
 def connection(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> _RecordingConnection:
     con = _RecordingConnection()
-    monkeypatch.setattr(ducklake_init.duckdb, "connect", lambda: con)
+    monkeypatch.setattr(ducklake_init, "connect_duckdb", lambda: con)
     monkeypatch.setenv("DUCKDB_EXTENSION_DIRECTORY", str(tmp_path / "extensions"))
     for name in (
         "S3_ENDPOINT_URL",
