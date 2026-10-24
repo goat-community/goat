@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { LABEL_FONT_BOLD } from "@/lib/constants/basemaps";
+
 import {
   buildClusterBadgeSpec,
   buildClusterCirclePaint,
@@ -193,6 +195,13 @@ describe("buildClusterMarkerIconColor (gray override for built-in markers)", () 
   it("returns undefined for a custom (user-uploaded raster) marker layer", () => {
     // Raster markers ignore icon-color; spec keeps native colors.
     expect(buildClusterMarkerIconColor(byAttrCustomUploadedMarkerLayer)).toBeUndefined();
+  });
+});
+
+describe("cluster count fonts", () => {
+  it("bubble counts and badge digits use the bold label font", () => {
+    expect(buildClusterCountTextSpec(fixedColorLayer).layout["text-font"]).toEqual([LABEL_FONT_BOLD]);
+    expect(buildClusterBadgeSpec(fixedIconLayer).layout["text-font"]).toEqual([LABEL_FONT_BOLD]);
   });
 });
 

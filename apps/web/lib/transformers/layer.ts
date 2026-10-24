@@ -1,5 +1,6 @@
 import type { MapGeoJSONFeature } from "react-map-gl/maplibre";
 
+import { LABEL_FONT } from "@/lib/constants/basemaps";
 import { rgbToHex } from "@/lib/utils/helpers";
 import { resolveLineDashArray } from "@/lib/transformers/lineStyle";
 import type {
@@ -306,8 +307,7 @@ export function getSymbolStyleSpec(data: TextLabelSchemaData | undefined, layer:
   if (data?.field) {
     textLayout["text-field"] = ["get", data.field];
     textLayout["text-size"] = data.size ?? 14;
-    // TODO: FIND A BETTER SOLUTION FOR THIS. THE GERMAN BASEMAPS ONLY SUPPORT ROBOTO REGULAR
-    textLayout["text-font"] = ["Roboto Regular"];
+    textLayout["text-font"] = [LABEL_FONT];
     textLayout["text-allow-overlap"] = data.allow_overlap || false;
     textLayout["text-anchor"] = data.anchor || "top";
     textLayout["text-offset"] = data.offset || [0, 0];

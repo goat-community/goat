@@ -1,3 +1,4 @@
+import { LABEL_FONT_BOLD } from "@/lib/constants/basemaps";
 import type { FeatureLayerPointProperties, Layer } from "@/lib/validations/layer";
 import type { ProjectLayer } from "@/lib/validations/project";
 
@@ -87,7 +88,7 @@ export const buildClusterCountTextSpec = (layer: LayerLike) => {
       "text-field": ["to-string", ["get", "point_count"]] as unknown,
       // Match the badge text style for visual consistency between
       // circle-point clusters and marker-cluster badges.
-      "text-font": ["Roboto Bold", "Roboto Regular"],
+      "text-font": [LABEL_FONT_BOLD],
       "text-size": 12,
       "text-allow-overlap": true,
       "text-ignore-placement": true,
@@ -220,10 +221,8 @@ export const buildClusterBadgeSpec = (layer: LayerLike) => {
       "icon-allow-overlap": true,
       "icon-ignore-placement": true,
       "text-field": ["to-string", ["get", "point_count"]] as unknown,
-      // Bold first for crisper digits at the badge's small size; Roboto
-      // Regular is the GOAT-wide fallback (see getSymbolStyleSpec in
-      // transformers/layer.ts) in case Bold glyphs aren't in the style.
-      "text-font": ["Roboto Bold", "Roboto Regular"],
+      // Bold for crisper digits at the badge's small size.
+      "text-font": [LABEL_FONT_BOLD],
       "text-size": 12,
       "text-allow-overlap": true,
       "text-ignore-placement": true,

@@ -4,7 +4,7 @@ import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAppDispatch, useAppSelector } from "@/hooks/store/ContextHooks";
-import { DEFAULT_BASEMAP } from "@/lib/constants/basemaps";
+import { DEFAULT_BASEMAP, GLYPHS_URL } from "@/lib/constants/basemaps";
 import { setActiveBasemap as setActiveBasemapAction } from "@/lib/store/map/slice";
 import type { Basemap, BuiltInBasemap } from "@/types/map/common";
 import type { CustomBasemap } from "@/lib/validations/project";
@@ -63,6 +63,7 @@ export function synthesizeMapStyle(
   if (basemap.type === "raster") {
     return {
       version: 8,
+      glyphs: GLYPHS_URL,
       sources: {
         "raster-source": {
           type: "raster",
@@ -79,6 +80,7 @@ export function synthesizeMapStyle(
   // solid
   return {
     version: 8,
+    glyphs: GLYPHS_URL,
     sources: {},
     layers: [
       {
