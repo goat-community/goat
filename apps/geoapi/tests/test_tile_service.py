@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from geoapi.config import settings
+from geoapi.dependencies import LayerInfo
 from geoapi.services.tile_service import (
     TileService,
     tile_to_bbox_3857,
@@ -280,3 +281,49 @@ def test_finding_tiles_by_layer_id_alone_sees_catalog_tiles() -> None:
             service._find_pmtiles_by_layer_id("cat456") == catalog / "t_cat456.pmtiles"
         )
         assert service._find_pmtiles_by_layer_id("missing") is None
+
+
+# =====================================================================
+#  Dynamic tile query
+# =====================================================================
+
+
+_LAYER = LayerInfo(
+    layer_id="00000000-0000-0000-0000-000000000001",
+    schema_name="user_test",
+    table_name="t_layer",
+)
+_COLUMNS = [{"name": "geometry", "type": "GEOMETRY"}]
+
+
+def _dynamic_tile_sql(columns: list[dict]) -> str:
+    with patch("geoapi.services.tile_service.ducklake_pool") as pool:
+        pool.execute_with_retry.return_value = None
+        TileService()._generate_dynamic_tile(_LAYER, 14, 0, 0, columns=columns)
+    return pool.execute_with_retry.call_args.args[0]
+
+
+def test_the_bbox_prefilter_uses_the_form_duckdb_pushes_into_the_scan() -> None:
+    """DuckDB 2.0 skips row groups for bbox['xmin'], not for bbox.xmin."""
+    sql = _dynamic_tile_sql(_COLUMNS + [{"name": "bbox", "type": "STRUCT"}])
+
+    assert "bbox['xmin'] <=" in sql
+    assert "bbox.xmin" not in sql
+
+
+def test_a_table_without_bbox_columns_filters_on_the_geometry_alone() -> None:
+    sql = _dynamic_tile_sql(_COLUMNS)
+
+    assert "bbox" not in sql.replace("bbox3857", "").replace("bbox4326", "")
+    assert 'ST_Intersects("geometry"' in sql
+
+
+def test_a_polygon_tile_still_gets_its_label_anchor_layer() -> None:
+    with patch("geoapi.services.tile_service.ducklake_pool") as pool:
+        pool.execute_with_retry.return_value = (b"main",)
+        TileService()._generate_dynamic_tile(
+            _LAYER, 14, 0, 0, columns=_COLUMNS, geometry_type="polygon"
+        )
+
+    main, anchors = (c.args[0] for c in pool.execute_with_retry.call_args_list)
+    assert "'default_anchor'" in anchors and "ST_PointOnSurface" in anchors

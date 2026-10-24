@@ -1450,86 +1450,63 @@ class TileService:
         # Always include rowid in the candidates CTE
         select_clause += ", rowid"
 
-        # Check if table has bbox column for fast row group pruning
-        # Support both legacy scalar columns ($minx, etc.) and GeoParquet 1.1 struct bbox
-        has_scalar_bbox = all(
-            c in column_names for c in ["$minx", "$miny", "$maxx", "$maxy"]
-        )
-        has_struct_bbox = "bbox" in column_names
-        has_bbox_columns = has_scalar_bbox or has_struct_bbox
-
-        # Compute tile bounds unconditionally — cheap pure math needed by both
-        # the fast-path bbox query and the arrow layer (if requested).
+        # Tile bounds as literals: cheap pure math needed by the query and the
+        # arrow layer (if requested).
         tile_xmin, tile_ymin, tile_xmax, tile_ymax = tile_to_bbox_4326(z, x, y)
         tile_xmin_3857, tile_ymin_3857, tile_xmax_3857, tile_ymax_3857 = (
             tile_to_bbox_3857(z, x, y)
         )
 
-        if has_bbox_columns:
-            # Fast path: use bbox columns for row group pruning
-            # This is 10-100x faster because parquet can skip entire row groups
-
-            # Prefer scalar columns (legacy) over struct bbox (GeoParquet 1.1)
-            if has_scalar_bbox:
-                bbox_filter = f""""$minx" <= {tile_xmax}
-                      AND "$maxx" >= {tile_xmin}
-                      AND "$miny" <= {tile_ymax}
-                      AND "$maxy" >= {tile_ymin}"""
-            else:
-                bbox_filter = f"""bbox.xmin <= {tile_xmax}
-                      AND bbox.xmax >= {tile_xmin}
-                      AND bbox.ymin <= {tile_ymax}
-                      AND bbox.ymax >= {tile_ymin}"""
-
-            # Use pre-computed literal bounds everywhere - no ST_TileEnvelope in main query
-            # This eliminates redundant geometry computations
-            # Note: Using LIMIT instead of ORDER BY random() - with Hilbert-ordered data,
-            # this gives spatially coherent results and is much faster (no sort needed)
-            query = f"""
-                WITH bounds AS (
-                    SELECT
-                        ST_MakeEnvelope({tile_xmin_3857}, {tile_ymin_3857}, {tile_xmax_3857}, {tile_ymax_3857}) AS bbox3857,
-                        ST_MakeEnvelope({tile_xmin}, {tile_ymin}, {tile_xmax}, {tile_ymax}) AS bbox4326
-                ),
-                candidates AS (
-                    SELECT {select_clause}
-                    FROM {table}, bounds
-                    WHERE {bbox_filter}
-                      AND ST_Intersects("{geom_col}", bounds.bbox4326){extra_where_sql}
-                    LIMIT {limit}
-                )
-                SELECT ST_AsMVT(
-                    struct_pack({struct_pack_args}),
-                    'default',
-                    4096,
-                    'geometry',
-                    '_rowid'
-                )
-                FROM candidates, bounds
-            """
+        # Prefilter on the bbox columns GOAT writes with every layer: their
+        # row-group statistics skip whole row groups, and the comparisons drop
+        # rows before any geometry is decoded. DuckDB 2.0 pushes the struct
+        # fields into the Parquet scan only when written as bbox['xmin']; with
+        # bbox.xmin it evaluates them after reading every row. Without bbox
+        # columns, ST_Intersects alone still skips row groups by the bounding box
+        # the native GEOMETRY type stores per row group.
+        if all(c in column_names for c in ["$minx", "$miny", "$maxx", "$maxy"]):
+            bbox_filter = (
+                f'"$minx" <= {tile_xmax} AND "$maxx" >= {tile_xmin} AND '
+                f'"$miny" <= {tile_ymax} AND "$maxy" >= {tile_ymin} AND '
+            )
+        elif "bbox" in column_names:
+            bbox_filter = (
+                f"bbox['xmin'] <= {tile_xmax} AND bbox['xmax'] >= {tile_xmin} AND "
+                f"bbox['ymin'] <= {tile_ymax} AND bbox['ymax'] >= {tile_ymin} AND "
+            )
         else:
-            # Fallback: no bbox columns, use ST_Intersects only
-            query = f"""
-                WITH bounds AS (
-                    SELECT
-                        ST_TileEnvelope({z}, {x}, {y}) AS bbox3857,
-                        ST_Transform(ST_TileEnvelope({z}, {x}, {y}), 'EPSG:3857', 'EPSG:4326', always_xy := true) AS bbox4326
-                ),
-                candidates AS (
-                    SELECT {select_clause}
-                    FROM {table}, bounds
-                    WHERE ST_Intersects("{geom_col}", bounds.bbox4326){extra_where_sql}
-                    LIMIT {limit}
-                )
-                SELECT ST_AsMVT(
-                    struct_pack({struct_pack_args}),
-                    'default',
-                    4096,
-                    'geometry',
-                    '_rowid'
-                )
-                FROM candidates, bounds
-            """
+            bbox_filter = ""
+
+        # The tile envelope goes into the filter as a literal: joined in from the
+        # bounds CTE, DuckDB 2.0 runs ST_Intersects as a spatial join after the
+        # scan instead of inside it (z14 tiles ~1.8x the CPU time).
+        tile_4326 = (
+            f"ST_MakeEnvelope({tile_xmin}, {tile_ymin}, {tile_xmax}, {tile_ymax})"
+        )
+
+        # Note: Using LIMIT instead of ORDER BY random() - with Hilbert-ordered data,
+        # this gives spatially coherent results and is much faster (no sort needed)
+        query = f"""
+            WITH bounds AS (
+                SELECT
+                    ST_MakeEnvelope({tile_xmin_3857}, {tile_ymin_3857}, {tile_xmax_3857}, {tile_ymax_3857}) AS bbox3857,
+                    ST_MakeEnvelope({tile_xmin}, {tile_ymin}, {tile_xmax}, {tile_ymax}) AS bbox4326
+            ),
+            candidates AS (
+                SELECT {select_clause}
+                FROM {table}
+                WHERE {bbox_filter}ST_Intersects("{geom_col}", {tile_4326}){extra_where_sql}
+                LIMIT {limit}
+            )
+            SELECT ST_AsMVT(
+                struct_pack({struct_pack_args}),
+                'default',
+                4096,
+                'geometry',
+                '_rowid'
+            )
+            FROM candidates, bounds
+        """
 
         # Determine if we need to generate label anchor points for polygon layers
         is_polygon_layer = geometry_type and "polygon" in geometry_type.lower()
@@ -1675,6 +1652,10 @@ class TileService:
         else:
             return None
 
+        # A literal envelope, as in the tile query: ST_Intersects runs in the scan.
+        tile_4326 = (
+            f"ST_MakeEnvelope({tile_xmin}, {tile_ymin}, {tile_xmax}, {tile_ymax})"
+        )
         placement_query = f"""
             WITH bounds AS (
                 SELECT
@@ -1683,8 +1664,8 @@ class TileService:
             ),
             candidates AS (
                 SELECT "{geom_col}", rowid
-                FROM {table}, bounds
-                WHERE ST_Intersects("{geom_col}", bounds.bbox4326){extra_where_sql}
+                FROM {table}
+                WHERE ST_Intersects("{geom_col}", {tile_4326}){extra_where_sql}
             ),
             placement_pts AS (
                 {placement_cte}
@@ -1766,8 +1747,8 @@ class TileService:
             f"struct_pack({struct_pack_args})",
             f"struct_pack({anchor_struct})",
         ).replace(
-            "'default',\n                    4096,\n                    'geometry',\n                    '_rowid'",
-            "'default_anchor',\n                    4096,\n                    'geometry',\n                    '_rowid'",
+            "'default',\n                4096,\n                'geometry',\n                '_rowid'",
+            "'default_anchor',\n                4096,\n                'geometry',\n                '_rowid'",
         )
 
         try:
