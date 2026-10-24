@@ -14,7 +14,9 @@ duckdb, so services can use it without the tool runtime.
 """
 
 import json
+import os
 import re
+import threading
 from collections.abc import Iterable
 from typing import Any
 
@@ -144,15 +146,29 @@ def _with_pivot_value_lists(sql: str) -> str:
     return sql
 
 
+# One in-memory database per process for parsing: a new connection costs
+# 10-15 ms, the parse under 1 ms. Opened on first use and per process id, so a
+# forked worker never uses its parent's database; every call takes its own
+# cursor, so threads never share a connection. Nothing here touches data.
+_parsers: dict[int, duckdb.DuckDBPyConnection] = {}
+_parsers_lock = threading.Lock()
+
+
+def _parser() -> duckdb.DuckDBPyConnection:
+    pid = os.getpid()
+    with _parsers_lock:
+        if pid not in _parsers:
+            _parsers.clear()
+            _parsers[pid] = duckdb.connect()
+        return _parsers[pid]
+
+
 def _parse(sql: str) -> dict[str, Any]:
     """DuckDB's parse tree of exactly one SELECT statement."""
-    connection = duckdb.connect()
-    try:
+    with _parser().cursor() as connection:
         row = connection.execute(
             "SELECT json_serialize_sql(?)", [_with_pivot_value_lists(sql)]
         ).fetchone()
-    finally:
-        connection.close()
     try:
         tree = json.loads(row[0]) if row else {"error": True}
     except RecursionError as e:
