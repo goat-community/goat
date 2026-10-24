@@ -8,6 +8,7 @@ creates the catalog must use that host too.
 
 from typing import Any
 
+import duckdb
 import pytest
 from goatlib.storage import ducklake_init
 
@@ -15,10 +16,15 @@ from goatlib.storage import ducklake_init
 class _RecordingConnection:
     def __init__(self) -> None:
         self.executed: list[str] = []
+        self.indexes: list[str] = []
 
     def execute(self, sql: str, *_: Any) -> "_RecordingConnection":
         self.executed.append(sql)
         return self
+
+    def fetchall(self) -> list[tuple[str]]:
+        # Only the catalog index lookup reads rows here.
+        return [(name,) for name in self.indexes]
 
     def close(self) -> None:
         pass
@@ -88,3 +94,62 @@ def test_the_catalog_uses_the_direct_port_when_set(
     ducklake_init.bootstrap_from_env()
 
     assert "host=primary port=5432 " in _attach(connection)
+
+
+@pytest.mark.unit
+def test_the_bootstrap_indexes_the_column_stats_after_attaching(
+    connection: _RecordingConnection,
+) -> None:
+    ducklake_init.bootstrap_from_env()
+
+    attach = connection.executed.index(_attach(connection))
+    indexes = [
+        s for s in connection.executed[attach:] if "CREATE INDEX IF NOT EXISTS" in s
+    ]
+    for target in (
+        '"ducklake".ducklake_table_column_stats (table_id, column_id)',
+        '"ducklake".ducklake_file_column_stats (table_id, column_id)',
+        '"ducklake".ducklake_data_file (table_id)',
+    ):
+        assert any(target in s for s in indexes), target
+
+
+@pytest.mark.unit
+def test_an_index_that_cannot_be_created_does_not_stop_the_bootstrap(
+    connection: _RecordingConnection,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    record = connection.execute
+
+    def execute(sql: str, *args: Any) -> _RecordingConnection:
+        if "CREATE INDEX" in sql:
+            raise duckdb.Error(
+                "permission denied for table ducklake_table_column_stats"
+            )
+        return record(sql, *args)
+
+    monkeypatch.setattr(connection, "execute", execute)
+
+    ducklake_init.bootstrap_from_env()
+
+    out = capsys.readouterr().out
+    assert "could not create catalog index" in out
+    assert "DuckLake initialized successfully!" in out
+
+
+@pytest.mark.unit
+def test_an_index_that_exists_is_not_created_again(
+    connection: _RecordingConnection,
+) -> None:
+    """CREATE INDEX IF NOT EXISTS still waits for a lock that blocks writes."""
+    connection.indexes = [
+        "CREATE INDEX own_name ON ducklake.ducklake_table_column_stats "
+        "USING btree (table_id, column_id)"
+    ]
+
+    ducklake_init.bootstrap_from_env()
+
+    created = [s for s in connection.executed if "CREATE INDEX" in s]
+    assert not [s for s in created if "ducklake_table_column_stats (" in s]
+    assert [s for s in created if "ducklake_file_column_stats (" in s]

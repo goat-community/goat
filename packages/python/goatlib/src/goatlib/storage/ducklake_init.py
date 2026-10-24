@@ -23,6 +23,7 @@ have different lifecycles, different tests, different reviewers.
 from __future__ import annotations
 
 import os
+import re
 import sys
 
 import duckdb
@@ -39,6 +40,62 @@ from goatlib.storage.ducklake import (
 )
 from goatlib.storage.s3_config import apply_duckdb_s3_settings, duckdb_s3_endpoint
 from goatlib.utils.credentials import postgres_attach_target
+
+# Postgres indexes DuckLake does not create itself; on a catalog of ~20k tables
+# each lookup without them scans a table of 200k+ rows.
+# - table_column_stats: DuckLake 1.1 (DuckDB 2.0) updates a table's global column
+#   statistics one column per statement, so each feature edit took ~0.6 s
+#   instead of ~0.08 s.
+# - file_column_stats, data_file: a query that filters on a column reads the
+#   per-file statistics of that column to skip files, ~13 ms more for every
+#   filtered statistics, tile or features query on a pinned snapshot.
+CATALOG_INDEXES = {
+    "ducklake_table_column_stats_table_column": (
+        "ducklake_table_column_stats (table_id, column_id)"
+    ),
+    "ducklake_file_column_stats_table_column": (
+        "ducklake_file_column_stats (table_id, column_id)"
+    ),
+    "ducklake_data_file_table": "ducklake_data_file (table_id)",
+}
+
+
+def ensure_catalog_indexes(con: duckdb.DuckDBPyConnection, schema: str) -> None:
+    """Create the CATALOG_INDEXES that are missing; a no-op once they exist.
+
+    Every pod's bootstrap runs this, so it looks the indexes up first: even with
+    IF NOT EXISTS, CREATE INDEX waits for a lock that blocks catalog writes. An
+    index only speeds up the catalog, so one that cannot be created (a catalog
+    user without the right to, a lock that times out) is reported and the
+    bootstrap carries on.
+    """
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", schema):
+        print(f"WARNING: not indexing catalog schema {schema!r}: unusual name")
+        return
+    # By definition, not name: an operator's own index on the same columns counts.
+    lookup = f"SELECT indexdef FROM pg_indexes WHERE schemaname = ''{schema}''"
+    try:
+        existing = [
+            definition
+            for (definition,) in con.execute(
+                "SELECT indexdef FROM postgres_query("
+                f"'__ducklake_metadata_lake', '{lookup}')"
+            ).fetchall()
+        ]
+    except duckdb.Error as e:
+        print(f"WARNING: could not list catalog indexes: {e}")
+        return
+    for name, target in CATALOG_INDEXES.items():
+        table, columns = target.split(" ", 1)
+        if any(f".{table} USING btree {columns}" in d for d in existing):
+            continue
+        try:
+            con.execute(
+                "CALL postgres_execute('__ducklake_metadata_lake', "
+                f"'CREATE INDEX IF NOT EXISTS {name} ON \"{schema}\".{target}')"
+            )
+        except duckdb.Error as e:
+            print(f"WARNING: could not create catalog index {name}: {e}")
 
 
 def bootstrap_from_env() -> None:
@@ -127,6 +184,8 @@ def bootstrap_from_env() -> None:
         f"  METADATA_SCHEMA '{catalog_schema}'"
         f")"
     )
+
+    ensure_catalog_indexes(con, catalog_schema)
 
     print("DuckLake initialized successfully!")
     print(f"  Catalog: {catalog_schema}")

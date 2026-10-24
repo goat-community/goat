@@ -25,7 +25,9 @@ class _RecordingConnection:
         return None
 
     def fetchall(self) -> list[Any]:
-        # `SELECT current_setting('threads')` is the only list read here.
+        # `SELECT current_setting('threads')`; the catalog index lookup finds none.
+        if "pg_indexes" in self.executed[-1]:
+            return []
         return [(4,)]
 
     def close(self) -> None:
